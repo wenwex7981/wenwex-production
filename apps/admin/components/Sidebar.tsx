@@ -9,6 +9,7 @@ import {
 
 const sidebarLinks = [
     { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
+    { href: '/admin/access-control', label: 'Access Control', icon: Shield },
     { href: '/admin/vendors', label: 'Vendors', icon: Building2 },
     { href: '/admin/services', label: 'Services', icon: Package },
     { href: '/admin/users', label: 'Users', icon: Users },

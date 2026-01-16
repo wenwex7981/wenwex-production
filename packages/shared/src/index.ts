@@ -16,3 +16,6 @@ export * from './utils';
 
 // Database & Auth
 export * from './supabase';
+
+// Access Control
+export * from './access-control';
