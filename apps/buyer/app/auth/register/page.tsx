@@ -83,10 +83,15 @@ export default function RegisterPage() {
                     console.error('User insert error:', insertError);
                 }
 
-                toast.success('Account created successfully! Please check your email to verify.');
-
-                // Redirect to login or home
-                router.push('/auth/login?registered=true');
+                // Check if user is already confirmed (email confirmation disabled in Supabase)
+                if (data.user.email_confirmed_at || data.session) {
+                    toast.success('Account created successfully! Welcome to WENVEX!');
+                    router.push('/');
+                } else {
+                    // Email confirmation required
+                    toast.success('Account created! Please check your email to verify your account.');
+                    router.push('/auth/login?registered=true');
+                }
             }
         } catch (error: any) {
             console.error('Registration error:', error);
