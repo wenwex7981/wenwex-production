@@ -1,0 +1,40 @@
+{
+  "name": "wenvex",
+  "version": "1.0.0",
+  "private": true,
+  "description": "WENVEX - Enterprise Tech-Commerce Marketplace",
+  "author": "Project Genie Tech Solutions",
+  "license": "UNLICENSED",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev:api\" \"npm run dev:buyer\" \"npm run dev:vendor\" \"npm run dev:admin\"",
+    "dev:buyer": "npm run dev --workspace=apps/buyer",
+    "dev:vendor": "npm run dev --workspace=apps/vendor",
+    "dev:admin": "npm run dev --workspace=apps/admin",
+    "dev:api": "npm run dev --workspace=apps/api",
+    "build": "npm run build --workspaces",
+    "build:buyer": "npm run build --workspace=apps/buyer",
+    "build:vendor": "npm run build --workspace=apps/vendor",
+    "build:admin": "npm run build --workspace=apps/admin",
+    "build:api": "npm run build --workspace=apps/api",
+    "start": "npm run start --workspaces",
+    "lint": "npm run lint --workspaces",
+    "install:all": "npm install",
+    "db:migrate": "npm run migrate --workspace=packages/database",
+    "db:seed": "npm run seed --workspace=packages/database",
+    "db:generate": "npm run generate --workspace=packages/database",
+    "clean": "rimraf node_modules apps/*/node_modules packages/*/node_modules"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "rimraf": "^5.0.5",
+    "typescript": "^5.3.3"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "npm": ">=10.0.0"
+  }
+}

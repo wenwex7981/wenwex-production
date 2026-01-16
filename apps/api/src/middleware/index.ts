@@ -1,0 +1,9 @@
+// ===========================================
+// MIDDLEWARE INDEX
+// ===========================================
+
+export * from './error.middleware';
+export * from './notFound.middleware';
+export * from './auth.middleware';
+export * from './validate.middleware';
+export * from './rateLimit.middleware';
