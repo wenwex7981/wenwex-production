@@ -252,7 +252,7 @@ export default function ServiceDetailPage({ params }: { params: { slug: string }
                                 <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent pointer-events-none" />
                             </div>
                             <div className="p-4 flex gap-3 overflow-x-auto scrollbar-hide">
-                                {service.media.map((item, index) => (
+                                {service.media.map((item: { type: string; url: string }, index: number) => (
                                     <button
                                         key={index}
                                         onClick={() => setSelectedImage(index)}
@@ -314,7 +314,7 @@ export default function ServiceDetailPage({ params }: { params: { slug: string }
                         <div className="card">
                             <h2 className="text-xl font-semibold text-gray-900 mb-4">About This Service</h2>
                             <div className="prose prose-gray max-w-none">
-                                {service.description.split('\n\n').map((para, idx) => (
+                                {service.description.split('\n\n').map((para: string, idx: number) => (
                                     <p key={idx} className="text-gray-600 mb-4 whitespace-pre-line">{para}</p>
                                 ))}
                             </div>
@@ -415,7 +415,7 @@ export default function ServiceDetailPage({ params }: { params: { slug: string }
 
                             {/* Review List */}
                             <div className="space-y-6">
-                                {service.reviews.map((review) => (
+                                {service.reviews.map((review: { id: string; user: { name: string; avatar: string | null }; rating: number; title: string; comment: string; date: string }) => (
                                     <div key={review.id} className="border-b border-gray-100 last:border-0 pb-6 last:pb-0">
                                         <div className="flex items-start gap-3">
                                             <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center text-gray-600 font-medium">
