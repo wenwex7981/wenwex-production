@@ -1,7 +1,8 @@
-import { supabase } from './supabase';
+import { getSupabaseClient } from './supabase';
 
 export async function testConnection() {
     try {
+        const supabase = getSupabaseClient();
         const { data, error } = await supabase.from('vendors').select('count', { count: 'exact', head: true });
         if (error) {
             console.error('Error connecting to Supabase tables:', error.message);
