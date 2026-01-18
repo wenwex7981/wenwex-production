@@ -406,3 +406,137 @@ export async function fetchSiteSettings(): Promise<Record<string, any>> {
     }
 }
 
+// ==========================================
+// FOLLOWER MANAGEMENT FUNCTIONS
+// ==========================================
+
+/**
+ * Check if user is following a vendor
+ */
+export async function checkIsFollowing(vendorId: string, userId: string): Promise<boolean> {
+    if (!vendorId || !userId) return false;
+
+    try {
+        const { data, error } = await supabase
+            .from('vendor_followers')
+            .select('id')
+            .eq('vendor_id', vendorId)
+            .eq('user_id', userId)
+            .single();
+
+        return !!data && !error;
+    } catch (error) {
+        return false;
+    }
+}
+
+/**
+ * Follow a vendor
+ */
+export async function followVendor(vendorId: string, userId: string): Promise<boolean> {
+    if (!vendorId || !userId) return false;
+
+    try {
+        const { error } = await supabase
+            .from('vendor_followers')
+            .insert({
+                vendor_id: vendorId,
+                user_id: userId
+            });
+
+        if (error) {
+            console.error('Error following vendor:', error);
+            return false;
+        }
+        return true;
+    } catch (error) {
+        console.error('Error following vendor:', error);
+        return false;
+    }
+}
+
+/**
+ * Unfollow a vendor
+ */
+export async function unfollowVendor(vendorId: string, userId: string): Promise<boolean> {
+    if (!vendorId || !userId) return false;
+
+    try {
+        const { error } = await supabase
+            .from('vendor_followers')
+            .delete()
+            .eq('vendor_id', vendorId)
+            .eq('user_id', userId);
+
+        if (error) {
+            console.error('Error unfollowing vendor:', error);
+            return false;
+        }
+        return true;
+    } catch (error) {
+        console.error('Error unfollowing vendor:', error);
+        return false;
+    }
+}
+
+/**
+ * Get list of followers for a vendor (with names)
+ */
+export async function getFollowersList(vendorId: string, limit: number = 10): Promise<any[]> {
+    if (!vendorId) return [];
+
+    try {
+        const { data, error } = await supabase
+            .from('vendor_followers')
+            .select(`
+                id,
+                followed_at,
+                user_id
+            `)
+            .eq('vendor_id', vendorId)
+            .order('followed_at', { ascending: false })
+            .limit(limit);
+
+        if (error || !data) return [];
+
+        // Get user details from auth.users or profiles table
+        const userIds = data.map(f => f.user_id);
+        const { data: profiles } = await supabase
+            .from('profiles')
+            .select('id, full_name, avatar_url, email')
+            .in('id', userIds);
+
+        return data.map(follower => {
+            const profile = profiles?.find(p => p.id === follower.user_id);
+            return {
+                id: follower.id,
+                userId: follower.user_id,
+                followedAt: follower.followed_at,
+                name: profile?.full_name || profile?.email?.split('@')[0] || 'WENWEX User',
+                avatar: profile?.avatar_url || `https://ui-avatars.com/api/?name=User&background=6366f1&color=fff&size=80`
+            };
+        });
+    } catch (error) {
+        console.error('Error getting followers list:', error);
+        return [];
+    }
+}
+
+/**
+ * Get real-time follower count for a vendor
+ */
+export async function getFollowerCount(vendorId: string): Promise<number> {
+    if (!vendorId) return 0;
+
+    try {
+        const { count, error } = await supabase
+            .from('vendor_followers')
+            .select('*', { count: 'exact', head: true })
+            .eq('vendor_id', vendorId);
+
+        return count || 0;
+    } catch (error) {
+        return 0;
+    }
+}
+

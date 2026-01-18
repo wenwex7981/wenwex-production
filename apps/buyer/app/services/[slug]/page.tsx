@@ -285,7 +285,35 @@ export default function ServiceDetailPage({ params }: { params: { slug: string }
                                     >
                                         <Heart className={`w-5 h-5 ${isSaved ? 'fill-red-500' : ''}`} />
                                     </button>
-                                    <button className="btn-icon border border-gray-200">
+                                    <button
+                                        className="btn-icon border border-gray-200"
+                                        onClick={async () => {
+                                            const shareUrl = window.location.href;
+                                            const shareText = `Check out this service: ${service.title} on WENWEX`;
+
+                                            // Try native share first (mobile)
+                                            if (navigator.share) {
+                                                try {
+                                                    await navigator.share({
+                                                        title: service.title,
+                                                        text: shareText,
+                                                        url: shareUrl
+                                                    });
+                                                    toast.success('Shared successfully!');
+                                                } catch (err) {
+                                                    // User cancelled share
+                                                }
+                                            } else {
+                                                // Fallback: Copy to clipboard
+                                                try {
+                                                    await navigator.clipboard.writeText(shareUrl);
+                                                    toast.success('Link copied to clipboard!');
+                                                } catch (err) {
+                                                    toast.error('Failed to copy link');
+                                                }
+                                            }
+                                        }}
+                                    >
                                         <Share2 className="w-5 h-5" />
                                     </button>
                                 </div>

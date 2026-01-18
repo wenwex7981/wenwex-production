@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 import { useCurrencyStore } from '@/lib/currency-store';
 import { useState, useEffect } from 'react';
-import { fetchVendorBySlug } from '@/lib/data-service';
+import { fetchVendorBySlug, checkIsFollowing, followVendor, unfollowVendor, getFollowerCount } from '@/lib/data-service';
 import { DynamicFieldsDisplay, DynamicFieldsForm } from '@/lib/dynamic-fields';
 import { useAuthStore } from '@/lib/auth-store';
 import { getOrCreateConversation } from '@/lib/chat-service';
@@ -147,6 +147,8 @@ export default function VendorProfilePage({ params }: { params: { slug: string }
     const [isLoading, setIsLoading] = useState(true);
     const [activeTab, setActiveTab] = useState<TabType>('overview');
     const [isFollowing, setIsFollowing] = useState(false);
+    const [isFollowLoading, setIsFollowLoading] = useState(false);
+    const [followerCount, setFollowerCount] = useState(0);
     const [selectedMedia, setSelectedMedia] = useState<{ url: string; type: 'image' | 'video' } | null>(null);
     const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
     const { user, isAuthenticated } = useAuthStore();
@@ -452,6 +454,7 @@ We've helped organizations across finance, healthcare, and technology sectors ac
             // First check if slug matches a mock vendor
             if (mockVendors[slug]) {
                 setVendor(mockVendors[slug]);
+                setFollowerCount(mockVendors[slug].followersCount || 0);
                 setIsLoading(false);
                 return;
             }
@@ -461,11 +464,19 @@ We've helped organizations across finance, healthcare, and technology sectors ac
                 const data = await fetchVendorBySlug(slug);
                 if (data) {
                     setVendor(data);
+                    setFollowerCount(data.followersCount || 0);
+
+                    // Check if current user is following this vendor
+                    if (user?.id && data.id) {
+                        const following = await checkIsFollowing(data.id, user.id);
+                        setIsFollowing(following);
+                    }
                 } else {
                     // Check if any mock vendor ID matches
                     const mockByIdVendor = Object.values(mockVendors).find((v: any) => v.id === slug);
                     if (mockByIdVendor) {
                         setVendor(mockByIdVendor);
+                        setFollowerCount(mockByIdVendor.followersCount || 0);
                     }
                 }
             } catch (error) {
@@ -475,7 +486,7 @@ We've helped organizations across finance, healthcare, and technology sectors ac
             }
         }
         loadVendor();
-    }, [slug]);
+    }, [slug, user?.id]);
 
     const handleContact = async () => {
         if (!isAuthenticated) {
@@ -683,7 +694,7 @@ We've helped organizations across finance, healthcare, and technology sectors ac
                     </div>
                     <div className="glass px-4 py-2 rounded-xl flex items-center gap-2">
                         <Users className="w-5 h-5 text-blue-400" />
-                        <span className="font-bold text-white">{(vendor.followersCount || 2450).toLocaleString()}</span>
+                        <span className="font-bold text-white">{followerCount.toLocaleString()}</span>
                         <span className="text-white/70 text-sm">followers</span>
                     </div>
                 </div>
@@ -764,7 +775,7 @@ We've helped organizations across finance, healthcare, and technology sectors ac
                                     </div>
                                     <div className="flex items-center gap-1.5">
                                         <Users className="w-5 h-5 text-blue-500" />
-                                        <span className="font-bold text-gray-900">{(vendor.followersCount || 2450).toLocaleString()}</span>
+                                        <span className="font-bold text-gray-900">{followerCount.toLocaleString()}</span>
                                     </div>
                                 </div>
                             </div>
@@ -772,13 +783,47 @@ We've helped organizations across finance, healthcare, and technology sectors ac
                             {/* Actions */}
                             <div className="flex flex-col gap-3 w-full lg:w-auto">
                                 <button
-                                    onClick={() => setIsFollowing(!isFollowing)}
+                                    onClick={async () => {
+                                        if (!isAuthenticated) {
+                                            toast.error('Please sign in to follow this vendor');
+                                            return;
+                                        }
+                                        if (!user?.id || !vendor?.id) return;
+
+                                        setIsFollowLoading(true);
+                                        try {
+                                            if (isFollowing) {
+                                                const success = await unfollowVendor(vendor.id, user.id);
+                                                if (success) {
+                                                    setIsFollowing(false);
+                                                    setFollowerCount(prev => Math.max(0, prev - 1));
+                                                    toast.success('Unfollowed successfully');
+                                                }
+                                            } else {
+                                                const success = await followVendor(vendor.id, user.id);
+                                                if (success) {
+                                                    setIsFollowing(true);
+                                                    setFollowerCount(prev => prev + 1);
+                                                    toast.success('Now following ' + vendor.companyName);
+                                                }
+                                            }
+                                        } catch (error) {
+                                            toast.error('Action failed');
+                                        } finally {
+                                            setIsFollowLoading(false);
+                                        }
+                                    }}
+                                    disabled={isFollowLoading}
                                     className={`flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-semibold transition-all duration-300 ${isFollowing
                                         ? 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                                         : 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg shadow-blue-500/25 hover:shadow-xl hover:shadow-blue-500/30'
-                                        }`}
+                                        } ${isFollowLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
                                 >
-                                    <Heart className={`w-5 h-5 ${isFollowing ? 'fill-red-500 text-red-500' : ''}`} />
+                                    {isFollowLoading ? (
+                                        <Loader2 className="w-5 h-5 animate-spin" />
+                                    ) : (
+                                        <Heart className={`w-5 h-5 ${isFollowing ? 'fill-red-500 text-red-500' : ''}`} />
+                                    )}
                                     {isFollowing ? 'Following' : 'Follow'}
                                 </button>
 
@@ -840,6 +885,40 @@ We've helped organizations across finance, healthcare, and technology sectors ac
                                             <span className="text-[10px] font-bold text-purple-700 uppercase tracking-wide">Website</span>
                                         </a>
                                     </div>
+
+                                    {/* Share Profile Button */}
+                                    <button
+                                        onClick={async () => {
+                                            const shareUrl = window.location.href;
+                                            const shareText = `Check out ${vendor.companyName} on WENWEX - Professional service provider`;
+
+                                            // Try native share first (mobile)
+                                            if (navigator.share) {
+                                                try {
+                                                    await navigator.share({
+                                                        title: vendor.companyName,
+                                                        text: shareText,
+                                                        url: shareUrl
+                                                    });
+                                                    toast.success('Shared successfully!');
+                                                } catch (err) {
+                                                    // User cancelled share
+                                                }
+                                            } else {
+                                                // Fallback: Copy to clipboard
+                                                try {
+                                                    await navigator.clipboard.writeText(shareUrl);
+                                                    toast.success('Profile link copied to clipboard!');
+                                                } catch (err) {
+                                                    toast.error('Failed to copy link');
+                                                }
+                                            }
+                                        }}
+                                        className="w-full mt-2 flex items-center justify-center gap-2 px-4 py-3 bg-gray-50 hover:bg-gray-100 rounded-xl border border-gray-200 transition-all text-gray-700 font-semibold"
+                                    >
+                                        <Send className="w-4 h-4" />
+                                        Share Profile
+                                    </button>
                                 </div>
                             </div>
                         </div>
