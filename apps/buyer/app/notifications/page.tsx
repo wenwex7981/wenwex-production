@@ -101,7 +101,7 @@ const mockNotifications: Notification[] = [
         timestamp: '2 days ago',
         isRead: true,
         actionUrl: '/settings/security',
-        imageUrl: null,
+        imageUrl: undefined,
     },
     {
         id: '8',
@@ -261,8 +261,8 @@ export default function NotificationsPage() {
                                         key={option.value}
                                         onClick={() => setFilter(option.value)}
                                         className={`w-full text-left px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${filter === option.value
-                                                ? 'bg-blue-50 text-blue-600'
-                                                : 'text-gray-600 hover:bg-gray-50'
+                                            ? 'bg-blue-50 text-blue-600'
+                                            : 'text-gray-600 hover:bg-gray-50'
                                             }`}
                                     >
                                         {option.label}
@@ -341,8 +341,8 @@ export default function NotificationsPage() {
                                 className="text-sm text-gray-500 hover:text-gray-700 flex items-center gap-2"
                             >
                                 <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-colors ${selectedNotifications.length === filteredNotifications.length && filteredNotifications.length > 0
-                                        ? 'bg-blue-600 border-blue-600'
-                                        : 'border-gray-300'
+                                    ? 'bg-blue-600 border-blue-600'
+                                    : 'border-gray-300'
                                     }`}>
                                     {selectedNotifications.length === filteredNotifications.length && filteredNotifications.length > 0 && (
                                         <Check className="w-3 h-3 text-white" />
@@ -381,8 +381,8 @@ export default function NotificationsPage() {
                                                             toggleSelect(notification.id);
                                                         }}
                                                         className={`w-5 h-5 rounded-md border-2 flex-shrink-0 flex items-center justify-center transition-colors mt-1 ${selectedNotifications.includes(notification.id)
-                                                                ? 'bg-blue-600 border-blue-600'
-                                                                : 'border-gray-300 hover:border-blue-400'
+                                                            ? 'bg-blue-600 border-blue-600'
+                                                            : 'border-gray-300 hover:border-blue-400'
                                                             }`}
                                                     >
                                                         {selectedNotifications.includes(notification.id) && (
