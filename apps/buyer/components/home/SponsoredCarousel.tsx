@@ -4,43 +4,76 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { ArrowRight, Sparkles, ChevronLeft, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
+import { createClient } from '@supabase/supabase-js';
 
-// Mock Sponsored Data
-const sponsoredItems = [
+// Fallback Sponsored Data (used when no database content)
+const fallbackSponsoredItems = [
     {
         id: 1,
         title: "Cloud Infrastructure Summit 2024",
-        sponsor: "AWS",
-        image: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=2000",
+        sponsor_name: "AWS",
+        image_url: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=2000",
         description: "Join the world's leading cloud providers for a 3-day virtual summit.",
-        cta: "Register Free",
+        cta_text: "Register Free",
+        cta_link: "#",
         tag: "Featured Event",
-        color: "from-blue-600 to-cyan-500"
+        color_from: "#2563eb",
+        color_to: "#06b6d4"
     },
     {
         id: 2,
         title: "Next-Gen AI Development Tools",
-        sponsor: "NVIDIA",
-        image: "https://images.unsplash.com/photo-1620712943543-bcc4688e7485?q=80&w=2000",
+        sponsor_name: "NVIDIA",
+        image_url: "https://images.unsplash.com/photo-1620712943543-bcc4688e7485?q=80&w=2000",
         description: "Accelerate your AI workflows with the new Omniverse suite.",
-        cta: "Learn More",
+        cta_text: "Learn More",
+        cta_link: "#",
         tag: "Product Launch",
-        color: "from-green-600 to-emerald-500"
+        color_from: "#059669",
+        color_to: "#10b981"
     },
     {
         id: 3,
         title: "Global Freelancer Awards",
-        sponsor: "WENWEX",
-        image: "https://images.unsplash.com/photo-1552664730-d307ca884978?q=80&w=2000",
+        sponsor_name: "WENWEX",
+        image_url: "https://images.unsplash.com/photo-1552664730-d307ca884978?q=80&w=2000",
         description: "Celebrating the top 1% of talent on our platform. Nominations open.",
-        cta: "Nominate Now",
+        cta_text: "Nominate Now",
+        cta_link: "#",
         tag: "Community",
-        color: "from-violet-600 to-purple-500"
+        color_from: "#7c3aed",
+        color_to: "#a855f7"
     }
 ];
 
 export function SponsoredCarousel() {
+    const [sponsoredItems, setSponsoredItems] = useState<any[]>(fallbackSponsoredItems);
     const [activeIndex, setActiveIndex] = useState(0);
+
+    // Fetch sponsored items from database
+    useEffect(() => {
+        async function fetchSponsoredItems() {
+            try {
+                const supabase = createClient(
+                    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+                    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+                );
+
+                const { data, error } = await supabase
+                    .from('sponsored_carousel_items')
+                    .select('*')
+                    .eq('is_active', true)
+                    .order('display_order', { ascending: true });
+
+                if (!error && data && data.length > 0) {
+                    setSponsoredItems(data);
+                }
+            } catch (error) {
+                console.error('Error fetching sponsored items:', error);
+            }
+        }
+        fetchSponsoredItems();
+    }, []);
 
     // Auto-rotate
     useEffect(() => {
@@ -48,7 +81,7 @@ export function SponsoredCarousel() {
             setActiveIndex((prev) => (prev + 1) % sponsoredItems.length);
         }, 5000);
         return () => clearInterval(interval);
-    }, []);
+    }, [sponsoredItems.length]);
 
     const goNext = () => setActiveIndex((prev) => (prev + 1) % sponsoredItems.length);
     const goPrev = () => setActiveIndex((prev) => (prev - 1 + sponsoredItems.length) % sponsoredItems.length);
@@ -96,7 +129,7 @@ export function SponsoredCarousel() {
                         >
                             {/* Background Image */}
                             <img
-                                src={item.image}
+                                src={item.image_url}
                                 alt={item.title}
                                 className="w-full h-full object-cover"
                             />
@@ -109,7 +142,8 @@ export function SponsoredCarousel() {
                                         initial={{ y: 20, opacity: 0 }}
                                         animate={{ y: index === activeIndex ? 0 : 20, opacity: index === activeIndex ? 1 : 0 }}
                                         transition={{ delay: 0.2 }}
-                                        className={`inline-block px-3 py-1 rounded-full bg-gradient-to-r ${item.color} text-white text-xs font-bold uppercase tracking-wider mb-4 shadow-lg`}
+                                        className="inline-block px-3 py-1 rounded-full text-white text-xs font-bold uppercase tracking-wider mb-4 shadow-lg"
+                                        style={{ background: `linear-gradient(135deg, ${item.color_from}, ${item.color_to})` }}
                                     >
                                         {item.tag}
                                     </motion.span>
@@ -129,15 +163,19 @@ export function SponsoredCarousel() {
                                     >
                                         {item.description}
                                     </motion.p>
-                                    <motion.button
+                                    <motion.div
                                         initial={{ y: 20, opacity: 0 }}
                                         animate={{ y: index === activeIndex ? 0 : 20, opacity: index === activeIndex ? 1 : 0 }}
                                         transition={{ delay: 0.5 }}
-                                        className="group flex items-center gap-2 bg-primary-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-primary-700 transition-colors shadow-lg shadow-primary-500/30"
                                     >
-                                        {item.cta}
-                                        <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                                    </motion.button>
+                                        <Link
+                                            href={item.cta_link || '#'}
+                                            className="group inline-flex items-center gap-2 bg-primary-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-primary-700 transition-colors shadow-lg shadow-primary-500/30"
+                                        >
+                                            {item.cta_text}
+                                            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                                        </Link>
+                                    </motion.div>
                                 </div>
                             </div>
                         </motion.div>

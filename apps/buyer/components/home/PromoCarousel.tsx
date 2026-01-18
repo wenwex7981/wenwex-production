@@ -4,50 +4,78 @@ import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronLeft, ChevronRight, ArrowRight, Star, Shield, Zap } from 'lucide-react';
 import Link from 'next/link';
+import { createClient } from '@supabase/supabase-js';
 
-const slides = [
+// Fallback slides (used if no database content)
+const fallbackSlides = [
     {
         id: 1,
         title: "Enterprise Solutions for Global Growth",
         subtitle: "Scale your business with our premium network of verified technology partners.",
-        image: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&q=80&w=2000",
-        tag: "Enterprise",
-        color: "blue",
-        stats: "500+ Qualified Agencies"
+        image_url: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&q=80&w=2000",
+        badge_text: "Enterprise",
+        cta_text: "Get Started",
+        cta_link: "/services"
     },
     {
         id: 2,
         title: "Advanced AI & Data Analytics",
         subtitle: "Unlock the power of your data with industry-leading AI models and experts.",
-        image: "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&q=80&w=2000",
-        tag: "Innovation",
-        color: "purple",
-        stats: "99.9% Success Rate"
+        image_url: "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&q=80&w=2000",
+        badge_text: "Innovation",
+        cta_text: "Explore",
+        cta_link: "/services"
     },
     {
         id: 3,
         title: "Elite UI/UX Design Standards",
         subtitle: "Crafting digital experiences that captivate, convert, and command attention.",
-        image: "https://images.unsplash.com/photo-1558655146-d09347e92766?auto=format&fit=crop&q=80&w=2000",
-        tag: "Creative",
-        color: "orange",
-        stats: "Top 1% Designers"
+        image_url: "https://images.unsplash.com/photo-1558655146-d09347e92766?auto=format&fit=crop&q=80&w=2000",
+        badge_text: "Creative",
+        cta_text: "View Portfolio",
+        cta_link: "/services"
     }
 ];
 
 export function PromoCarousel() {
+    const [slides, setSlides] = useState<any[]>(fallbackSlides);
     const [currentIndex, setCurrentIndex] = useState(0);
     const [direction, setDirection] = useState(0);
+
+    // Fetch carousel slides from database
+    useEffect(() => {
+        async function fetchSlides() {
+            try {
+                const supabase = createClient(
+                    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+                    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+                );
+
+                const { data, error } = await supabase
+                    .from('promo_carousel_slides')
+                    .select('*')
+                    .eq('is_active', true)
+                    .order('display_order', { ascending: true });
+
+                if (!error && data && data.length > 0) {
+                    setSlides(data);
+                }
+            } catch (error) {
+                console.error('Error fetching promo slides:', error);
+            }
+        }
+        fetchSlides();
+    }, []);
 
     const slideNext = useCallback(() => {
         setDirection(1);
         setCurrentIndex((prev) => (prev + 1) % slides.length);
-    }, []);
+    }, [slides.length]);
 
     const slidePrev = useCallback(() => {
         setDirection(-1);
         setCurrentIndex((prev) => (prev - 1 + slides.length) % slides.length);
-    }, []);
+    }, [slides.length]);
 
     useEffect(() => {
         const timer = setInterval(slideNext, 6000);
@@ -70,6 +98,8 @@ export function PromoCarousel() {
             opacity: 0
         })
     };
+
+    const currentSlide = slides[currentIndex] || fallbackSlides[0];
 
     return (
         <section className="py-10 bg-white overflow-hidden">
@@ -101,8 +131,8 @@ export function PromoCarousel() {
                         >
                             <div className="absolute inset-0">
                                 <img
-                                    src={slides[currentIndex].image}
-                                    alt={slides[currentIndex].title}
+                                    src={currentSlide.image_url || currentSlide.image}
+                                    alt={currentSlide.title}
                                     className="w-full h-full object-cover"
                                 />
                                 <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/40 to-transparent" />
@@ -115,13 +145,17 @@ export function PromoCarousel() {
                                     transition={{ delay: 0.3 }}
                                     className="flex items-center gap-3 mb-6"
                                 >
-                                    <span className="px-4 py-1.5 bg-primary-600 text-white text-[10px] font-black uppercase tracking-[0.2em] rounded-full shadow-lg shadow-primary-500/30">
-                                        {slides[currentIndex].tag}
-                                    </span>
-                                    <div className="flex items-center gap-1.5 bg-white/10 backdrop-blur-md px-3 py-1 rounded-full border border-white/10">
-                                        <Star className="w-3 h-3 text-yellow-400 fill-yellow-400" />
-                                        <span className="text-white text-[10px] font-bold uppercase tracking-wider">{slides[currentIndex].stats}</span>
-                                    </div>
+                                    {currentSlide.badge_text && (
+                                        <span className="px-4 py-1.5 bg-primary-600 text-white text-[10px] font-black uppercase tracking-[0.2em] rounded-full shadow-lg shadow-primary-500/30">
+                                            {currentSlide.badge_text}
+                                        </span>
+                                    )}
+                                    {currentSlide.description && (
+                                        <div className="flex items-center gap-1.5 bg-white/10 backdrop-blur-md px-3 py-1 rounded-full border border-white/10">
+                                            <Star className="w-3 h-3 text-yellow-400 fill-yellow-400" />
+                                            <span className="text-white text-[10px] font-bold uppercase tracking-wider">{currentSlide.description}</span>
+                                        </div>
+                                    )}
                                 </motion.div>
 
                                 <motion.h2
@@ -130,7 +164,7 @@ export function PromoCarousel() {
                                     transition={{ delay: 0.4 }}
                                     className="text-4xl lg:text-7xl font-black text-white leading-[1.1] mb-6 max-w-3xl tracking-tight"
                                 >
-                                    {slides[currentIndex].title}
+                                    {currentSlide.title}
                                 </motion.h2>
 
                                 <motion.p
@@ -139,7 +173,7 @@ export function PromoCarousel() {
                                     transition={{ delay: 0.5 }}
                                     className="text-lg lg:text-xl text-white/70 max-w-xl mb-10 leading-relaxed font-medium"
                                 >
-                                    {slides[currentIndex].subtitle}
+                                    {currentSlide.subtitle}
                                 </motion.p>
 
                                 <motion.div
@@ -149,11 +183,11 @@ export function PromoCarousel() {
                                     className="flex flex-wrap items-center gap-5"
                                 >
                                     <Link
-                                        href="/services"
+                                        href={currentSlide.cta_link || '/services'}
                                         className="bg-white text-gray-900 px-10 py-4 rounded-2xl font-black text-sm flex items-center gap-3 hover:bg-gray-100 transition-all active:scale-95 shadow-2xl shadow-white/10"
                                     >
                                         <Zap className="w-4 h-4 text-primary-600 fill-primary-600" />
-                                        Get Started Now
+                                        {currentSlide.cta_text || 'Get Started Now'}
                                     </Link>
                                     <Link
                                         href="/vendors"
@@ -204,4 +238,3 @@ export function PromoCarousel() {
         </section>
     );
 }
-
