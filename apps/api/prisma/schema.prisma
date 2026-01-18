@@ -1,0 +1,536 @@
+// ===========================================
+// WENWEX DATABASE SCHEMA - PostgreSQL (Supabase)
+// ===========================================
+// This is the complete database schema for the WENVEX platform
+// Using Prisma ORM with Supabase PostgreSQL
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// ==================== ENUMS ====================
+
+enum UserRole {
+  BUYER
+  VENDOR
+  SUPER_ADMIN
+}
+
+enum VendorStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  SUSPENDED
+}
+
+enum ServiceStatus {
+  DRAFT
+  PENDING
+  APPROVED
+  REJECTED
+  ARCHIVED
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  EXPIRED
+  CANCELLED
+  PENDING
+}
+
+enum SubscriptionPlanType {
+  STARTER
+  PROFESSIONAL
+  ENTERPRISE
+}
+
+enum MediaType {
+  IMAGE
+  VIDEO
+  PDF
+  SHORT
+  LINK
+  TEXT
+}
+
+enum CategoryType {
+  IT_TECH
+  ACADEMIC
+}
+
+// ==================== USERS ====================
+
+model User {
+  id              String    @id @default(uuid())
+  email           String    @unique
+  fullName        String    @map("full_name")
+  avatarUrl       String?   @map("avatar_url")
+  role            UserRole  @default(BUYER)
+  isEmailVerified Boolean   @default(false) @map("is_email_verified")
+  phone           String?
+  country         String?
+  supabaseId      String?   @unique @map("supabase_id")
+  
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+  deletedAt       DateTime? @map("deleted_at")
+
+  // Relations
+  vendor          Vendor?
+  reviews         Review[]
+  follows         Follow[]
+  savedServices   SavedService[]
+  adminLogs       AdminLog[]
+  conversations   ChatConversation[] @relation("BuyerConversations")
+  messages        ChatMessage[]      @relation("UserMessages")
+
+  @@index([email])
+  @@index([role])
+  @@index([supabaseId])
+  @@map("users")
+}
+
+// ==================== VENDORS ====================
+
+model Vendor {
+  id                    String       @id @default(uuid())
+  userId                String       @unique @map("user_id")
+  companyName           String       @map("company_name")
+  slug                  String       @unique
+  officialEmail         String       @map("official_email")
+  phone                 String
+  country               String
+  description           String?      @db.Text
+  logoUrl               String?      @map("logo_url")
+  bannerUrl             String?      @map("banner_url")
+  website               String?
+  websiteUrl            String?      @map("website_url")
+  panNumber             String?      @map("pan_number")
+  tanNumber             String?      @map("tan_number")
+  whatsappNumber        String?      @map("whatsapp_number")
+  paymentProofUrl       String?      @map("payment_proof_url")
+  foundedYear           String?      @map("founded_year")
+  teamSize              String?      @map("team_size")
+  projectsDone          String?      @map("projects_done")
+  satisfactionRate      String?      @map("satisfaction_rate")
+  socialLinks           Json?        @map("social_links")
+  subscriptionPlanId    String?      @map("subscription_plan_id")
+  subscriptionStatus    String?      @default("pending") @map("subscription_status")
+  isVerified            Boolean      @default(false) @map("is_verified")
+  verificationDocuments String[]     @default([]) @map("verification_documents")
+  status                VendorStatus @default(PENDING)
+  followersCount        Int          @default(0) @map("followers_count")
+  rating                Float        @default(0)
+  totalReviews          Int          @default(0) @map("total_reviews")
+  rejectionReason       String?      @map("rejection_reason")
+  
+  createdAt             DateTime     @default(now()) @map("created_at")
+  updatedAt             DateTime     @updatedAt @map("updated_at")
+  deletedAt             DateTime?    @map("deleted_at")
+
+  // Relations
+  user                  User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  services              Service[]
+  portfolio             VendorPortfolio[]
+  shorts                Short[]
+  followers             Follow[]
+  subscriptions         Subscription[]
+  conversations         ChatConversation[]
+
+  @@index([slug])
+  @@index([status])
+  @@index([country])
+  @@index([isVerified])
+  @@map("vendors")
+}
+
+// ==================== CATEGORIES ====================
+
+model Category {
+  id          String       @id @default(uuid())
+  name        String
+  slug        String       @unique
+  description String?      @db.Text
+  imageUrl    String?      @map("image_url")
+  type        CategoryType
+  order       Int          @default(0)
+  isVisible   Boolean      @default(true) @map("is_visible")
+  
+  createdAt   DateTime     @default(now()) @map("created_at")
+  updatedAt   DateTime     @updatedAt @map("updated_at")
+
+  // Relations
+  subCategories SubCategory[]
+  services      Service[]
+
+  @@index([slug])
+  @@index([type])
+  @@index([isVisible])
+  @@map("categories")
+}
+
+model SubCategory {
+  id          String    @id @default(uuid())
+  categoryId  String    @map("category_id")
+  name        String
+  slug        String    @unique
+  description String?   @db.Text
+  imageUrl    String?   @map("image_url")
+  order       Int       @default(0)
+  isVisible   Boolean   @default(true) @map("is_visible")
+  
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  category    Category  @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  services    Service[]
+
+  @@index([categoryId])
+  @@index([slug])
+  @@index([isVisible])
+  @@map("sub_categories")
+}
+
+// ==================== SERVICES ====================
+
+model Service {
+  id               String        @id @default(uuid())
+  vendorId         String        @map("vendor_id")
+  categoryId       String        @map("category_id")
+  subCategoryId    String?       @map("sub_category_id")
+  title            String
+  slug             String        @unique
+  description      String        @db.Text
+  shortDescription String?       @map("short_description")
+  price            Float
+  currency         String        @default("USD")
+  deliveryDays     Int           @map("delivery_days")
+  techStack        String[]      @default([]) @map("tech_stack")
+  features         String[]      @default([])
+  status           ServiceStatus @default(DRAFT)
+  isFeatured       Boolean       @default(false) @map("is_featured")
+  viewCount        Int           @default(0) @map("view_count")
+  rating           Float         @default(0)
+  totalReviews     Int           @default(0) @map("total_reviews")
+  rejectionReason  String?       @map("rejection_reason")
+  mainImageUrl     String?       @map("main_image_url")
+  
+  createdAt        DateTime      @default(now()) @map("created_at")
+  updatedAt        DateTime      @updatedAt @map("updated_at")
+  deletedAt        DateTime?     @map("deleted_at")
+
+  // Relations
+  vendor           Vendor        @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+  category         Category      @relation(fields: [categoryId], references: [id])
+  subCategory      SubCategory?  @relation(fields: [subCategoryId], references: [id])
+  media            ServiceMedia[]
+  reviews          Review[]
+  savedBy          SavedService[]
+  shorts           Short[]
+  conversations    ChatConversation[]
+
+  @@index([vendorId])
+  @@index([categoryId])
+  @@index([subCategoryId])
+  @@index([slug])
+  @@index([status])
+  @@index([isFeatured])
+  @@index([rating])
+  @@map("services")
+}
+
+model ServiceMedia {
+  id           String    @id @default(uuid())
+  serviceId    String    @map("service_id")
+  type         MediaType
+  url          String
+  thumbnailUrl String?   @map("thumbnail_url")
+  order        Int       @default(0)
+  
+  createdAt    DateTime  @default(now()) @map("created_at")
+
+  // Relations
+  service      Service   @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+
+  @@index([serviceId])
+  @@map("service_media")
+}
+
+// ==================== VENDOR PORTFOLIO ====================
+
+model VendorPortfolio {
+  id           String    @id @default(uuid())
+  vendorId     String    @map("vendor_id")
+  title        String
+  description  String?   @db.Text
+  type         MediaType
+  url          String
+  thumbnailUrl String?   @map("thumbnail_url")
+  order        Int       @default(0)
+  
+  createdAt    DateTime  @default(now()) @map("created_at")
+
+  // Relations
+  vendor       Vendor    @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+
+  @@index([vendorId])
+  @@map("vendor_portfolio")
+}
+
+// ==================== SHORTS / REELS ====================
+
+model Short {
+  id           String    @id @default(uuid())
+  vendorId     String    @map("vendor_id")
+  serviceId    String?   @map("service_id")
+  title        String?
+  videoUrl     String    @map("video_url")
+  thumbnailUrl String?   @map("thumbnail_url")
+  viewCount    Int       @default(0) @map("view_count")
+  likesCount   Int       @default(0) @map("likes_count")
+  isApproved   Boolean   @default(false) @map("is_approved")
+  
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+  deletedAt    DateTime? @map("deleted_at")
+
+  // Relations
+  vendor       Vendor    @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+  service      Service?  @relation(fields: [serviceId], references: [id])
+
+  @@index([vendorId])
+  @@index([serviceId])
+  @@index([isApproved])
+  @@map("shorts")
+}
+
+// ==================== FOLLOWS ====================
+
+model Follow {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  vendorId  String   @map("vendor_id")
+  
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relations
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  vendor    Vendor   @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, vendorId])
+  @@index([userId])
+  @@index([vendorId])
+  @@map("follows")
+}
+
+// ==================== SAVED SERVICES ====================
+
+model SavedService {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  serviceId String   @map("service_id")
+  
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relations
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  service   Service  @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, serviceId])
+  @@index([userId])
+  @@index([serviceId])
+  @@map("saved_services")
+}
+
+// ==================== SUBSCRIPTIONS ====================
+
+model Subscription {
+  id          String             @id @default(uuid())
+  vendorId    String             @map("vendor_id")
+  plan        SubscriptionPlanType
+  status      SubscriptionStatus @default(PENDING)
+  priceAmount Float              @map("price_amount")
+  currency    String
+  startDate   DateTime           @map("start_date")
+  endDate     DateTime           @map("end_date")
+  paymentId   String?            @map("payment_id")
+  
+  createdAt   DateTime           @default(now()) @map("created_at")
+  updatedAt   DateTime           @updatedAt @map("updated_at")
+
+  // Relations
+  vendor      Vendor             @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+
+  @@index([vendorId])
+  @@index([status])
+  @@map("subscriptions")
+}
+
+model SubscriptionPlan {
+  id              String   @id @default(uuid())
+  name            String
+  slug            String   @unique
+  description     String   @db.Text
+  price           Float
+  currency        String   @default("INR")
+  billingPeriod   String   @default("monthly") @map("billing_period")
+  servicesLimit   Int      @default(5) @map("services_limit")
+  features        String[] @default([])
+  isPopular       Boolean  @default(false) @map("is_popular")
+  badgeText       String?  @map("badge_text")
+  badgeColor      String?  @map("badge_color")
+  isActive        Boolean  @default(true) @map("is_active")
+  displayOrder    Int      @default(0) @map("display_order")
+  
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  @@map("subscription_plans")
+}
+
+model SubscriptionPricing {
+  id           String           @id @default(uuid())
+  plan         SubscriptionPlanType
+  country      String
+  currency     String
+  monthlyPrice Float            @map("monthly_price")
+  yearlyPrice  Float            @map("yearly_price")
+  features     String[]         @default([])
+  isActive     Boolean          @default(true) @map("is_active")
+  
+  createdAt    DateTime         @default(now()) @map("created_at")
+  updatedAt    DateTime         @updatedAt @map("updated_at")
+
+  @@unique([plan, country])
+  @@index([country])
+  @@index([isActive])
+  @@map("subscription_pricing")
+}
+
+// ==================== REVIEWS ====================
+
+model Review {
+  id         String   @id @default(uuid())
+  userId     String   @map("user_id")
+  serviceId  String   @map("service_id")
+  rating     Int
+  title      String?
+  comment    String?  @db.Text
+  isVerified Boolean  @default(false) @map("is_verified")
+  
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  service    Service  @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, serviceId])
+  @@index([serviceId])
+  @@index([rating])
+  @@map("reviews")
+}
+
+// ==================== HOMEPAGE SECTIONS ====================
+
+model HomepageSection {
+  id        String   @id @default(uuid())
+  type      String
+  title     String
+  subtitle  String?
+  order     Int      @default(0)
+  isVisible Boolean  @default(true) @map("is_visible")
+  config    Json?
+  
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([isVisible])
+  @@index([order])
+  @@map("homepage_sections")
+}
+
+// ==================== COUNTRIES ====================
+
+model Country {
+  code           String  @id
+  name           String
+  currency       String
+  currencySymbol String  @map("currency_symbol")
+  isEnabled      Boolean @default(true) @map("is_enabled")
+
+  @@index([isEnabled])
+  @@map("countries")
+}
+
+// ==================== ADMIN LOGS ====================
+
+model AdminLog {
+  id         String   @id @default(uuid())
+  adminId    String   @map("admin_id")
+  action     String
+  entityType String   @map("entity_type")
+  entityId   String?  @map("entity_id")
+  details    Json?
+  ipAddress  String?  @map("ip_address")
+  
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  // Relations
+  admin      User     @relation(fields: [adminId], references: [id])
+
+  @@index([adminId])
+  @@index([entityType])
+  @@index([createdAt])
+  @@map("admin_logs")
+}
+
+// ==================== CHAT & MESSAGING ====================
+
+model ChatConversation {
+  id        String   @id @default(uuid())
+  buyerId   String   @map("buyer_id")
+  vendorId  String   @map("vendor_id")
+  serviceId String?  @map("service_id")
+  status    String   @default("OPEN")
+  
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relations
+  buyer    User      @relation("BuyerConversations", fields: [buyerId], references: [id])
+  vendor   Vendor    @relation(fields: [vendorId], references: [id])
+  service  Service?  @relation(fields: [serviceId], references: [id])
+  messages ChatMessage[]
+
+  @@index([buyerId])
+  @@index([vendorId])
+  @@index([updatedAt])
+  @@map("chat_conversations")
+}
+
+model ChatMessage {
+  id             String   @id @default(uuid())
+  conversationId String   @map("conversation_id")
+  senderId       String   @map("sender_id")
+  content        String   @db.Text
+  isRead         Boolean  @default(false) @map("is_read")
+  
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  // Relations
+  conversation ChatConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender       User             @relation("UserMessages", fields: [senderId], references: [id])
+
+  @@index([conversationId])
+  @@index([senderId])
+  @@index([createdAt])
+  @@map("chat_messages")
+}
