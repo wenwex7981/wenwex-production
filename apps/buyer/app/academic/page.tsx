@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, Suspense } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     GraduationCap,
@@ -19,14 +19,16 @@ import {
     Zap,
     Network,
     CircuitBoard,
-    X
+    X,
+    Loader2
 } from 'lucide-react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { useCurrencyStore } from '@/lib/currency-store';
+import { fetchAcademicServices } from '@/lib/data-service';
 
-// Mock Data
-const academicServices = [
+// Fallback Mock Data (used when no real services exist)
+const fallbackAcademicServices = [
     {
         id: 'a1',
         title: 'Advanced AI/ML Plant Disease Detection System',
@@ -126,6 +128,30 @@ function AcademicContent() {
     const [selectedDomain, setSelectedDomain] = useState<string | null>(null);
     const [isFilterOpen, setIsFilterOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
+    const [academicServices, setAcademicServices] = useState<any[]>(fallbackAcademicServices);
+    const [isLoading, setIsLoading] = useState(true);
+
+    // Fetch real academic services from database
+    useEffect(() => {
+        async function loadAcademicServices() {
+            try {
+                const dbServices = await fetchAcademicServices();
+                if (dbServices && dbServices.length > 0) {
+                    // Use real services from DB
+                    setAcademicServices(dbServices);
+                } else {
+                    // Fallback to mock data if no real services
+                    setAcademicServices(fallbackAcademicServices);
+                }
+            } catch (error) {
+                console.error('Error loading academic services:', error);
+                setAcademicServices(fallbackAcademicServices);
+            } finally {
+                setIsLoading(false);
+            }
+        }
+        loadAcademicServices();
+    }, []);
 
     const filteredServices = academicServices.filter(service => {
         const matchesCategory = selectedCategory === 'All' || service.category === selectedCategory;
@@ -348,7 +374,7 @@ function AcademicContent() {
 
                                     {/* Features */}
                                     <div className="space-y-2 mb-8">
-                                        {service.features.map((feature, idx) => (
+                                        {service.features.map((feature: string, idx: number) => (
                                             <div key={idx} className="flex items-center gap-2 text-xs text-gray-500 font-medium">
                                                 <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
                                                 {feature}

@@ -224,12 +224,22 @@ export async function fetchAllVendors() {
     }));
 }
 
-export async function fetchAllServices() {
-    const { data: services, error: sError } = await supabase
+export async function fetchAllServices(serviceType?: string) {
+    let query = supabase
         .from('services')
         .select('*')
         .eq('status', 'APPROVED')
         .order('created_at', { ascending: false });
+
+    // Filter by service type if provided
+    if (serviceType) {
+        query = query.eq('service_type', serviceType);
+    } else {
+        // Default: show only IT & TECH services on general services page
+        query = query.neq('service_type', 'ACADEMIC');
+    }
+
+    const { data: services, error: sError } = await query;
 
     if (sError) {
         console.error('Error fetching services:', sError);
@@ -271,7 +281,70 @@ export async function fetchAllServices() {
                 isVerified: vendor.is_verified || false
             } : { name: 'WENWEX Vendor', slug: '', isVerified: false },
             category: category?.name || 'Services',
-            serviceType: s.service_type || 'IT & TECH'
+            serviceType: s.service_type || 'IT & TECH',
+            features: s.features || [],
+            domain: category?.name || 'CSE'
+        };
+    });
+}
+
+// Fetch ACADEMIC services specifically for the Academic page
+export async function fetchAcademicServices() {
+    const { data: services, error: sError } = await supabase
+        .from('services')
+        .select('*')
+        .eq('status', 'APPROVED')
+        .eq('service_type', 'ACADEMIC')
+        .order('created_at', { ascending: false });
+
+    if (sError) {
+        console.error('Error fetching academic services:', sError);
+        return [];
+    }
+    if (!services) return [];
+
+    // Fetch associated vendors
+    const vendorIds = [...new Set(services.map(s => s.vendor_id))].filter(Boolean);
+    const { data: vendors } = await supabase
+        .from('vendors')
+        .select('id, company_name, slug, logo_url, is_verified')
+        .in('id', vendorIds);
+
+    // Fetch categories
+    const categoryIds = [...new Set(services.map(s => s.category_id))].filter(Boolean);
+    const { data: categories } = await supabase
+        .from('categories')
+        .select('id, name, slug')
+        .in('id', categoryIds);
+
+    return services.map(s => {
+        const vendor = vendors?.find(v => v.id === s.vendor_id);
+        const category = categories?.find(c => c.id === s.category_id);
+
+        // Determine the academic category based on keywords or default
+        let academicCategory = 'Major Projects';
+        const title = (s.title || '').toLowerCase();
+        if (title.includes('mini') || title.includes('small')) {
+            academicCategory = 'Mini Projects';
+        } else if (title.includes('research') || title.includes('paper') || title.includes('ieee')) {
+            academicCategory = 'Research Paper Writing';
+        }
+
+        return {
+            id: s.id,
+            title: s.title || s.name || 'Untitled Project',
+            slug: s.slug || s.id,
+            category: academicCategory,
+            domain: category?.name || 'CSE',
+            price: s.price || 0,
+            rating: s.rating || 4.5,
+            reviews: s.rating_count || 0,
+            delivery: `${s.delivery_days || 7} Days`,
+            vendor: vendor?.company_name || 'WENWEX Vendor',
+            vendorSlug: vendor?.slug || vendor?.id || '',
+            isVerified: vendor?.is_verified || false,
+            imageUrl: s.main_image_url || 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=800',
+            features: s.features || ['Source Code', 'Documentation', 'Support']
         };
     });
 }
