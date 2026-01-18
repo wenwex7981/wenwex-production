@@ -12,12 +12,10 @@ import Link from 'next/link';
 import { createVendor, getCurrentVendor, uploadMedia } from '@/lib/vendor-service';
 import { toast } from 'react-hot-toast';
 import { useRouter } from 'next/navigation';
-import { createClient } from '@supabase/supabase-js';
+import { getSupabaseClient } from '@/lib/supabase';
 
 // Initialize Supabase client
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
-const supabase = createClient(supabaseUrl, supabaseKey);
+const supabase = getSupabaseClient();
 
 interface SubscriptionPlan {
     id: string;
@@ -106,6 +104,14 @@ export default function OnboardingPage() {
 
     const checkExistingVendor = async () => {
         try {
+            // Check auth first
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) {
+                toast.error('Please sign in to continue');
+                router.push('/auth/login?next=/onboarding');
+                return;
+            }
+
             const vendor = await getCurrentVendor();
             if (vendor) {
                 if (vendor.status === 'APPROVED') {
@@ -415,16 +421,16 @@ function PricingStep({ plans, selectedPlan, onSelectPlan, onNext, onBack, format
                             whileTap={{ scale: 0.98 }}
                             onClick={() => onSelectPlan(plan)}
                             className={`relative p-6 rounded-3xl border-2 cursor-pointer transition-all ${selectedPlan?.id === plan.id
-                                    ? 'border-primary-500 bg-primary-50/30 shadow-lg shadow-primary-500/10'
-                                    : plan.is_popular
-                                        ? 'border-primary-200 bg-primary-50/10'
-                                        : 'border-gray-100 hover:border-gray-200'
+                                ? 'border-primary-500 bg-primary-50/30 shadow-lg shadow-primary-500/10'
+                                : plan.is_popular
+                                    ? 'border-primary-200 bg-primary-50/10'
+                                    : 'border-gray-100 hover:border-gray-200'
                                 }`}
                         >
                             {plan.badge_text && (
                                 <div className={`absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 ${plan.badge_color === 'yellow' ? 'bg-yellow-400 text-yellow-900' :
-                                        plan.badge_color === 'green' ? 'bg-green-400 text-green-900' :
-                                            'bg-primary-400 text-white'
+                                    plan.badge_color === 'green' ? 'bg-green-400 text-green-900' :
+                                        'bg-primary-400 text-white'
                                     } text-xs font-black rounded-full uppercase`}>
                                     {plan.badge_text}
                                 </div>
@@ -452,8 +458,8 @@ function PricingStep({ plans, selectedPlan, onSelectPlan, onNext, onBack, format
                             </div>
 
                             <div className={`w-full py-3 rounded-xl text-center font-bold text-sm transition-all ${selectedPlan?.id === plan.id
-                                    ? 'bg-primary-600 text-white'
-                                    : 'bg-gray-100 text-gray-600'
+                                ? 'bg-primary-600 text-white'
+                                : 'bg-gray-100 text-gray-600'
                                 }`}>
                                 {selectedPlan?.id === plan.id ? 'Selected' : 'Select Plan'}
                             </div>
@@ -473,8 +479,8 @@ function PricingStep({ plans, selectedPlan, onSelectPlan, onNext, onBack, format
                         onClick={onNext}
                         disabled={!selectedPlan}
                         className={`flex items-center gap-3 px-8 py-4 rounded-2xl font-black uppercase tracking-wider transition-all ${selectedPlan
-                                ? 'bg-primary-600 text-white hover:bg-primary-700 shadow-xl shadow-primary-500/20'
-                                : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                            ? 'bg-primary-600 text-white hover:bg-primary-700 shadow-xl shadow-primary-500/20'
+                            : 'bg-gray-100 text-gray-400 cursor-not-allowed'
                             }`}
                     >
                         Continue to Payment
@@ -697,8 +703,8 @@ function OnboardingFormStep({ formData, setFormData, selectedPlan, handleFileUpl
                             onClick={handleVerify}
                             disabled={isVerifying || !formData.company_name || !formData.email || !formData.payment_proof_url}
                             className={`flex items-center gap-3 px-8 py-4 rounded-2xl font-black uppercase tracking-wider transition-all shadow-xl ${isVerifying || !formData.company_name || !formData.email || !formData.payment_proof_url
-                                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                                    : 'bg-primary-600 text-white hover:bg-primary-700 shadow-primary-500/20 active:scale-[0.98]'
+                                ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                                : 'bg-primary-600 text-white hover:bg-primary-700 shadow-primary-500/20 active:scale-[0.98]'
                                 }`}
                         >
                             {isVerifying ? (
