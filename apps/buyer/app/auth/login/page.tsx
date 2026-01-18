@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
@@ -12,9 +12,21 @@ import {
 import { signInWithGoogle, signInWithEmail } from '@/lib/supabase';
 import { toast } from 'react-hot-toast';
 
-export default function LoginPage() {
-    const router = useRouter();
+// Component to handle search params safely
+function LoginNotification() {
     const searchParams = useSearchParams();
+
+    useEffect(() => {
+        if (searchParams.get('registered') === 'true') {
+            toast.success('Account created! Please check your email to verify, then sign in.');
+        }
+    }, [searchParams]);
+
+    return null;
+}
+
+function LoginContent() {
+    const router = useRouter();
     const [showPassword, setShowPassword] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [formData, setFormData] = useState({
@@ -22,13 +34,6 @@ export default function LoginPage() {
         password: '',
         rememberMe: false,
     });
-
-    useEffect(() => {
-        // Check if user just registered
-        if (searchParams.get('registered') === 'true') {
-            toast.success('Account created! Please check your email to verify, then sign in.');
-        }
-    }, [searchParams]);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value, type, checked } = e.target;
@@ -342,5 +347,14 @@ export default function LoginPage() {
                 </motion.div>
             </div>
         </div>
+    );
+}
+
+export default function LoginPage() {
+    return (
+        <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
+            <LoginNotification />
+            <LoginContent />
+        </Suspense>
     );
 }

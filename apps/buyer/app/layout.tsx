@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { Inter, Outfit } from 'next/font/google';
+import { Suspense } from 'react';
 import './globals.css';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
@@ -105,8 +106,10 @@ export default function RootLayout({
                         }}
                     />
 
-                    {/* Navigation */}
-                    <Navbar />
+                    {/* Navigation - wrapped in Suspense for useSearchParams */}
+                    <Suspense fallback={<div className="h-16 lg:h-20 bg-white border-b border-gray-100" />}>
+                        <Navbar />
+                    </Suspense>
 
                     {/* Main content */}
                     <main className="flex-1">

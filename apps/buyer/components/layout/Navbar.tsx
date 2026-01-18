@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuthStore } from '@/lib/auth-store';
 import { useCurrencyStore, currencies } from '@/lib/currency-store';
@@ -42,6 +42,26 @@ const navLinks = [
     { href: '/shorts', label: 'Shorts', icon: Play },
 ];
 
+// Search input component that safely uses useSearchParams
+function SearchInput({
+    searchInput,
+    setSearchInput,
+    searchInputRef
+}: {
+    searchInput: string;
+    setSearchInput: (v: string) => void;
+    searchInputRef: React.RefObject<HTMLInputElement>;
+}) {
+    const searchParams = useSearchParams();
+
+    useEffect(() => {
+        const query = searchParams.get('q');
+        if (query) setSearchInput(query);
+    }, [searchParams, setSearchInput]);
+
+    return null; // This component only syncs the state
+}
+
 export function Navbar() {
     const [isOpen, setIsOpen] = useState(false);
     const [searchFocused, setSearchFocused] = useState(false);
@@ -50,16 +70,12 @@ export function Navbar() {
     const searchInputRef = useRef<HTMLInputElement>(null);
     const { user, isAuthenticated, logout } = useAuthStore();
     const router = useRouter();
-    const searchParams = useSearchParams();
 
     const [mounted, setMounted] = useState(false);
 
-    // Sync input with URL search param
     useEffect(() => {
         setMounted(true);
-        const query = searchParams.get('q');
-        if (query) setSearchInput(query);
-    }, [searchParams]);
+    }, []);
 
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
@@ -112,6 +128,10 @@ export function Navbar() {
 
     return (
         <header className="sticky top-0 z-50 bg-white shadow-sm">
+            {/* Suspense boundary for useSearchParams */}
+            <Suspense fallback={null}>
+                <SearchInput searchInput={searchInput} setSearchInput={setSearchInput} searchInputRef={searchInputRef} />
+            </Suspense>
             {/* Premium Top Bar */}
             <div className="bg-gray-900 text-white py-2 px-4 hidden lg:block">
                 <div className="container-custom flex items-center justify-between text-[11px] font-bold tracking-widest uppercase">
