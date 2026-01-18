@@ -7,16 +7,31 @@ import { AcademicSpotlight } from '@/components/home/AcademicSpotlight';
 import { ShortsPreview } from '@/components/home/ShortsPreview';
 import { CTASection } from '@/components/home/CTASection';
 import { PromoCarousel } from '@/components/home/PromoCarousel';
+import { SponsoredCarousel } from '@/components/home/SponsoredCarousel';
 import { fetchHomepageSections } from '@/lib/data-service';
 
 export default async function HomePage() {
     const sections = await fetchHomepageSections();
 
+    // Track which sections are present in the DB
+    const sectionTypes = new Set(sections?.map((s: any) => s.type) || []);
+
+    // Helper to render a section from DB data or use default
+    const renderSection = (type: string, Component: React.FC<any>, key: string) => {
+        const section = sections?.find((s: any) => s.type === type);
+        if (section) {
+            return <Component key={section.id} content={section} />;
+        }
+        return null;
+    };
+
+    // If no sections at all, show full default layout
     if (!sections || sections.length === 0) {
         return (
             <>
                 <BrandHero />
                 <PromoCarousel />
+                <SponsoredCarousel />
                 <VisualCategorySection />
                 <FeaturedServices />
                 <PremiumAgencies />
@@ -28,32 +43,38 @@ export default async function HomePage() {
         );
     }
 
+    // Render sections from DB + ensure critical sections always appear
     return (
         <>
-            {sections.map((section: any) => {
-                switch (section.type) {
-                    case 'HERO':
-                        return <BrandHero key={section.id} />;
-                    case 'CATEGORIES':
-                        return <VisualCategorySection key={section.id} content={section} />;
-                    case 'FEATURED_SERVICES':
-                        return <FeaturedServices key={section.id} content={section} />;
-                    case 'TOP_AGENCIES':
-                        return <PremiumAgencies key={section.id} content={section} />;
-                    case 'TRENDING_SERVICES':
-                        return <TrendingServices key={section.id} content={section} />;
-                    case 'ACADEMIC_SPOTLIGHT':
-                        return <AcademicSpotlight key={section.id} content={section} />;
-                    case 'SHORTS':
-                        return <ShortsPreview key={section.id} content={section} />;
-                    case 'CTA':
-                        return <CTASection key={section.id} content={section} />;
-                    case 'PROMO_CAROUSEL':
-                        return <PromoCarousel key={section.id} />;
-                    default:
-                        return null;
-                }
-            })}
+            {/* HERO - from DB or default */}
+            {sectionTypes.has('HERO') ? renderSection('HERO', BrandHero, 'hero') : <BrandHero />}
+
+            {/* PROMO CAROUSEL - from DB or default */}
+            {sectionTypes.has('PROMO_CAROUSEL') ? renderSection('PROMO_CAROUSEL', PromoCarousel, 'promo') : <PromoCarousel />}
+
+            {/* SPONSORED CAROUSEL - from DB or default */}
+            {sectionTypes.has('SPONSORED_CAROUSEL') ? renderSection('SPONSORED_CAROUSEL', SponsoredCarousel, 'sponsored') : <SponsoredCarousel />}
+
+            {/* CATEGORIES - from DB or default */}
+            {sectionTypes.has('CATEGORIES') ? renderSection('CATEGORIES', VisualCategorySection, 'categories') : <VisualCategorySection />}
+
+            {/* FEATURED SERVICES - from DB or default */}
+            {sectionTypes.has('FEATURED_SERVICES') ? renderSection('FEATURED_SERVICES', FeaturedServices, 'featured') : <FeaturedServices />}
+
+            {/* TOP AGENCIES - from DB or default */}
+            {sectionTypes.has('TOP_AGENCIES') ? renderSection('TOP_AGENCIES', PremiumAgencies, 'agencies') : <PremiumAgencies />}
+
+            {/* TRENDING SERVICES - from DB or default */}
+            {sectionTypes.has('TRENDING_SERVICES') ? renderSection('TRENDING_SERVICES', TrendingServices, 'trending') : <TrendingServices />}
+
+            {/* ACADEMIC SPOTLIGHT - ALWAYS SHOW (from DB or default) */}
+            {sectionTypes.has('ACADEMIC_SPOTLIGHT') ? renderSection('ACADEMIC_SPOTLIGHT', AcademicSpotlight, 'academic') : <AcademicSpotlight />}
+
+            {/* SHORTS PREVIEW - ALWAYS SHOW (from DB or default) */}
+            {sectionTypes.has('SHORTS') ? renderSection('SHORTS', ShortsPreview, 'shorts') : <ShortsPreview />}
+
+            {/* CTA - from DB or default */}
+            {sectionTypes.has('CTA') ? renderSection('CTA', CTASection, 'cta') : <CTASection />}
         </>
     );
 }

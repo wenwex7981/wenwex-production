@@ -102,13 +102,14 @@ export function TrendingServices({ content }: { content?: any }) {
     const title = content?.title || "Trending Now";
     const subtitle = content?.subtitle || "Most popular services right now";
     const formatPrice = useCurrencyStore((state) => state.formatPrice);
+
     return (
         <section className="py-16 lg:py-24 bg-gray-50">
             <div className="container-custom">
                 {/* Section Header */}
-                <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between gap-4 mb-10">
-                    <div>
-                        <div className="flex items-center gap-2 mb-2">
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-10">
+                    <div className="text-center sm:text-left">
+                        <div className="flex items-center justify-center sm:justify-start gap-2 mb-2">
                             <TrendingUp className="w-6 h-6 text-primary-500" />
                             <h2 className="section-title mb-0">{title}</h2>
                         </div>
@@ -116,13 +117,15 @@ export function TrendingServices({ content }: { content?: any }) {
                             {subtitle}
                         </p>
                     </div>
-                    <Link
-                        href="/services?sort=trending"
-                        className="btn-outline"
-                    >
-                        See All Trending
-                        <ArrowRight className="w-4 h-4" />
-                    </Link>
+
+                    <div className="flex items-center gap-4">
+                        <Link
+                            href="/services?sort=trending"
+                            className="hidden sm:flex btn-outline"
+                        >
+                            See All
+                        </Link>
+                    </div>
                 </div>
 
                 {/* Horizontal Scroll Container */}
