@@ -145,7 +145,7 @@ export function Navbar() {
                             Wenwex Premium
                         </div>
                         <a
-                            href={process.env.NEXT_PUBLIC_VENDOR_URL ? `${process.env.NEXT_PUBLIC_VENDOR_URL}/onboarding` : "https://wenwex-production-vendor.vercel.app/onboarding"}
+                            href={process.env.NEXT_PUBLIC_VENDOR_URL ? `${process.env.NEXT_PUBLIC_VENDOR_URL}/onboarding` : "https://vendor.wenwex.online/onboarding"}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="flex items-center gap-1.5 text-white bg-primary-600/20 px-3 py-1 rounded-full border border-primary-500/30 hover:bg-primary-600/40 transition-all group"
