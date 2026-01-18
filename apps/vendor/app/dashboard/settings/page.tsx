@@ -9,7 +9,9 @@ import {
     Linkedin, Twitter, Instagram, Facebook, FileText, Award, Download, Trash2, UploadCloud
 } from 'lucide-react';
 import { getCurrentVendor, updateVendorProfile, uploadMedia } from '@/lib/vendor-service';
+import { DynamicFieldsForm } from '@/lib/dynamic-fields';
 import { toast } from 'react-hot-toast';
+import { Sparkles } from 'lucide-react';
 
 export default function VendorSettingsPage() {
     const [activeTab, setActiveTab] = useState('profile');
@@ -35,6 +37,7 @@ export default function VendorSettingsPage() {
         social_links: { linkedin: '', twitter: '', instagram: '', facebook: '' },
         certifications: [] as any[],
         documents: [] as any[],
+        custom_fields: {} as Record<string, any>,
     });
 
     useEffect(() => {
@@ -64,6 +67,7 @@ export default function VendorSettingsPage() {
                     social_links: data.social_links || { linkedin: '', twitter: '', instagram: '', facebook: '' },
                     certifications: data.certifications || [],
                     documents: data.documents || [],
+                    custom_fields: data.custom_fields || {},
                 });
             }
         } catch (error) {
@@ -619,6 +623,24 @@ export default function VendorSettingsPage() {
                                         />
                                     </div>
                                 </div>
+                            </div>
+
+                            {/* Custom Dynamic Fields */}
+                            <div className="bg-white p-8 rounded-[2.5rem] border border-gray-100 shadow-sm">
+                                <div className="flex items-center gap-3 mb-8">
+                                    <div className="w-10 h-10 bg-purple-50 rounded-xl flex items-center justify-center">
+                                        <Sparkles className="w-5 h-5 text-purple-600" />
+                                    </div>
+                                    <h2 className="text-lg font-black text-gray-900 uppercase tracking-widest text-[10px] text-primary-600">Additional Information</h2>
+                                </div>
+                                <DynamicFieldsForm
+                                    entityType="vendors"
+                                    values={formData.custom_fields}
+                                    onChange={(name, value) => setFormData(prev => ({
+                                        ...prev,
+                                        custom_fields: { ...prev.custom_fields, [name]: value }
+                                    }))}
+                                />
                             </div>
 
                             {/* Save Button */}

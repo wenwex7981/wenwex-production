@@ -7,69 +7,286 @@ export async function initializeTables() {
     // Tables are managed via Prisma/Supabase SQL
 }
 
-export async function fetchVendors() {
-    const { data, error } = await supabase
-        .from('vendors')
-        .select('*')
-        .order('created_at', { ascending: false });
+// ==================== ACCESS CONTROL CENTER ====================
 
-    if (error) throw error;
-    return data;
+export async function fetchFeatureFlags() {
+    try {
+        const { data, error } = await supabase
+            .from('feature_flags')
+            .select('*')
+            .order('category', { ascending: true });
+
+        if (error) {
+            console.error('Error fetching feature flags:', error);
+            return [];
+        }
+        return data || [];
+    } catch (error) {
+        console.error('Error fetching feature flags:', error);
+        return [];
+    }
+}
+
+export async function updateFeatureFlag(id: string, isEnabled: boolean) {
+    try {
+        const { data, error } = await supabase
+            .from('feature_flags')
+            .update({ is_enabled: isEnabled, updated_at: new Date().toISOString() })
+            .eq('id', id)
+            .select();
+
+        if (error) throw error;
+        return data;
+    } catch (error) {
+        console.error('Error updating feature flag:', error);
+        throw error;
+    }
+}
+
+export async function fetchRolePermissions() {
+    try {
+        const { data, error } = await supabase
+            .from('role_permissions')
+            .select('*')
+            .order('role', { ascending: true });
+
+        if (error) {
+            console.error('Error fetching role permissions:', error);
+            return [];
+        }
+        return data || [];
+    } catch (error) {
+        console.error('Error fetching role permissions:', error);
+        return [];
+    }
+}
+
+export async function updateRolePermission(id: string, isAllowed: boolean) {
+    try {
+        const { data, error } = await supabase
+            .from('role_permissions')
+            .update({ is_allowed: isAllowed, updated_at: new Date().toISOString() })
+            .eq('id', id)
+            .select();
+
+        if (error) throw error;
+        return data;
+    } catch (error) {
+        console.error('Error updating role permission:', error);
+        throw error;
+    }
+}
+
+export async function fetchPlatformConfig() {
+    try {
+        const { data, error } = await supabase
+            .from('platform_config')
+            .select('*')
+            .order('category', { ascending: true });
+
+        if (error) {
+            console.error('Error fetching platform config:', error);
+            return [];
+        }
+        return data || [];
+    } catch (error) {
+        console.error('Error fetching platform config:', error);
+        return [];
+    }
+}
+
+export async function updatePlatformConfig(id: string, value: string) {
+    try {
+        const { data, error } = await supabase
+            .from('platform_config')
+            .update({ value: value, updated_at: new Date().toISOString() })
+            .eq('id', id)
+            .select();
+
+        if (error) throw error;
+        return data;
+    } catch (error) {
+        console.error('Error updating platform config:', error);
+        throw error;
+    }
+}
+
+export async function fetchNavigation() {
+    try {
+        const { data, error } = await supabase
+            .from('navigation')
+            .select('*')
+            .order('order', { ascending: true });
+
+        if (error) {
+            console.error('Error fetching navigation:', error);
+            return [];
+        }
+        return data || [];
+    } catch (error) {
+        console.error('Error fetching navigation:', error);
+        return [];
+    }
+}
+
+export async function fetchAnnouncements() {
+    try {
+        const { data, error } = await supabase
+            .from('announcements')
+            .select('*')
+            .order('created_at', { ascending: false });
+
+        if (error) {
+            console.error('Error fetching announcements:', error);
+            return [];
+        }
+        return data || [];
+    } catch (error) {
+        console.error('Error fetching announcements:', error);
+        return [];
+    }
+}
+
+export async function createAnnouncement(announcementData: any) {
+    try {
+        const { data, error } = await supabase
+            .from('announcements')
+            .insert([announcementData])
+            .select();
+
+        if (error) throw error;
+        return data;
+    } catch (error) {
+        console.error('Error creating announcement:', error);
+        throw error;
+    }
+}
+
+export async function fetchAuditLog() {
+    try {
+        const { data, error } = await supabase
+            .from('audit_log')
+            .select('*')
+            .order('created_at', { ascending: false })
+            .limit(100);
+
+        if (error) {
+            console.error('Error fetching audit log:', error);
+            return [];
+        }
+        return data || [];
+    } catch (error) {
+        console.error('Error fetching audit log:', error);
+        return [];
+    }
+}
+
+export async function logAuditAction(action: string, entityType?: string, entityId?: string, oldData?: any, newData?: any) {
+    try {
+        await supabase
+            .from('audit_log')
+            .insert([{
+                action,
+                entity_type: entityType,
+                entity_id: entityId,
+                old_data: oldData,
+                new_data: newData
+            }]);
+    } catch (error) {
+        console.error('Error logging audit action:', error);
+    }
+}
+
+// ==================== VENDORS ====================
+
+export async function fetchVendors() {
+    try {
+        const { data, error } = await supabase
+            .from('vendors')
+            .select('*')
+            .order('created_at', { ascending: false });
+
+        if (error) {
+            console.error('Error fetching vendors:', error);
+            return [];
+        }
+        return data || [];
+    } catch (error) {
+        console.error('Error fetching vendors:', error);
+        return [];
+    }
 }
 
 export async function updateVendorStatus(id: string, status: string, reason?: string) {
-    const { data, error } = await supabase
-        .from('vendors')
-        .update({ status, rejection_reason: reason })
-        .eq('id', id);
+    try {
+        const { data, error } = await supabase
+            .from('vendors')
+            .update({ status, rejection_reason: reason })
+            .eq('id', id);
 
-    if (error) throw error;
-    return data;
+        if (error) throw error;
+        return data;
+    } catch (error) {
+        console.error('Error updating vendor status:', error);
+        throw error;
+    }
 }
 
 export async function fetchPendingApprovals() {
-    // We'll fetch separately to avoid relationship ambiguity errors
-    const [vendorsResult, servicesResult] = await Promise.all([
-        supabase.from('vendors').select('*').eq('status', 'PENDING'),
-        supabase.from('services').select('*').eq('status', 'PENDING')
-    ]);
+    try {
+        // We'll fetch separately to avoid relationship ambiguity errors
+        const [vendorsResult, servicesResult] = await Promise.all([
+            supabase.from('vendors').select('*').eq('status', 'PENDING'),
+            supabase.from('services').select('*').eq('status', 'PENDING')
+        ]);
 
-    if (vendorsResult.error) throw vendorsResult.error;
-    if (servicesResult.error) throw servicesResult.error;
+        const vendors = vendorsResult.data || [];
+        const services = servicesResult.data || [];
 
-    const vendors = vendorsResult.data || [];
-    const services = servicesResult.data || [];
+        // To get vendor names for services, we need to fetch those vendors too
+        const serviceVendorIds = [...new Set(services.map(s => s.vendor_id))].filter(Boolean);
+        let serviceVendors: any[] = [];
 
-    // To get vendor names for services, we need to fetch those vendors too
-    const serviceVendorIds = [...new Set(services.map(s => s.vendor_id))].filter(Boolean);
-    const { data: serviceVendors } = await supabase
-        .from('vendors')
-        .select('id, company_name')
-        .in('id', serviceVendorIds);
+        if (serviceVendorIds.length > 0) {
+            const { data } = await supabase
+                .from('vendors')
+                .select('id, company_name')
+                .in('id', serviceVendorIds);
+            serviceVendors = data || [];
+        }
 
-    const joinedServices = services.map(s => ({
-        ...s,
-        vendor: serviceVendors?.find(v => v.id === s.vendor_id) || null
-    }));
+        const joinedServices = services.map(s => ({
+            ...s,
+            vendor: serviceVendors.find(v => v.id === s.vendor_id) || null
+        }));
 
-    return { vendors, services: joinedServices };
+        return { vendors, services: joinedServices };
+    } catch (error) {
+        console.error('Error fetching pending approvals:', error);
+        return { vendors: [], services: [] };
+    }
 }
 
 export async function fetchAdminDashboardStats() {
-    // Head counts are safe from join issues
-    const [u, v, s, p] = await Promise.all([
-        supabase.from('users').select('*', { count: 'exact', head: true }),
-        supabase.from('vendors').select('*', { count: 'exact', head: true }),
-        supabase.from('services').select('*', { count: 'exact', head: true }),
-        supabase.from('vendors').select('*', { count: 'exact', head: true }).eq('status', 'PENDING')
-    ]);
+    try {
+        // Head counts are safe from join issues
+        const [u, v, s, p] = await Promise.all([
+            supabase.from('users').select('*', { count: 'exact', head: true }),
+            supabase.from('vendors').select('*', { count: 'exact', head: true }),
+            supabase.from('services').select('*', { count: 'exact', head: true }),
+            supabase.from('vendors').select('*', { count: 'exact', head: true }).eq('status', 'PENDING')
+        ]);
 
-    return {
-        users: u.count || 0,
-        vendors: v.count || 0,
-        services: s.count || 0,
-        pending: p.count || 0
-    };
+        return {
+            users: u.count || 0,
+            vendors: v.count || 0,
+            services: s.count || 0,
+            pending: p.count || 0
+        };
+    } catch (error) {
+        console.error('Error fetching admin dashboard stats:', error);
+        return { users: 0, vendors: 0, services: 0, pending: 0 };
+    }
 }
 
 export async function fetchServices() {
@@ -440,4 +657,135 @@ export async function updateShortStatus(id: string, isApproved: boolean) {
 
     if (error) throw error;
     return data;
+}
+
+// ==================== DYNAMIC FIELD DEFINITIONS ====================
+// These functions allow Super Admin to add new fields to any entity without touching code
+
+export async function fetchDynamicFields(entityType?: string) {
+    try {
+        let query = supabase
+            .from('dynamic_field_definitions')
+            .select('*')
+            .order('display_order', { ascending: true });
+
+        if (entityType) {
+            query = query.eq('entity_type', entityType);
+        }
+
+        const { data, error } = await query;
+        if (error) {
+            console.error('Error fetching dynamic fields:', error);
+            return [];
+        }
+        return data || [];
+    } catch (error) {
+        console.error('Error fetching dynamic fields:', error);
+        return [];
+    }
+}
+
+export async function createDynamicField(fieldData: {
+    entity_type: string;
+    field_key: string;
+    field_label: string;
+    field_type: string;
+    field_options?: any[];
+    is_required?: boolean;
+    is_visible?: boolean;
+    display_order?: number;
+    placeholder?: string;
+    help_text?: string;
+    validation_rules?: any;
+}) {
+    try {
+        const { data, error } = await supabase
+            .from('dynamic_field_definitions')
+            .insert({
+                ...fieldData,
+                field_key: fieldData.field_key.toLowerCase().replace(/[^a-z0-9_]/g, '_'),
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString()
+            })
+            .select();
+
+        if (error) throw error;
+        return data?.[0];
+    } catch (error) {
+        console.error('Error creating dynamic field:', error);
+        throw error;
+    }
+}
+
+export async function updateDynamicField(id: string, fieldData: Partial<{
+    field_label: string;
+    field_type: string;
+    field_options: any[];
+    is_required: boolean;
+    is_visible: boolean;
+    display_order: number;
+    placeholder: string;
+    help_text: string;
+    validation_rules: any;
+}>) {
+    try {
+        const { data, error } = await supabase
+            .from('dynamic_field_definitions')
+            .update({
+                ...fieldData,
+                updated_at: new Date().toISOString()
+            })
+            .eq('id', id)
+            .select();
+
+        if (error) throw error;
+        return data?.[0];
+    } catch (error) {
+        console.error('Error updating dynamic field:', error);
+        throw error;
+    }
+}
+
+export async function deleteDynamicField(id: string) {
+    try {
+        const { error } = await supabase
+            .from('dynamic_field_definitions')
+            .delete()
+            .eq('id', id);
+
+        if (error) throw error;
+        return true;
+    } catch (error) {
+        console.error('Error deleting dynamic field:', error);
+        throw error;
+    }
+}
+
+// Get all entity types that can have dynamic fields
+export function getDynamicFieldEntityTypes() {
+    return [
+        { value: 'service', label: 'Services' },
+        { value: 'vendor', label: 'Vendors' },
+        { value: 'category', label: 'Categories' },
+        { value: 'user', label: 'Users' },
+        { value: 'homepage_section', label: 'Homepage Sections' },
+    ];
+}
+
+// Get all available field types
+export function getDynamicFieldTypes() {
+    return [
+        { value: 'text', label: 'Text' },
+        { value: 'textarea', label: 'Long Text' },
+        { value: 'number', label: 'Number' },
+        { value: 'boolean', label: 'Yes/No Toggle' },
+        { value: 'select', label: 'Dropdown Select' },
+        { value: 'multiselect', label: 'Multi-Select' },
+        { value: 'file', label: 'File Upload' },
+        { value: 'url', label: 'URL Link' },
+        { value: 'date', label: 'Date' },
+        { value: 'email', label: 'Email' },
+        { value: 'phone', label: 'Phone Number' },
+        { value: 'color', label: 'Color Picker' },
+    ];
 }

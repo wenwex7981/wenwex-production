@@ -10,11 +10,12 @@ import {
     ExternalLink, BookOpen, CheckCircle2, Loader2,
     Camera, Video, MessageSquare, ThumbsUp, Clock,
     Briefcase, Phone, Send, ChevronRight, Quote,
-    ImageIcon, Film, X, ChevronLeft
+    ImageIcon, Film, X, ChevronLeft, Sparkles
 } from 'lucide-react';
 import { useCurrencyStore } from '@/lib/currency-store';
 import { useState, useEffect } from 'react';
 import { fetchVendorBySlug } from '@/lib/data-service';
+import { DynamicFieldsDisplay, DynamicFieldsForm } from '@/lib/dynamic-fields';
 import { useAuthStore } from '@/lib/auth-store';
 import { getOrCreateConversation } from '@/lib/chat-service';
 import { ChatWindow } from '@/components/ui/ChatWindow';
@@ -107,6 +108,17 @@ function ReviewCard({ review }: { review: any }) {
                         </div>
                     </div>
                     <p className="text-gray-600 leading-relaxed">{review.comment}</p>
+
+                    {review.custom_fields && Object.keys(review.custom_fields).length > 0 && (
+                        <div className="mt-4 flex flex-wrap gap-2">
+                            <DynamicFieldsDisplay
+                                entityType="reviews"
+                                values={review.custom_fields}
+                                variant="tags"
+                            />
+                        </div>
+                    )}
+
                     {review.serviceTitle && (
                         <div className="mt-3 inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-gray-100 text-xs font-medium text-gray-600">
                             <Package className="w-3 h-3" />
@@ -139,6 +151,13 @@ export default function VendorProfilePage({ params }: { params: { slug: string }
     const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
     const { user, isAuthenticated } = useAuthStore();
     const formatPrice = useCurrencyStore((state) => state.formatPrice);
+
+    // Review form state
+    const [reviewRating, setReviewRating] = useState(5);
+    const [reviewComment, setReviewComment] = useState('');
+    const [isSubmittingReview, setIsSubmittingReview] = useState(false);
+    const [reviewCustomFields, setReviewCustomFields] = useState<Record<string, any>>({});
+
 
     // Complete mock vendor data for all agencies
     const mockVendors: Record<string, any> = {
@@ -499,7 +518,46 @@ We've helped organizations across finance, healthcare, and technology sectors ac
         }
     };
 
+    // Handle review submission
+    const handleSubmitReview = async () => {
+        if (!isAuthenticated || !user) {
+            toast.error('Please sign in to leave a review');
+            return;
+        }
+        if (!reviewComment.trim()) {
+            toast.error('Please write a comment');
+            return;
+        }
+
+        setIsSubmittingReview(true);
+        try {
+            const { getSupabaseClient } = await import('@/lib/supabase');
+            const supabase = getSupabaseClient();
+
+            const { error } = await supabase.from('reviews').insert({
+                vendor_id: vendor.id,
+                user_id: user.id,
+                user_name: user.email?.split('@')[0] || 'Anonymous',
+                rating: reviewRating,
+                comment: reviewComment,
+                custom_fields: reviewCustomFields,
+                created_at: new Date().toISOString()
+            });
+
+            if (error) throw error;
+
+            toast.success('Review submitted successfully!');
+            setReviewComment('');
+            setReviewRating(5);
+        } catch (error: any) {
+            toast.error('Failed to submit review: ' + error.message);
+        } finally {
+            setIsSubmittingReview(false);
+        }
+    };
+
     // Mock data for demo purposes
+
     const mockReviews = [
         {
             id: 1,
@@ -869,6 +927,18 @@ We've helped organizations across finance, healthcare, and technology sectors ac
                                         <Briefcase className="w-5 h-5 text-blue-500" />
                                         About
                                     </h2>
+                                    {vendor.custom_fields && Object.keys(vendor.custom_fields).length > 0 && (
+                                        <div className="mb-6 bg-purple-50/50 rounded-2xl p-4 border border-purple-100/50">
+                                            <div className="flex items-center gap-2 mb-3">
+                                                <Sparkles className="w-4 h-4 text-purple-600" />
+                                                <span className="text-xs font-black text-purple-600 uppercase tracking-widest">Premium Specifications</span>
+                                            </div>
+                                            <DynamicFieldsDisplay
+                                                entityType="vendors"
+                                                values={vendor.custom_fields}
+                                            />
+                                        </div>
+                                    )}
                                     <p className="text-gray-600 leading-relaxed mb-6">
                                         {vendor.fullDescription || vendor.description || `We are a passionate team of professionals dedicated to delivering exceptional services to our clients. With years of experience in the industry, we have successfully completed numerous projects across various domains.
 
@@ -1304,6 +1374,87 @@ Our commitment to quality, innovation, and customer satisfaction has earned us a
                                     {mockReviews.map((review) => (
                                         <ReviewCard key={review.id} review={review} />
                                     ))}
+                                </div>
+
+                                {/* Write a Review */}
+                                <div className="card mt-8 bg-gradient-to-br from-blue-50 to-purple-50 border-blue-100">
+                                    <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                                        <MessageSquare className="w-5 h-5 text-blue-500" />
+                                        Write a Review
+                                    </h3>
+
+                                    {/* Rating Selector */}
+                                    <div className="mb-4">
+                                        <label className="text-sm font-medium text-gray-700 mb-2 block">Your Rating</label>
+                                        <div className="flex items-center gap-1">
+                                            {[1, 2, 3, 4, 5].map((star) => (
+                                                <button
+                                                    key={star}
+                                                    type="button"
+                                                    onClick={() => setReviewRating(star)}
+                                                    className="focus:outline-none transition-transform hover:scale-110"
+                                                >
+                                                    <Star
+                                                        className={`w-8 h-8 transition-colors ${star <= reviewRating
+                                                            ? 'text-yellow-400 fill-yellow-400'
+                                                            : 'text-gray-300 hover:text-yellow-300'
+                                                            }`}
+                                                    />
+                                                </button>
+                                            ))}
+                                            <span className="ml-3 text-sm text-gray-600 font-medium">
+                                                {reviewRating === 5 ? 'Excellent' : reviewRating === 4 ? 'Very Good' : reviewRating === 3 ? 'Good' : reviewRating === 2 ? 'Fair' : 'Poor'}
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    {/* Comment Box */}
+                                    <div className="mb-4">
+                                        <label className="text-sm font-medium text-gray-700 mb-2 block">Your Comment</label>
+                                        <textarea
+                                            value={reviewComment}
+                                            onChange={(e) => setReviewComment(e.target.value)}
+                                            placeholder="Share your experience with this agency..."
+                                            className="w-full p-4 bg-white border border-gray-200 rounded-2xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all min-h-[120px] resize-none text-gray-800"
+                                        />
+                                    </div>
+
+                                    {/* Custom Review Fields */}
+                                    <div className="mb-6">
+                                        <DynamicFieldsForm
+                                            entityType="reviews"
+                                            values={reviewCustomFields}
+                                            onChange={(name, value) => setReviewCustomFields(prev => ({
+                                                ...prev,
+                                                [name]: value
+                                            }))}
+                                        />
+                                    </div>
+
+                                    {/* Submit Button */}
+                                    <button
+                                        onClick={handleSubmitReview}
+                                        disabled={isSubmittingReview || !reviewComment.trim()}
+                                        className="flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl font-semibold shadow-lg shadow-blue-500/25 hover:shadow-xl hover:shadow-blue-500/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                                    >
+                                        {isSubmittingReview ? (
+                                            <>
+                                                <Loader2 className="w-5 h-5 animate-spin" />
+                                                Submitting...
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Send className="w-5 h-5" />
+                                                Submit Review
+                                            </>
+                                        )}
+                                    </button>
+
+                                    {!isAuthenticated && (
+                                        <p className="text-sm text-gray-500 mt-3">
+                                            <Link href="/auth/login" className="text-blue-600 hover:underline font-medium">Sign in</Link> to leave a review
+                                        </p>
+                                    )}
                                 </div>
 
                                 {/* Load More */}

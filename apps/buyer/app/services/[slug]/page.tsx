@@ -7,10 +7,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
     Star, Clock, Heart, Share2, BadgeCheck, ChevronRight,
     Check, Play, FileText, Users, MessageSquare, Shield, Award, Loader2,
-    Mail, Phone, Globe
+    Mail, Phone, Globe, Download, ExternalLink, Sparkles
 } from 'lucide-react';
 import { useCurrencyStore } from '@/lib/currency-store';
 import { fetchServiceBySlug } from '@/lib/data-service';
+import { DynamicFieldsDisplay } from '@/lib/dynamic-fields';
 import { useAuthStore } from '@/lib/auth-store';
 import { getOrCreateConversation } from '@/lib/chat-service';
 import { ChatWindow } from '@/components/ui/ChatWindow';
@@ -110,11 +111,15 @@ export default function ServiceDetailPage({ params }: { params: { slug: string }
                         rating: dbService.rating || 0,
                         totalReviews: dbService.rating_count || 0,
                         viewCount: dbService.view_count || 0,
-                        techStack: dbService.features || [],
+                        techStack: dbService.tech_stack || [],
                         features: dbService.features || ['Professional delivery', 'Quality assured'],
-                        media: dbService.images?.length > 0
-                            ? dbService.images.map((url: string) => ({ type: 'IMAGE', url }))
-                            : [{ type: 'IMAGE', url: dbService.main_image_url || 'https://images.unsplash.com/photo-1557821552-17105176677c?w=1200' }],
+                        media: [
+                            ...(dbService.project_photos || []).map((url: string) => ({ type: 'IMAGE', url })),
+                            ...(dbService.project_videos || []).map((url: string) => ({ type: 'VIDEO', url })),
+                            ...(dbService.images || []).map((url: string) => ({ type: 'IMAGE', url })),
+                            ...(dbService.project_photos?.length || dbService.project_videos?.length || dbService.images?.length ? [] : [{ type: 'IMAGE', url: dbService.main_image_url || 'https://images.unsplash.com/photo-1557821552-17105176677c?w=1200' }])
+                        ],
+                        project_documents: dbService.project_documents || [],
                         vendor: dbService.vendor ? {
                             id: dbService.vendor.id,
                             name: dbService.vendor.company_name,
@@ -136,6 +141,7 @@ export default function ServiceDetailPage({ params }: { params: { slug: string }
                             slug: dbService.category.slug
                         } : { name: 'Services', slug: 'services' },
                         subCategory: { name: 'General', slug: 'general' },
+                        custom_fields: dbService.custom_fields || {},
                         reviews: [],
                     });
                 }
@@ -318,17 +324,31 @@ export default function ServiceDetailPage({ params }: { params: { slug: string }
                         <div className="card">
                             <h2 className="text-xl font-semibold text-gray-900 mb-4">Technologies Used</h2>
                             <div className="flex flex-wrap gap-2">
-                                {service.techStack.map((tech) => (
+                                {service.techStack.map((tech: string) => (
                                     <span key={tech} className="badge-gray">{tech}</span>
                                 ))}
                             </div>
                         </div>
 
+                        {/* Custom Dynamic Fields */}
+                        {service.custom_fields && Object.keys(service.custom_fields).length > 0 && (
+                            <div className="card">
+                                <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                                    <Sparkles className="w-5 h-5 text-purple-500" />
+                                    Performance Specifications
+                                </h2>
+                                <DynamicFieldsDisplay
+                                    entityType="services"
+                                    values={service.custom_fields}
+                                />
+                            </div>
+                        )}
+
                         {/* Features */}
                         <div className="card">
                             <h2 className="text-xl font-semibold text-gray-900 mb-4">What's Included</h2>
                             <div className="grid sm:grid-cols-2 gap-3">
-                                {service.features.map((feature) => (
+                                {service.features.map((feature: any) => (
                                     <div key={feature} className="flex items-center gap-3">
                                         <div className="w-6 h-6 bg-green-100 text-green-600 rounded-full flex items-center justify-center flex-shrink-0">
                                             <Check className="w-4 h-4" />
@@ -338,6 +358,38 @@ export default function ServiceDetailPage({ params }: { params: { slug: string }
                                 ))}
                             </div>
                         </div>
+
+                        {/* Project Documentation */}
+                        {service.project_documents && service.project_documents.length > 0 && (
+                            <div className="card">
+                                <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                                    <FileText className="w-5 h-5 text-blue-500" />
+                                    Resource Specifications
+                                </h2>
+                                <div className="grid gap-3">
+                                    {service.project_documents.map((url: string, i: number) => (
+                                        <a
+                                            key={i}
+                                            href={url}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="flex items-center gap-4 p-4 rounded-2xl bg-gray-50 hover:bg-white hover:shadow-md border border-transparent hover:border-gray-100 transition-all group"
+                                        >
+                                            <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center text-blue-600 shadow-sm group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                                                <Download className="w-5 h-5" />
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <p className="text-sm font-bold text-gray-900 truncate">
+                                                    {url.split('/').pop() || `Document ${i + 1}`}
+                                                </p>
+                                                <p className="text-xs text-gray-500">PDF / Documentation Resource</p>
+                                            </div>
+                                            <ExternalLink className="w-4 h-4 text-gray-300 group-hover:text-blue-500" />
+                                        </a>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
 
                         {/* Reviews */}
                         <div className="card">
@@ -564,6 +616,6 @@ export default function ServiceDetailPage({ params }: { params: { slug: string }
                     />
                 )}
             </AnimatePresence>
-        </div>
+        </div >
     );
 }

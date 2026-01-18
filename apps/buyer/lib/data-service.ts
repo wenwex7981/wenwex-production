@@ -164,6 +164,8 @@ export async function fetchVendorBySlug(slugOrId: string) {
         memberSince: vendor.created_at ? new Date(vendor.created_at).getFullYear().toString() : '2023',
         avgResponseTime: vendor.avg_response_time || '2 hours',
         website: vendor.website_url,
+        location: vendor.country || vendor.location || 'India',
+        country: vendor.country || 'IN',
         services: (servicesRes.data || []).map((s: any) => ({
             ...s,
             imageUrl: s.main_image_url || s.image_url,

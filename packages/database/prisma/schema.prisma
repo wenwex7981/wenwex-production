@@ -44,7 +44,7 @@ enum SubscriptionStatus {
   PENDING
 }
 
-enum SubscriptionPlan {
+enum SubscriptionPlanType {
   STARTER
   PROFESSIONAL
   ENTERPRISE
@@ -110,6 +110,18 @@ model Vendor {
   logoUrl               String?      @map("logo_url")
   bannerUrl             String?      @map("banner_url")
   website               String?
+  websiteUrl            String?      @map("website_url")
+  panNumber             String?      @map("pan_number")
+  tanNumber             String?      @map("tan_number")
+  whatsappNumber        String?      @map("whatsapp_number")
+  paymentProofUrl       String?      @map("payment_proof_url")
+  foundedYear           String?      @map("founded_year")
+  teamSize              String?      @map("team_size")
+  projectsDone          String?      @map("projects_done")
+  satisfactionRate      String?      @map("satisfaction_rate")
+  socialLinks           Json?        @map("social_links")
+  subscriptionPlanId    String?      @map("subscription_plan_id")
+  subscriptionStatus    String?      @default("pending") @map("subscription_status")
   isVerified            Boolean      @default(false) @map("is_verified")
   verificationDocuments String[]     @default([]) @map("verification_documents")
   status                VendorStatus @default(PENDING)
@@ -342,7 +354,7 @@ model SavedService {
 model Subscription {
   id          String             @id @default(uuid())
   vendorId    String             @map("vendor_id")
-  plan        SubscriptionPlan
+  plan        SubscriptionPlanType
   status      SubscriptionStatus @default(PENDING)
   priceAmount Float              @map("price_amount")
   currency    String
@@ -361,9 +373,31 @@ model Subscription {
   @@map("subscriptions")
 }
 
+model SubscriptionPlan {
+  id              String   @id @default(uuid())
+  name            String
+  slug            String   @unique
+  description     String   @db.Text
+  price           Float
+  currency        String   @default("INR")
+  billingPeriod   String   @default("monthly") @map("billing_period")
+  servicesLimit   Int      @default(5) @map("services_limit")
+  features        String[] @default([])
+  isPopular       Boolean  @default(false) @map("is_popular")
+  badgeText       String?  @map("badge_text")
+  badgeColor      String?  @map("badge_color")
+  isActive        Boolean  @default(true) @map("is_active")
+  displayOrder    Int      @default(0) @map("display_order")
+  
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  @@map("subscription_plans")
+}
+
 model SubscriptionPricing {
   id           String           @id @default(uuid())
-  plan         SubscriptionPlan
+  plan         SubscriptionPlanType
   country      String
   currency     String
   monthlyPrice Float            @map("monthly_price")

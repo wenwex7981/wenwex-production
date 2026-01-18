@@ -4,23 +4,49 @@ import { getSupabaseClient } from './supabase';
 const supabase = getSupabaseClient();
 
 export async function getCurrentVendor() {
-    const { data: { user }, error: uError } = await supabase.auth.getUser();
-    if (uError || !user) throw new Error('Not authenticated');
+    try {
+        const { data: { user }, error: uError } = await supabase.auth.getUser();
+        if (uError || !user) {
+            console.log('User not authenticated');
+            return null;
+        }
 
-    const { data: vendor, error: vError } = await supabase
-        .from('vendors')
-        .select('*')
-        .eq('user_id', user.id)
-        .single();
+        const { data: vendor, error: vError } = await supabase
+            .from('vendors')
+            .select('*')
+            .eq('user_id', user.id)
+            .single();
 
-    if (vError && vError.code !== 'PGRST116') throw vError; // PGRST116 is "no rows found"
-    return vendor;
+        if (vError && vError.code !== 'PGRST116') {
+            console.error('Error fetching vendor:', vError);
+            return null;
+        }
+        return vendor;
+    } catch (error) {
+        console.error('Error in getCurrentVendor:', error);
+        return null;
+    }
 }
 
 export async function createVendor(vendorData: any) {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) throw new Error('Not authenticated');
 
+    // First ensure user exists in public.users table
+    const { error: userError } = await supabase
+        .from('users')
+        .upsert({
+            id: user.id,
+            email: user.email || vendorData.email,
+            full_name: vendorData.company_name || 'Vendor',
+            role: 'VENDOR'
+        }, { onConflict: 'id' });
+
+    if (userError) {
+        console.error('Error upserting user:', userError);
+    }
+
+    // Now create the vendor
     const { data, error } = await supabase
         .from('vendors')
         .insert([{ ...vendorData, user_id: user.id, status: 'PENDING' }])
@@ -38,7 +64,8 @@ export async function updateVendorProfile(id: string, vendorData: any) {
         'email', 'phone_number', 'whatsapp_number', 'website_url', 'country',
         'founded_year', 'team_size', 'projects_done', 'satisfaction_rate',
         'social_links', 'certifications', 'documents', 'is_verified',
-        'rating', 'total_reviews', 'followers_count', 'response_time'
+        'rating', 'total_reviews', 'followers_count', 'response_time',
+        'custom_fields'
     ];
 
     const filteredData: any = {};
@@ -81,95 +108,156 @@ export async function updateVendorProfile(id: string, vendorData: any) {
 }
 
 export async function getVendorStats(vendorId: string) {
-    // Basic stats for dashboard
-    const { data: services, count: servicesCount } = await supabase
-        .from('services')
-        .select('*', { count: 'exact' })
-        .eq('vendor_id', vendorId);
+    try {
+        // Basic stats for dashboard
+        const { data: services, count: servicesCount } = await supabase
+            .from('services')
+            .select('*', { count: 'exact' })
+            .eq('vendor_id', vendorId);
 
-    const { data: shorts, count: shortsCount } = await supabase
-        .from('shorts')
-        .select('*', { count: 'exact' })
-        .eq('vendor_id', vendorId);
+        const { data: shorts, count: shortsCount } = await supabase
+            .from('shorts')
+            .select('*', { count: 'exact' })
+            .eq('vendor_id', vendorId);
 
-    // Placeholder for views/followers if tables exist later
-    return {
-        services: servicesCount || 0,
-        shorts: shortsCount || 0,
-        avgRating: services?.length ? (services.reduce((acc, s) => acc + (s.rating || 0), 0) / services.length) : 0,
-    };
+        // Placeholder for views/followers if tables exist later
+        return {
+            services: servicesCount || 0,
+            shorts: shortsCount || 0,
+            avgRating: services?.length ? (services.reduce((acc, s) => acc + (s.rating || 0), 0) / services.length) : 0,
+        };
+    } catch (error) {
+        console.error('Error fetching vendor stats:', error);
+        // Return safe defaults on error
+        return {
+            services: 0,
+            shorts: 0,
+            avgRating: 0,
+        };
+    }
 }
 
 export async function fetchVendorServices(vendorId: string) {
-    const { data, error } = await supabase
-        .from('services')
-        .select('*')
-        .eq('vendor_id', vendorId)
-        .order('created_at', { ascending: false });
+    try {
+        const { data, error } = await supabase
+            .from('services')
+            .select('*')
+            .eq('vendor_id', vendorId)
+            .order('created_at', { ascending: false });
 
-    if (error) throw error;
-    return data;
+        if (error) {
+            console.error('Error fetching vendor services:', error);
+            return [];
+        }
+        return data || [];
+    } catch (error) {
+        console.error('Error fetching vendor services:', error);
+        return [];
+    }
 }
 
 export async function fetchServiceById(id: string) {
-    const { data, error } = await supabase
-        .from('services')
-        .select('*')
-        .eq('id', id)
-        .single();
+    try {
+        const { data, error } = await supabase
+            .from('services')
+            .select('*')
+            .eq('id', id)
+            .single();
 
-    if (error) throw error;
-    return data;
+        if (error) {
+            console.error('Error fetching service:', error);
+            return null;
+        }
+        return data;
+    } catch (error) {
+        console.error('Error fetching service:', error);
+        return null;
+    }
 }
 
 export async function fetchCategories() {
-    const { data, error } = await supabase
-        .from('categories')
-        .select('*, sub_categories(*)')
-        .order('order', { ascending: true });
+    try {
+        // Fetch categories without relation (FK removed)
+        const { data: categories, error: catError } = await supabase
+            .from('categories')
+            .select('*')
+            .eq('is_visible', true)
+            .order('order', { ascending: true });
 
-    if (error) throw error;
-    return data;
+        if (catError) {
+            console.error('Error fetching categories:', catError);
+            return [];
+        }
+
+        if (!categories || categories.length === 0) {
+            return [];
+        }
+
+        // Fetch sub_categories separately
+        const { data: subCategories, error: subError } = await supabase
+            .from('sub_categories')
+            .select('*');
+
+        // Merge sub_categories into categories
+        const result = categories.map(cat => ({
+            ...cat,
+            sub_categories: subCategories?.filter(sub => sub.category_id === cat.id) || []
+        }));
+
+        return result;
+    } catch (error) {
+        console.error('Error fetching categories:', error);
+        return [];
+    }
 }
 
 export async function createService(serviceData: any) {
-    const { data, error } = await supabase
-        .from('services')
-        .insert([serviceData])
-        .select();
+    try {
+        const { data, error } = await supabase
+            .from('services')
+            .insert([serviceData])
+            .select();
 
-    if (error) throw error;
-    return data;
+        if (error) {
+            console.error('Error creating service:', error);
+            throw error;
+        }
+        return data;
+    } catch (error) {
+        console.error('Error creating service:', error);
+        throw error;
+    }
 }
 
 export async function updateService(id: string, serviceData: any) {
-    // Filter to only include fields that exist in the services table
-    const knownFields = [
-        'title', 'name', 'slug', 'description', 'short_description', 'price',
-        'category_id', 'sub_category_id', 'status', 'images', 'main_image_url',
-        'delivery_days', 'revisions', 'service_type', 'tech_stack', 'features',
-        'is_featured', 'view_count', 'rating', 'total_reviews', 'currency',
-        'rejection_reason'
-    ];
+    try {
+        // Filter to only include fields that exist in the services table
+        const knownFields = [
+            'title', 'name', 'slug', 'description', 'short_description', 'price',
+            'category_id', 'sub_category_id', 'status', 'images', 'main_image_url',
+            'delivery_days', 'revisions', 'service_type', 'tech_stack', 'features',
+            'is_featured', 'view_count', 'rating', 'total_reviews', 'currency',
+            'rejection_reason', 'project_photos', 'project_videos', 'project_documents',
+            'custom_fields'
+        ];
 
-    const filteredData: any = {};
-    for (const key of Object.keys(serviceData)) {
-        if (knownFields.includes(key) && serviceData[key] !== undefined) {
-            filteredData[key] = serviceData[key];
+        const filteredData: any = {};
+        for (const key of Object.keys(serviceData)) {
+            if (knownFields.includes(key) && serviceData[key] !== undefined) {
+                filteredData[key] = serviceData[key];
+            }
         }
-    }
 
-    const { data, error } = await supabase
-        .from('services')
-        .update(filteredData)
-        .eq('id', id)
-        .select();
+        const { data, error } = await supabase
+            .from('services')
+            .update(filteredData)
+            .eq('id', id)
+            .select();
 
-    if (error) {
-        // If there's a column error, try with basic fields only
-        if (error.message?.includes('column') || error.message?.includes('schema cache')) {
-            console.warn('Some service fields may not exist, trying with basic fields...');
-            const basicFields = ['title', 'name', 'description', 'price', 'status', 'images'];
+        if (error) {
+            console.error('Error updating service:', error);
+            // Try with basic fields only
+            const basicFields = ['title', 'description', 'price', 'status'];
             const basicData: any = {};
             for (const key of basicFields) {
                 if (serviceData[key] !== undefined) {
@@ -185,18 +273,28 @@ export async function updateService(id: string, serviceData: any) {
             if (retryError) throw retryError;
             return retryData;
         }
+        return data;
+    } catch (error) {
+        console.error('Error updating service:', error);
         throw error;
     }
-    return data;
 }
 
 export async function deleteService(id: string) {
-    const { error } = await supabase
-        .from('services')
-        .delete()
-        .eq('id', id);
+    try {
+        const { error } = await supabase
+            .from('services')
+            .delete()
+            .eq('id', id);
 
-    if (error) throw error;
+        if (error) {
+            console.error('Error deleting service:', error);
+            throw error;
+        }
+    } catch (error) {
+        console.error('Error deleting service:', error);
+        throw error;
+    }
 }
 
 export async function uploadMedia(bucket: string, file: File, folder: string = '') {
@@ -291,12 +389,20 @@ export async function addPortfolioItem(itemData: any) {
 }
 
 export async function deletePortfolioItem(id: string) {
-    const { error } = await supabase
-        .from('vendor_portfolio')
-        .delete()
-        .eq('id', id);
+    try {
+        const { error } = await supabase
+            .from('vendor_portfolio')
+            .delete()
+            .eq('id', id);
 
-    if (error) throw error;
+        if (error) {
+            console.error('Error deleting portfolio item:', error);
+            throw error;
+        }
+    } catch (error) {
+        console.error('Error deleting portfolio item:', error);
+        throw error;
+    }
 }
 
 // Shorts Management
@@ -360,10 +466,18 @@ export async function addShort(shortData: any) {
 }
 
 export async function deleteShort(id: string) {
-    const { error } = await supabase
-        .from('shorts')
-        .delete()
-        .eq('id', id);
+    try {
+        const { error } = await supabase
+            .from('shorts')
+            .delete()
+            .eq('id', id);
 
-    if (error) throw error;
+        if (error) {
+            console.error('Error deleting short:', error);
+            throw error;
+        }
+    } catch (error) {
+        console.error('Error deleting short:', error);
+        throw error;
+    }
 }

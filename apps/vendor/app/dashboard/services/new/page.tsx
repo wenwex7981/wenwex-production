@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { fetchCategories, createService, getCurrentVendor, uploadMedia } from '@/lib/vendor-service';
+import { DynamicFieldsForm } from '@/lib/dynamic-fields';
 import { toast } from 'react-hot-toast';
 
 export default function NewServicePage() {
@@ -32,6 +33,10 @@ export default function NewServicePage() {
         revisions: '3',
         status: 'DRAFT',
         service_type: 'IT & TECH',
+        project_photos: [] as string[],
+        project_videos: [] as string[],
+        project_documents: [] as string[],
+        custom_fields: {} as Record<string, any>,
     });
 
     useEffect(() => {
@@ -120,7 +125,10 @@ export default function NewServicePage() {
                 revisions: parseInt(formData.revisions) || 0,
                 slug: `${slug}-${Math.random().toString(36).substring(2, 7)}`,
                 features: formData.features.filter(f => f.trim() !== ''),
-                tech_stack: formData.tech_stack.filter(t => t.trim() !== '')
+                tech_stack: formData.tech_stack.filter(t => t.trim() !== ''),
+                project_photos: formData.project_photos,
+                project_videos: formData.project_videos,
+                project_documents: formData.project_documents
             });
 
             toast.success('Service created successfully!');
@@ -445,8 +453,165 @@ export default function NewServicePage() {
                         </div>
                     </div>
 
+                    {/* Project Media - Photos, Videos, Documents */}
+                    <div className="bg-white p-8 rounded-3xl border border-gray-100 shadow-sm">
+                        <div className="flex items-center gap-3 mb-6">
+                            <div className="w-10 h-10 bg-green-50 rounded-xl flex items-center justify-center">
+                                <Upload className="w-5 h-5 text-green-600" />
+                            </div>
+                            <h2 className="text-lg font-bold text-gray-900">Project Media</h2>
+                        </div>
+
+                        <div className="space-y-6">
+                            {/* Project Photos */}
+                            <div className="space-y-3">
+                                <label className="text-sm font-bold text-gray-700 ml-1 flex items-center gap-2">
+                                    <ImageIcon className="w-4 h-4" /> Project Photos
+                                </label>
+                                <div className="flex flex-wrap gap-2">
+                                    {formData.project_photos.map((url, i) => (
+                                        <div key={i} className="relative w-20 h-20 rounded-xl overflow-hidden group">
+                                            <img src={url} alt="" className="w-full h-full object-cover" />
+                                            <button
+                                                type="button"
+                                                onClick={() => setFormData({ ...formData, project_photos: formData.project_photos.filter((_, idx) => idx !== i) })}
+                                                className="absolute top-1 right-1 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                                            >
+                                                <X className="w-3 h-3" />
+                                            </button>
+                                        </div>
+                                    ))}
+                                    <label className="w-20 h-20 border-2 border-dashed border-gray-200 rounded-xl flex flex-col items-center justify-center cursor-pointer hover:border-primary-300 hover:bg-primary-50/50 transition-all">
+                                        <Plus className="w-6 h-6 text-gray-400" />
+                                        <input
+                                            type="file"
+                                            className="hidden"
+                                            accept="image/*"
+                                            multiple
+                                            onChange={async (e) => {
+                                                const files = Array.from(e.target.files || []);
+                                                for (const file of files) {
+                                                    try {
+                                                        const url = await uploadMedia('services', file, vendor?.id);
+                                                        setFormData(prev => ({ ...prev, project_photos: [...prev.project_photos, url] }));
+                                                    } catch (err: any) {
+                                                        toast.error(err.message);
+                                                    }
+                                                }
+                                            }}
+                                        />
+                                    </label>
+                                </div>
+                            </div>
+
+                            {/* Project Videos */}
+                            <div className="space-y-3">
+                                <label className="text-sm font-bold text-gray-700 ml-1 flex items-center gap-2">
+                                    <Clock className="w-4 h-4" /> Project Videos
+                                </label>
+                                <div className="flex flex-wrap gap-2">
+                                    {formData.project_videos.map((url, i) => (
+                                        <div key={i} className="relative w-32 h-20 rounded-xl overflow-hidden group bg-gray-900">
+                                            <video src={url} className="w-full h-full object-cover" />
+                                            <button
+                                                type="button"
+                                                onClick={() => setFormData({ ...formData, project_videos: formData.project_videos.filter((_, idx) => idx !== i) })}
+                                                className="absolute top-1 right-1 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                                            >
+                                                <X className="w-3 h-3" />
+                                            </button>
+                                        </div>
+                                    ))}
+                                    <label className="w-32 h-20 border-2 border-dashed border-gray-200 rounded-xl flex flex-col items-center justify-center cursor-pointer hover:border-primary-300 hover:bg-primary-50/50 transition-all">
+                                        <Plus className="w-6 h-6 text-gray-400" />
+                                        <span className="text-[10px] text-gray-400 mt-1">Video</span>
+                                        <input
+                                            type="file"
+                                            className="hidden"
+                                            accept="video/*"
+                                            onChange={async (e) => {
+                                                const file = e.target.files?.[0];
+                                                if (file) {
+                                                    try {
+                                                        const url = await uploadMedia('services', file, vendor?.id);
+                                                        setFormData(prev => ({ ...prev, project_videos: [...prev.project_videos, url] }));
+                                                        toast.success('Video uploaded');
+                                                    } catch (err: any) {
+                                                        toast.error(err.message);
+                                                    }
+                                                }
+                                            }}
+                                        />
+                                    </label>
+                                </div>
+                            </div>
+
+                            {/* Project Documents */}
+                            <div className="space-y-3">
+                                <label className="text-sm font-bold text-gray-700 ml-1 flex items-center gap-2">
+                                    <Tag className="w-4 h-4" /> Related Documents
+                                </label>
+                                <div className="space-y-2">
+                                    {formData.project_documents.map((url, i) => (
+                                        <div key={i} className="flex items-center gap-2 p-3 bg-gray-50 rounded-xl">
+                                            <Tag className="w-4 h-4 text-gray-500" />
+                                            <span className="text-sm text-gray-700 truncate flex-1">{url.split('/').pop()}</span>
+                                            <button
+                                                type="button"
+                                                onClick={() => setFormData({ ...formData, project_documents: formData.project_documents.filter((_, idx) => idx !== i) })}
+                                                className="text-gray-400 hover:text-red-500"
+                                            >
+                                                <X className="w-4 h-4" />
+                                            </button>
+                                        </div>
+                                    ))}
+                                    <label className="flex items-center gap-2 p-3 border-2 border-dashed border-gray-200 rounded-xl cursor-pointer hover:border-primary-300 hover:bg-primary-50/50 transition-all">
+                                        <Plus className="w-5 h-5 text-gray-400" />
+                                        <span className="text-sm text-gray-500">Add Document (PDF, DOC, etc.)</span>
+                                        <input
+                                            type="file"
+                                            className="hidden"
+                                            accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx"
+                                            onChange={async (e) => {
+                                                const file = e.target.files?.[0];
+                                                if (file) {
+                                                    try {
+                                                        const url = await uploadMedia('services', file, vendor?.id);
+                                                        setFormData(prev => ({ ...prev, project_documents: [...prev.project_documents, url] }));
+                                                        toast.success('Document uploaded');
+                                                    } catch (err: any) {
+                                                        toast.error(err.message);
+                                                    }
+                                                }
+                                            }}
+                                        />
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Custom Dynamic Fields */}
+                    <div className="bg-white p-8 rounded-3xl border border-gray-100 shadow-sm">
+                        <div className="flex items-center gap-3 mb-6">
+                            <div className="w-10 h-10 bg-purple-50 rounded-xl flex items-center justify-center">
+                                <Sparkles className="w-5 h-5 text-purple-600" />
+                            </div>
+                            <h2 className="text-lg font-bold text-gray-900">Additional Fields</h2>
+                        </div>
+                        <DynamicFieldsForm
+                            entityType="services"
+                            values={formData.custom_fields}
+                            onChange={(name, value) => setFormData(prev => ({
+                                ...prev,
+                                custom_fields: { ...prev.custom_fields, [name]: value }
+                            }))}
+                        />
+                    </div>
+
                     {/* Save Actions */}
                     <div className="space-y-4">
+
                         <button
                             type="submit"
                             disabled={isSaving}
