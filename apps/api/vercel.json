@@ -4,7 +4,10 @@
     "builds": [
         {
             "src": "dist/index.js",
-            "use": "@vercel/node"
+            "use": "@vercel/node",
+            "config": {
+                "maxDuration": 30
+            }
         }
     ],
     "routes": [
@@ -16,12 +19,6 @@
     "regions": [
         "bom1"
     ],
-    "functions": {
-        "dist/index.js": {
-            "maxDuration": 30,
-            "memory": 1024
-        }
-    },
     "headers": [
         {
             "source": "/(.*)",
