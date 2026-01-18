@@ -6,6 +6,7 @@ import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider } from '@/components/providers/AuthProvider';
+import { GoogleAnalytics } from '@/components/analytics/GoogleAnalytics';
 
 const inter = Inter({
     subsets: ['latin'],
@@ -78,6 +79,7 @@ export default function RootLayout({
 }) {
     return (
         <html lang="en" className={`scroll-smooth ${inter.variable} ${outfit.variable}`}>
+            <GoogleAnalytics />
             <body className="min-h-screen flex flex-col antialiased font-sans">
                 <AuthProvider>
                     {/* Toast notifications */}
