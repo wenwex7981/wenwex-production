@@ -4,14 +4,14 @@
 
 import { Router } from 'express';
 import { searchController } from '../controllers/search.controller';
-import { searchRateLimit } from '../middleware/rateLimit.middleware';
+import { searchLimiter } from '../middleware/rateLimit.middleware';
 
 const router = Router();
 
 // All routes are public with rate limiting
-router.get('/', searchRateLimit, searchController.globalSearch);
-router.get('/services', searchRateLimit, searchController.searchServices);
-router.get('/vendors', searchRateLimit, searchController.searchVendors);
-router.get('/suggestions', searchRateLimit, searchController.getSuggestions);
+router.get('/', searchLimiter, searchController.globalSearch);
+router.get('/services', searchLimiter, searchController.searchServices);
+router.get('/vendors', searchLimiter, searchController.searchVendors);
+router.get('/suggestions', searchLimiter, searchController.getSuggestions);
 
 export default router;

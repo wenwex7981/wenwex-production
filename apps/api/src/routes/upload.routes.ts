@@ -6,7 +6,7 @@ import { Router } from 'express';
 import multer from 'multer';
 import { uploadController } from '../controllers/upload.controller';
 import { authenticate } from '../middleware/auth.middleware';
-import { uploadRateLimit } from '../middleware/rateLimit.middleware';
+import { uploadLimiter } from '../middleware/rateLimit.middleware';
 
 const router = Router();
 
@@ -64,7 +64,7 @@ const documentUpload = multer({
 
 // All routes require authentication
 router.use(authenticate);
-router.use(uploadRateLimit);
+router.use(uploadLimiter);
 
 // Upload routes
 router.post('/image', imageUpload.single('file'), uploadController.uploadImage);
