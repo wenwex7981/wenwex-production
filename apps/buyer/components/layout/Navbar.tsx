@@ -136,6 +136,12 @@ export function Navbar() {
             <div className="bg-gray-900 text-white py-2 px-4 hidden lg:block">
                 <div className="container-custom flex items-center justify-between text-[11px] font-bold tracking-widest uppercase">
                     <div className="flex items-center gap-6">
+                        <Link href="/about" className="flex items-center gap-1.5 hover:text-primary-400 transition-colors">
+                            About
+                        </Link>
+                        <Link href="/contact" className="flex items-center gap-1.5 hover:text-primary-400 transition-colors">
+                            Contact
+                        </Link>
                         <Link href="/support" className="flex items-center gap-1.5 hover:text-primary-400 transition-colors">
                             <HelpCircle className="w-3.5 h-3.5" />
                             Help & Support
@@ -413,6 +419,20 @@ export function Navbar() {
                                     {/* Mobile Top Bar Links - Same as Desktop */}
                                     <div className="px-4 pb-4 border-b border-gray-100 mb-2">
                                         <div className="flex flex-col gap-3">
+                                            <Link
+                                                href="/about"
+                                                onClick={() => setIsOpen(false)}
+                                                className="flex items-center gap-2 text-gray-600 hover:text-primary-600 transition-colors text-sm font-medium"
+                                            >
+                                                About Us
+                                            </Link>
+                                            <Link
+                                                href="/contact"
+                                                onClick={() => setIsOpen(false)}
+                                                className="flex items-center gap-2 text-gray-600 hover:text-primary-600 transition-colors text-sm font-medium"
+                                            >
+                                                Contact Us
+                                            </Link>
                                             <Link
                                                 href="/support"
                                                 onClick={() => setIsOpen(false)}
