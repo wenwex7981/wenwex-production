@@ -1,14 +1,22 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
+import { toast } from 'react-hot-toast';
 import {
     ChevronLeft, Shield, Lock, CreditCard, Clock, Check,
-    AlertCircle, BadgeCheck, Star
+    AlertCircle, BadgeCheck, Star, Loader2, Wallet, Smartphone
 } from 'lucide-react';
 import { useCurrencyStore } from '@/lib/currency-store';
+import { initializeRazorpayPayment, toPaise, convertUSDToINR, PaymentResponse } from '@/lib/razorpay';
+import { createClient } from '@supabase/supabase-js';
+
+// Initialize Supabase
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 // Mock service data - in real app, fetch from API based on query params
 const service = {
@@ -37,30 +45,100 @@ const service = {
     ],
 };
 
-const paymentMethods = [
-    { id: 'card', name: 'Credit/Debit Card', icon: CreditCard },
-    { id: 'upi', name: 'UPI (India)', icon: null },
-    { id: 'paypal', name: 'PayPal', icon: null },
-];
-
 export default function CheckoutPage() {
     const formatPrice = useCurrencyStore((state) => state.formatPrice);
     const [step, setStep] = useState(1);
-    const [selectedPayment, setSelectedPayment] = useState('card');
     const [isProcessing, setIsProcessing] = useState(false);
     const [formData, setFormData] = useState({
         requirements: '',
         email: '',
         phone: '',
+        name: '',
     });
 
-    const handleSubmit = async () => {
+    // Calculate INR price
+    const priceInINR = convertUSDToINR(service.price);
+    const priceInPaise = toPaise(priceInINR);
+
+    const handlePayment = async () => {
+        if (!formData.requirements || !formData.email) {
+            toast.error('Please fill in all required fields');
+            return;
+        }
+
         setIsProcessing(true);
-        // Simulate payment processing
-        setTimeout(() => {
+
+        try {
+            // Initialize Razorpay payment
+            await initializeRazorpayPayment(
+                {
+                    amount: priceInPaise,
+                    currency: 'INR',
+                    name: 'WENWEX',
+                    description: service.title,
+                    prefill: {
+                        name: formData.name,
+                        email: formData.email,
+                        contact: formData.phone,
+                    },
+                    notes: {
+                        service_id: service.id,
+                        service_title: service.title,
+                        vendor_name: service.vendor.name,
+                    },
+                },
+                async (response: PaymentResponse) => {
+                    // Payment successful
+                    await handlePaymentSuccess(response);
+                },
+                (error: any) => {
+                    // Payment failed or cancelled
+                    setIsProcessing(false);
+                    if (error.message !== 'Payment cancelled by user') {
+                        toast.error(error.message || 'Payment failed');
+                    }
+                }
+            );
+        } catch (error: any) {
+            setIsProcessing(false);
+            toast.error(error.message || 'Failed to initiate payment');
+        }
+    };
+
+    const handlePaymentSuccess = async (response: PaymentResponse) => {
+        try {
+            // Save order to database
+            const { data: userData } = await supabase.auth.getUser();
+
+            const { error } = await supabase.from('orders').insert({
+                user_id: userData?.user?.id || null,
+                service_id: service.id,
+                vendor_id: service.vendor.slug,
+                amount: priceInINR,
+                currency: 'INR',
+                payment_id: response.razorpay_payment_id,
+                payment_status: 'paid',
+                order_status: 'confirmed',
+                requirements: formData.requirements,
+                customer_email: formData.email,
+                customer_phone: formData.phone,
+                customer_name: formData.name,
+                created_at: new Date().toISOString(),
+            });
+
+            if (error) {
+                console.error('Order save error:', error);
+            }
+
             setIsProcessing(false);
             setStep(3);
-        }, 2000);
+            toast.success('Payment successful! Order confirmed.');
+        } catch (error) {
+            console.error('Error saving order:', error);
+            setIsProcessing(false);
+            setStep(3);
+            toast.success('Payment successful!');
+        }
     };
 
     return (
@@ -110,8 +188,8 @@ export default function CheckoutPage() {
                                 </div>
                             </div>
                             <div className="flex justify-between text-sm">
-                                <span className="text-gray-500">Order Total</span>
-                                <span className="font-bold text-gray-900">{formatPrice(service.price)}</span>
+                                <span className="text-gray-500">Order Total (Paid)</span>
+                                <span className="font-bold text-gray-900">₹{priceInINR.toLocaleString('en-IN')}</span>
                             </div>
                         </div>
                         <div className="flex gap-4 justify-center">
@@ -173,31 +251,45 @@ export default function CheckoutPage() {
                                         <h2 className="text-lg font-semibold text-gray-900 mb-4">
                                             Contact Information
                                         </h2>
-                                        <div className="grid sm:grid-cols-2 gap-4">
+                                        <div className="space-y-4">
                                             <div>
                                                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                                                    Email Address
+                                                    Full Name
                                                 </label>
                                                 <input
-                                                    type="email"
-                                                    placeholder="you@example.com"
-                                                    value={formData.email}
-                                                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                                                    type="text"
+                                                    placeholder="John Doe"
+                                                    value={formData.name}
+                                                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                                                     className="input"
-                                                    required
                                                 />
                                             </div>
-                                            <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                                    Phone Number
-                                                </label>
-                                                <input
-                                                    type="tel"
-                                                    placeholder="+1 (555) 000-0000"
-                                                    value={formData.phone}
-                                                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                                                    className="input"
-                                                />
+                                            <div className="grid sm:grid-cols-2 gap-4">
+                                                <div>
+                                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                        Email Address *
+                                                    </label>
+                                                    <input
+                                                        type="email"
+                                                        placeholder="you@example.com"
+                                                        value={formData.email}
+                                                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                                                        className="input"
+                                                        required
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                        Phone Number
+                                                    </label>
+                                                    <input
+                                                        type="tel"
+                                                        placeholder="+91 9876543210"
+                                                        value={formData.phone}
+                                                        onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                                                        className="input"
+                                                    />
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -218,87 +310,89 @@ export default function CheckoutPage() {
                                     animate={{ opacity: 1, x: 0 }}
                                     className="space-y-6"
                                 >
-                                    {/* Payment Method */}
+                                    {/* Razorpay Payment */}
                                     <div className="card">
                                         <h2 className="text-lg font-semibold text-gray-900 mb-4">
-                                            Payment Method
+                                            Secure Payment
                                         </h2>
-                                        <div className="space-y-3">
-                                            {paymentMethods.map((method) => (
-                                                <label
-                                                    key={method.id}
-                                                    className={`flex items-center gap-4 p-4 border rounded-xl cursor-pointer transition-colors ${selectedPayment === method.id
-                                                        ? 'border-primary-500 bg-primary-50'
-                                                        : 'border-gray-200 hover:bg-gray-50'
-                                                        }`}
-                                                >
-                                                    <input
-                                                        type="radio"
-                                                        name="payment"
-                                                        value={method.id}
-                                                        checked={selectedPayment === method.id}
-                                                        onChange={(e) => setSelectedPayment(e.target.value)}
-                                                        className="w-5 h-5 text-primary-500"
-                                                    />
-                                                    <span className="font-medium text-gray-900">{method.name}</span>
-                                                </label>
-                                            ))}
-                                        </div>
-                                    </div>
 
-                                    {/* Card Details (if card selected) */}
-                                    {selectedPayment === 'card' && (
-                                        <div className="card">
-                                            <h2 className="text-lg font-semibold text-gray-900 mb-4">
-                                                Card Details
-                                            </h2>
-                                            <div className="space-y-4">
-                                                <div>
-                                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                                        Card Number
-                                                    </label>
-                                                    <input
-                                                        type="text"
-                                                        placeholder="4242 4242 4242 4242"
-                                                        className="input"
-                                                    />
+                                        {/* Payment Methods Banner */}
+                                        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-4 mb-6 border border-blue-100">
+                                            <div className="flex items-center gap-3 mb-3">
+                                                <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center">
+                                                    <Shield className="w-5 h-5 text-white" />
                                                 </div>
-                                                <div className="grid grid-cols-2 gap-4">
-                                                    <div>
-                                                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                                                            Expiry Date
-                                                        </label>
-                                                        <input
-                                                            type="text"
-                                                            placeholder="MM/YY"
-                                                            className="input"
-                                                        />
-                                                    </div>
-                                                    <div>
-                                                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                                                            CVC
-                                                        </label>
-                                                        <input
-                                                            type="text"
-                                                            placeholder="123"
-                                                            className="input"
-                                                        />
-                                                    </div>
+                                                <div>
+                                                    <h3 className="font-bold text-gray-900">Powered by Razorpay</h3>
+                                                    <p className="text-sm text-gray-500">100% Secure Payment</p>
                                                 </div>
                                             </div>
+                                            <div className="flex flex-wrap gap-2">
+                                                {['Cards', 'UPI', 'Wallets', 'Net Banking'].map((method) => (
+                                                    <span key={method} className="px-3 py-1 bg-white rounded-lg text-xs font-medium text-gray-600 border border-gray-200">
+                                                        {method}
+                                                    </span>
+                                                ))}
+                                            </div>
                                         </div>
-                                    )}
+
+                                        {/* Supported Payment Methods */}
+                                        <div className="grid grid-cols-4 gap-3 mb-6">
+                                            <div className="flex flex-col items-center gap-2 p-3 bg-gray-50 rounded-xl">
+                                                <CreditCard className="w-6 h-6 text-gray-600" />
+                                                <span className="text-xs font-medium text-gray-600">Cards</span>
+                                            </div>
+                                            <div className="flex flex-col items-center gap-2 p-3 bg-gray-50 rounded-xl">
+                                                <Smartphone className="w-6 h-6 text-gray-600" />
+                                                <span className="text-xs font-medium text-gray-600">UPI</span>
+                                            </div>
+                                            <div className="flex flex-col items-center gap-2 p-3 bg-gray-50 rounded-xl">
+                                                <Wallet className="w-6 h-6 text-gray-600" />
+                                                <span className="text-xs font-medium text-gray-600">Wallets</span>
+                                            </div>
+                                            <div className="flex flex-col items-center gap-2 p-3 bg-gray-50 rounded-xl">
+                                                <Lock className="w-6 h-6 text-gray-600" />
+                                                <span className="text-xs font-medium text-gray-600">Banking</span>
+                                            </div>
+                                        </div>
+
+                                        {/* Order Summary in Payment Step */}
+                                        <div className="p-4 bg-gray-50 rounded-xl mb-6">
+                                            <div className="flex justify-between items-center mb-2">
+                                                <span className="text-gray-600">Service Amount</span>
+                                                <span className="font-medium">{formatPrice(service.price)}</span>
+                                            </div>
+                                            <div className="flex justify-between items-center mb-2">
+                                                <span className="text-gray-600">Amount in INR</span>
+                                                <span className="font-medium">₹{priceInINR.toLocaleString('en-IN')}</span>
+                                            </div>
+                                            <div className="flex justify-between items-center pt-2 border-t border-gray-200">
+                                                <span className="font-semibold text-gray-900">Total to Pay</span>
+                                                <span className="text-xl font-bold text-green-600">₹{priceInINR.toLocaleString('en-IN')}</span>
+                                            </div>
+                                        </div>
+                                    </div>
 
                                     <div className="flex gap-4">
                                         <button onClick={() => setStep(1)} className="btn-secondary">
                                             Back
                                         </button>
                                         <button
-                                            onClick={handleSubmit}
+                                            onClick={handlePayment}
                                             disabled={isProcessing}
-                                            className="btn-primary flex-1 py-4"
+                                            className="btn-primary flex-1 py-4 gap-2"
                                         >
-                                            {isProcessing ? 'Processing...' : `Pay ${formatPrice(service.price)}`}
+                                            {isProcessing ? (
+                                                <>
+                                                    <Loader2 className="w-5 h-5 animate-spin" />
+                                                    Processing...
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <Lock className="w-5 h-5" />
+                                                    Pay ₹{priceInINR.toLocaleString('en-IN')}
+                                                </>
+                                            )}
                                         </button>
                                     </div>
                                 </motion.div>
@@ -354,16 +448,20 @@ export default function CheckoutPage() {
                                 {/* Price */}
                                 <div className="pt-4">
                                     <div className="flex justify-between items-center mb-2">
-                                        <span className="text-gray-500">Subtotal</span>
+                                        <span className="text-gray-500">Subtotal (USD)</span>
                                         <span className="text-gray-900">{formatPrice(service.price)}</span>
+                                    </div>
+                                    <div className="flex justify-between items-center mb-2">
+                                        <span className="text-gray-500">In INR</span>
+                                        <span className="text-gray-900">₹{priceInINR.toLocaleString('en-IN')}</span>
                                     </div>
                                     <div className="flex justify-between items-center mb-4">
                                         <span className="text-gray-500">Service Fee</span>
-                                        <span className="text-gray-900">$0</span>
+                                        <span className="text-gray-900">₹0</span>
                                     </div>
                                     <div className="flex justify-between items-center pt-4 border-t border-gray-100">
                                         <span className="font-semibold text-gray-900">Total</span>
-                                        <span className="text-2xl font-bold text-gray-900">{formatPrice(service.price)}</span>
+                                        <span className="text-2xl font-bold text-gray-900">₹{priceInINR.toLocaleString('en-IN')}</span>
                                     </div>
                                 </div>
                             </div>
@@ -372,7 +470,7 @@ export default function CheckoutPage() {
                             <div className="flex flex-col gap-3">
                                 <div className="flex items-center gap-3 text-sm text-gray-600">
                                     <Shield className="w-5 h-5 text-green-500" />
-                                    <span>Secure payment processing</span>
+                                    <span>Secure payment via Razorpay</span>
                                 </div>
                                 <div className="flex items-center gap-3 text-sm text-gray-600">
                                     <Lock className="w-5 h-5 text-green-500" />

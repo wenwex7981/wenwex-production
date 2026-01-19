@@ -6,13 +6,14 @@ import {
     Building2, ShieldCheck, FileText, Upload, CheckCircle2, AlertCircle,
     ArrowRight, ArrowLeft, Briefcase, Clock, Lock, Loader2, CreditCard,
     Sparkles, Check, Star, Zap, Crown, Users, BarChart3, Headphones,
-    BadgeCheck, Rocket, Image as ImageIcon
+    BadgeCheck, Rocket, Image as ImageIcon, Shield
 } from 'lucide-react';
 import Link from 'next/link';
 import { createVendor, getCurrentVendor, uploadMedia } from '@/lib/vendor-service';
 import { toast } from 'react-hot-toast';
 import { useRouter } from 'next/navigation';
 import { getSupabaseClient } from '@/lib/supabase';
+import { initializeRazorpayPayment, toPaise, PaymentResponse } from '@/lib/razorpay';
 
 // Initialize Supabase client
 const supabase = getSupabaseClient();
@@ -40,6 +41,8 @@ export default function OnboardingPage() {
     const [isLoading, setIsLoading] = useState(true);
     const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
     const [selectedPlan, setSelectedPlan] = useState<SubscriptionPlan | null>(null);
+    const [paymentCompleted, setPaymentCompleted] = useState(false);
+    const [paymentId, setPaymentId] = useState<string>('');
 
     const [formData, setFormData] = useState<any>({
         company_name: '',
@@ -128,27 +131,68 @@ export default function OnboardingPage() {
         }
     };
 
-    const handleVerify = async () => {
-        if (!formData.company_name || !formData.email) {
-            toast.error('Please fill in essential details');
-            return;
-        }
-
+    const handleRazorpayPayment = async () => {
         if (!selectedPlan) {
             toast.error('Please select a subscription plan');
             return;
         }
 
-        if (!formData.payment_proof_url) {
-            toast.error('Please upload payment proof');
+        if (!formData.company_name || !formData.email) {
+            toast.error('Please fill in company name and email first');
             return;
         }
 
         setIsVerifying(true);
+
+        try {
+            const amountInPaise = toPaise(selectedPlan.price);
+
+            await initializeRazorpayPayment(
+                {
+                    amount: amountInPaise,
+                    currency: selectedPlan.currency || 'INR',
+                    name: 'WENWEX Partner',
+                    description: `${selectedPlan.name} Plan - ${selectedPlan.billing_period}`,
+                    prefill: {
+                        name: formData.company_name,
+                        email: formData.email,
+                    },
+                    notes: {
+                        plan_id: selectedPlan.id,
+                        plan_name: selectedPlan.name,
+                        company_name: formData.company_name,
+                    },
+                    theme: {
+                        color: '#3b82f6',
+                    },
+                },
+                async (response: PaymentResponse) => {
+                    // Payment successful
+                    setPaymentId(response.razorpay_payment_id);
+                    setPaymentCompleted(true);
+                    toast.success('Payment successful! Completing registration...');
+
+                    // Auto-submit the application
+                    await submitApplication(response.razorpay_payment_id);
+                },
+                (error: any) => {
+                    setIsVerifying(false);
+                    if (error.message !== 'Payment cancelled by user') {
+                        toast.error(error.message || 'Payment failed');
+                    }
+                }
+            );
+        } catch (error: any) {
+            setIsVerifying(false);
+            toast.error(error.message || 'Failed to initiate payment');
+        }
+    };
+
+    const submitApplication = async (razorpayPaymentId: string) => {
         try {
             const slug = formData.company_name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
 
-            const { pan_image_url, tan_image_url, ...submitData } = formData;
+            const { pan_image_url, tan_image_url, payment_proof_url, ...submitData } = formData;
             const verification_documents = [
                 ...(pan_image_url ? [pan_image_url] : []),
                 ...(tan_image_url ? [tan_image_url] : [])
@@ -158,14 +202,17 @@ export default function OnboardingPage() {
                 ...submitData,
                 verification_documents,
                 slug: `${slug}-${Math.random().toString(36).substring(2, 6)}`,
-                subscription_plan_id: selectedPlan.id,
-                subscription_status: 'pending',
+                subscription_plan_id: selectedPlan?.id,
+                subscription_status: 'active',
+                razorpay_payment_id: razorpayPaymentId,
+                payment_status: 'paid',
             });
+
             setIsPending(true);
             setStep(3);
-            toast.success('Onboarding submitted successfully!');
+            toast.success('Application submitted successfully!');
         } catch (error: any) {
-            toast.error(error.message || 'Failed to submit onboarding');
+            toast.error(error.message || 'Failed to submit application');
         } finally {
             setIsVerifying(false);
         }
@@ -209,8 +256,9 @@ export default function OnboardingPage() {
                         setFormData={setFormData}
                         selectedPlan={selectedPlan}
                         handleFileUpload={handleFileUpload}
-                        handleVerify={handleVerify}
-                        isVerifying={isVerifying}
+                        handlePayment={handleRazorpayPayment}
+                        isProcessing={isVerifying}
+                        paymentCompleted={paymentCompleted}
                         onBack={() => setStep(1)}
                         formatPrice={formatPrice}
                     />
@@ -483,7 +531,7 @@ function PricingStep({ plans, selectedPlan, onSelectPlan, onNext, onBack, format
                             : 'bg-gray-100 text-gray-400 cursor-not-allowed'
                             }`}
                     >
-                        Continue to Payment
+                        Continue
                         <ArrowRight className="w-5 h-5" />
                     </button>
                 </div>
@@ -492,14 +540,15 @@ function PricingStep({ plans, selectedPlan, onSelectPlan, onNext, onBack, format
     );
 }
 
-// Step 2: Onboarding Form with Payment Proof
-function OnboardingFormStep({ formData, setFormData, selectedPlan, handleFileUpload, handleVerify, isVerifying, onBack, formatPrice }: {
+// Step 2: Onboarding Form with Razorpay Payment
+function OnboardingFormStep({ formData, setFormData, selectedPlan, handleFileUpload, handlePayment, isProcessing, paymentCompleted, onBack, formatPrice }: {
     formData: any;
     setFormData: (data: any) => void;
     selectedPlan: SubscriptionPlan | null;
     handleFileUpload: (file: File, type: 'pan' | 'tan' | 'payment') => void;
-    handleVerify: () => void;
-    isVerifying: boolean;
+    handlePayment: () => void;
+    isProcessing: boolean;
+    paymentCompleted: boolean;
     onBack: () => void;
     formatPrice: (price: number, currency: string) => string;
 }) {
@@ -538,7 +587,7 @@ function OnboardingFormStep({ formData, setFormData, selectedPlan, handleFileUpl
                             <Briefcase className="w-7 h-7" />
                         </div>
                         <h2 className="text-3xl font-black text-gray-900 tracking-tight">Complete Your Profile</h2>
-                        <p className="text-gray-500 font-medium">Tell us about your business and upload verification documents.</p>
+                        <p className="text-gray-500 font-medium">Tell us about your business and complete payment to activate your account.</p>
                     </div>
 
                     <div className="grid md:grid-cols-2 gap-6 mb-8">
@@ -572,7 +621,7 @@ function OnboardingFormStep({ formData, setFormData, selectedPlan, handleFileUpl
                             />
                         </div>
                         <div className="space-y-2">
-                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">PAN Number</label>
+                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">PAN Number (Optional)</label>
                             <input
                                 type="text"
                                 placeholder="ABCDE1234F"
@@ -582,7 +631,7 @@ function OnboardingFormStep({ formData, setFormData, selectedPlan, handleFileUpl
                             />
                         </div>
                         <div className="space-y-2">
-                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">TAN Number</label>
+                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">TAN Number (Optional)</label>
                             <input
                                 type="text"
                                 placeholder="ABCD12345E"
@@ -593,10 +642,10 @@ function OnboardingFormStep({ formData, setFormData, selectedPlan, handleFileUpl
                         </div>
                     </div>
 
-                    {/* Document Uploads - PAN, TAN, Payment Proof */}
+                    {/* Document Uploads - PAN, TAN (Optional) */}
                     <div className="space-y-4 mb-8">
-                        <h3 className="text-lg font-black text-gray-900">Upload Documents</h3>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <h3 className="text-lg font-black text-gray-900">Upload Documents (Optional)</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             {/* PAN Upload */}
                             <div className="space-y-2">
                                 <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">PAN Card</label>
@@ -644,51 +693,35 @@ function OnboardingFormStep({ formData, setFormData, selectedPlan, handleFileUpl
                                     <input id="tan-upload" type="file" className="hidden" accept="image/*,.pdf" onChange={(e) => e.target.files?.[0] && handleFileUpload(e.target.files[0], 'tan')} />
                                 </div>
                             </div>
-
-                            {/* Payment Proof Upload */}
-                            <div className="space-y-2">
-                                <label className="text-[10px] font-black text-red-500 uppercase tracking-widest">Payment Proof*</label>
-                                <div
-                                    onClick={() => document.getElementById('payment-upload')?.click()}
-                                    className={`aspect-[4/3] rounded-2xl border-2 border-dashed ${formData.payment_proof_url ? 'border-green-300 bg-green-50' : 'border-primary-300 bg-primary-50'} flex flex-col items-center justify-center cursor-pointer hover:border-primary-400 transition-all overflow-hidden`}
-                                >
-                                    {formData.payment_proof_url ? (
-                                        <div className="relative w-full h-full">
-                                            <img src={formData.payment_proof_url} alt="Payment Proof" className="w-full h-full object-cover" />
-                                            <div className="absolute inset-0 bg-green-500/10 flex items-center justify-center">
-                                                <CheckCircle2 className="w-8 h-8 text-green-500" />
-                                            </div>
-                                        </div>
-                                    ) : (
-                                        <>
-                                            <CreditCard className="w-6 h-6 text-primary-500 mb-2" />
-                                            <span className="text-xs font-bold text-primary-600">Upload Payment Screenshot</span>
-                                            <span className="text-[10px] text-primary-400 mt-1">Required</span>
-                                        </>
-                                    )}
-                                    <input id="payment-upload" type="file" className="hidden" accept="image/*,.pdf" onChange={(e) => e.target.files?.[0] && handleFileUpload(e.target.files[0], 'payment')} />
-                                </div>
-                            </div>
                         </div>
                     </div>
 
-                    {/* Payment Instructions */}
-                    <div className="p-5 rounded-2xl bg-amber-50 border border-amber-200 mb-8">
-                        <div className="flex items-start gap-4">
-                            <div className="w-10 h-10 bg-amber-100 rounded-xl flex items-center justify-center flex-shrink-0">
-                                <AlertCircle className="w-5 h-5 text-amber-600" />
+                    {/* Payment Section */}
+                    <div className="p-6 rounded-2xl bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100 mb-8">
+                        <div className="flex items-center gap-4 mb-4">
+                            <div className="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center">
+                                <Shield className="w-6 h-6 text-white" />
                             </div>
                             <div>
-                                <h4 className="font-bold text-amber-900 mb-1">Payment Instructions</h4>
-                                <p className="text-sm text-amber-700">
-                                    Make payment to the following UPI ID or Bank Account, then upload the screenshot above.
-                                </p>
-                                <div className="mt-3 p-3 bg-white rounded-xl text-sm">
-                                    <div className="font-mono font-bold text-gray-900">UPI: payments@wenwex</div>
-                                    <div className="text-gray-500 text-xs mt-1">Include your company name in the payment note</div>
-                                </div>
+                                <h4 className="font-bold text-gray-900">Secure Payment via Razorpay</h4>
+                                <p className="text-sm text-gray-500">Pay using Cards, UPI, Wallets, or Net Banking</p>
                             </div>
                         </div>
+                        <div className="flex flex-wrap gap-2 mb-4">
+                            {['Cards', 'UPI', 'Wallets', 'Net Banking', 'Google Pay', 'PhonePe'].map((method) => (
+                                <span key={method} className="px-3 py-1 bg-white rounded-lg text-xs font-medium text-gray-600 border border-gray-200">
+                                    {method}
+                                </span>
+                            ))}
+                        </div>
+                        {selectedPlan && (
+                            <div className="p-4 bg-white rounded-xl border border-gray-200">
+                                <div className="flex justify-between items-center">
+                                    <span className="text-gray-600">Subscription Amount</span>
+                                    <span className="text-2xl font-black text-gray-900">{formatPrice(selectedPlan.price, selectedPlan.currency)}</span>
+                                </div>
+                            </div>
+                        )}
                     </div>
 
                     <div className="flex items-center justify-between">
@@ -700,19 +733,19 @@ function OnboardingFormStep({ formData, setFormData, selectedPlan, handleFileUpl
                             Back
                         </button>
                         <button
-                            onClick={handleVerify}
-                            disabled={isVerifying || !formData.company_name || !formData.email || !formData.payment_proof_url}
-                            className={`flex items-center gap-3 px-8 py-4 rounded-2xl font-black uppercase tracking-wider transition-all shadow-xl ${isVerifying || !formData.company_name || !formData.email || !formData.payment_proof_url
+                            onClick={handlePayment}
+                            disabled={isProcessing || !formData.company_name || !formData.email}
+                            className={`flex items-center gap-3 px-8 py-4 rounded-2xl font-black uppercase tracking-wider transition-all shadow-xl ${isProcessing || !formData.company_name || !formData.email
                                 ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                                : 'bg-primary-600 text-white hover:bg-primary-700 shadow-primary-500/20 active:scale-[0.98]'
+                                : 'bg-green-600 text-white hover:bg-green-700 shadow-green-500/20 active:scale-[0.98]'
                                 }`}
                         >
-                            {isVerifying ? (
+                            {isProcessing ? (
                                 <Loader2 className="w-5 h-5 animate-spin" />
                             ) : (
                                 <>
-                                    Submit Application
-                                    <CheckCircle2 className="w-5 h-5" />
+                                    <Lock className="w-5 h-5" />
+                                    Pay & Submit
                                 </>
                             )}
                         </button>
@@ -733,29 +766,29 @@ function PendingStep({ isPending }: { isPending: boolean }) {
             className="w-full max-w-lg"
         >
             <div className="bg-white rounded-[2.5rem] shadow-2xl shadow-gray-200/50 border border-gray-100 overflow-hidden p-10 lg:p-14">
-                <div className="p-10 rounded-[2rem] bg-amber-50 border border-amber-100 text-center space-y-8">
-                    <div className="w-24 h-24 bg-white rounded-full flex items-center justify-center text-amber-500 mx-auto shadow-sm">
-                        <Clock className="w-12 h-12 animate-pulse" />
+                <div className="p-10 rounded-[2rem] bg-green-50 border border-green-100 text-center space-y-8">
+                    <div className="w-24 h-24 bg-white rounded-full flex items-center justify-center text-green-500 mx-auto shadow-sm">
+                        <CheckCircle2 className="w-12 h-12" />
                     </div>
                     <div className="space-y-3">
-                        <h3 className="text-3xl font-black text-amber-900 tracking-tight">Application Pending</h3>
-                        <p className="text-amber-800/70 font-bold text-sm leading-relaxed max-w-sm mx-auto">
-                            Your application and payment are under review by our Super Admin team. This usually takes{' '}
-                            <span className="text-amber-950 underline underline-offset-4 decoration-2">24 BUSINESS HOURS</span>.
+                        <h3 className="text-3xl font-black text-green-900 tracking-tight">Payment Successful!</h3>
+                        <p className="text-green-800/70 font-bold text-sm leading-relaxed max-w-sm mx-auto">
+                            Your payment has been received and your application is under review. Our team will verify your details within{' '}
+                            <span className="text-green-950 underline underline-offset-4 decoration-2">24 BUSINESS HOURS</span>.
                         </p>
                     </div>
 
-                    <div className="flex items-center gap-4 p-5 bg-white rounded-[2rem] border border-amber-100 text-left">
-                        <div className="w-12 h-12 bg-amber-50 rounded-2xl flex items-center justify-center text-amber-500">
-                            <Lock className="w-6 h-6" />
+                    <div className="flex items-center gap-4 p-5 bg-white rounded-[2rem] border border-green-100 text-left">
+                        <div className="w-12 h-12 bg-green-50 rounded-2xl flex items-center justify-center text-green-500">
+                            <Clock className="w-6 h-6" />
                         </div>
                         <div>
-                            <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Panel Status</div>
+                            <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Application Status</div>
                             <div className="text-sm font-black text-gray-900">Awaiting Super Admin Approval</div>
                         </div>
                     </div>
 
-                    <p className="text-[10px] font-black text-amber-600 uppercase tracking-[0.4em] animate-pulse">Processing Verification...</p>
+                    <p className="text-[10px] font-black text-green-600 uppercase tracking-[0.4em]">Thank you for joining WENWEX</p>
                 </div>
             </div>
         </motion.div>

@@ -578,3 +578,43 @@ model ContactSubmission {
   @@index([createdAt])
   @@map("contact_submissions")
 }
+
+// ==================== ORDERS (Service Bookings) ====================
+
+model Order {
+  id              String   @id @default(uuid())
+  userId          String?  @map("user_id")
+  serviceId       String   @map("service_id")
+  vendorId        String   @map("vendor_id")
+  
+  // Payment details
+  amount          Float
+  currency        String   @default("INR")
+  paymentId       String?  @map("payment_id") // Razorpay payment ID
+  paymentOrderId  String?  @map("payment_order_id") // Razorpay order ID
+  paymentStatus   String   @default("pending") @map("payment_status") // pending, paid, failed, refunded
+  
+  // Order details
+  orderStatus     String   @default("pending") @map("order_status") // pending, confirmed, in_progress, completed, cancelled
+  requirements    String?  // Customer project requirements
+  deliveryDate    DateTime? @map("delivery_date")
+  
+  // Customer info
+  customerEmail   String   @map("customer_email")
+  customerPhone   String?  @map("customer_phone")
+  customerName    String?  @map("customer_name")
+  
+  // Vendor notes
+  vendorNotes     String?  @map("vendor_notes")
+  
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+  
+  @@index([userId])
+  @@index([serviceId])
+  @@index([vendorId])
+  @@index([paymentStatus])
+  @@index([orderStatus])
+  @@index([createdAt])
+  @@map("orders")
+}
