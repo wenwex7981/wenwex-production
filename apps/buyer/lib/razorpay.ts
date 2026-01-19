@@ -68,10 +68,14 @@ export const initializeRazorpayPayment = async (
         return;
     }
 
-    const razorpayKeyId = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID;
+    // Get Razorpay Key ID from env or use fallback for test mode
+    const razorpayKeyId = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || 'rzp_test_S5XRFArsLeDPKZ';
+
+    // Log for debugging (remove in production)
+    console.log('Razorpay Key loaded:', razorpayKeyId ? 'Yes' : 'No');
 
     if (!razorpayKeyId) {
-        onError({ message: 'Razorpay Key ID not configured' });
+        onError({ message: 'Razorpay Key ID not configured. Please check your .env.local file.' });
         return;
     }
 

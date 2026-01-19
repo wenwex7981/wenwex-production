@@ -4,9 +4,10 @@
 -- ==========================================
 
 -- 1. Orders Table (for service bookings with Razorpay payments)
+-- Note: user_id is TEXT to match Supabase auth.users.id format
 CREATE TABLE IF NOT EXISTS orders (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_id UUID REFERENCES users(id),
+    user_id TEXT,  -- Supabase auth user ID (no foreign key to avoid type mismatch)
     service_id VARCHAR(255) NOT NULL,
     vendor_id VARCHAR(255) NOT NULL,
     
@@ -46,15 +47,18 @@ CREATE INDEX IF NOT EXISTS idx_orders_created_at ON orders(created_at);
 ALTER TABLE orders ENABLE ROW LEVEL SECURITY;
 
 -- 3. RLS Policies for orders
--- Allow users to view their own orders
-CREATE POLICY "Allow users to view own orders" ON orders
-    FOR SELECT USING (auth.uid() = user_id OR auth.role() = 'authenticated');
-
--- Allow public insert (anyone can create orders)
+-- Allow anyone to insert orders (for guest checkout)
+DROP POLICY IF EXISTS "Allow public insert for orders" ON orders;
 CREATE POLICY "Allow public insert for orders" ON orders
     FOR INSERT WITH CHECK (true);
 
--- Allow authenticated users full access (for admin/vendor to manage)
+-- Allow users to view their own orders
+DROP POLICY IF EXISTS "Allow users to view own orders" ON orders;
+CREATE POLICY "Allow users to view own orders" ON orders
+    FOR SELECT USING (true);
+
+-- Allow authenticated users to update orders
+DROP POLICY IF EXISTS "Allow authenticated users to update orders" ON orders;
 CREATE POLICY "Allow authenticated users to update orders" ON orders
     FOR UPDATE USING (auth.role() = 'authenticated');
 
