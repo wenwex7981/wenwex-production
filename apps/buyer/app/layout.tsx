@@ -25,33 +25,38 @@ export const metadata: Metadata = {
         default: 'WENWEX - Global Tech-Commerce Marketplace',
         template: '%s | WENWEX',
     },
-    description: 'Where verified agencies and academic service providers sell services as structured products. Find IT services, mobile apps, web development, AI solutions, and academic assistance.',
-    keywords: ['tech services', 'web development', 'mobile apps', 'academic projects', 'IT solutions', 'freelance agencies', 'software development'],
-    authors: [{ name: 'Project Genie Tech Solutions' }],
+    description: 'WENWEX is the global marketplace where verified agencies and academic service providers sell technology services as structured products. Find IT services, mobile apps, web development, AI solutions, and academic assistance.',
+    keywords: ['WENWEX', 'tech marketplace', 'tech services', 'web development', 'mobile apps', 'academic projects', 'IT solutions', 'freelance agencies', 'software development', 'verified agencies'],
+    authors: [{ name: 'WENWEX' }],
     creator: 'WENWEX',
-    publisher: 'Project Genie Tech Solutions',
-    metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'https://wenwex.online'),
+    publisher: 'WENWEX',
+    applicationName: 'WENWEX',
+    metadataBase: new URL('https://www.wenwex.online'),
+    alternates: {
+        canonical: 'https://www.wenwex.online',
+    },
     openGraph: {
         type: 'website',
         locale: 'en_US',
-        url: 'https://wenwex.online',
+        url: 'https://www.wenwex.online',
         siteName: 'WENWEX',
         title: 'WENWEX - Global Tech-Commerce Marketplace',
-        description: 'Find verified agencies for IT services, web development, mobile apps, and academic projects.',
+        description: 'The marketplace where verified agencies sell technology services as products. Find IT services, web development, mobile apps, and academic projects.',
         images: [
             {
-                url: '/og-image.png',
+                url: 'https://www.wenwex.online/og-image.png',
                 width: 1200,
                 height: 630,
-                alt: 'WENWEX - Tech-Commerce Marketplace',
+                alt: 'WENWEX - Global Tech-Commerce Marketplace',
             },
         ],
     },
     twitter: {
         card: 'summary_large_image',
         title: 'WENWEX - Global Tech-Commerce Marketplace',
-        description: 'Find verified agencies for IT services and academic projects.',
-        images: ['/og-image.png'],
+        description: 'The marketplace where verified agencies sell technology services as products.',
+        images: ['https://www.wenwex.online/og-image.png'],
+        creator: '@wenwex',
     },
     robots: {
         index: true,
@@ -65,11 +70,18 @@ export const metadata: Metadata = {
         },
     },
     icons: {
-        icon: '/favicon.ico',
-        shortcut: '/favicon-16x16.png',
+        icon: [
+            { url: '/favicon.ico', sizes: 'any' },
+            { url: '/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
+            { url: '/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
+        ],
+        shortcut: '/favicon.ico',
         apple: '/apple-touch-icon.png',
     },
     manifest: '/site.webmanifest',
+    verification: {
+        google: 'google1ae5efd42fa3b678',
+    },
 };
 
 export default function RootLayout({
