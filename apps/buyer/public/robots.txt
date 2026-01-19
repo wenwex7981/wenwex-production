@@ -1,0 +1,21 @@
+# WENWEX Platform - Robots.txt
+# https://www.wenwex.online
+
+User-agent: *
+Allow: /
+
+# Sitemap location
+Sitemap: https://www.wenwex.online/sitemap.xml
+
+# Disallow admin and sensitive paths
+Disallow: /api/
+Disallow: /admin/
+Disallow: /_next/
+Disallow: /auth/callback
+
+# Allow search engines to index these important pages
+Allow: /services
+Allow: /vendors
+Allow: /academic
+Allow: /shorts
+Allow: /categories
