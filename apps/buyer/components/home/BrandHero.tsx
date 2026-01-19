@@ -50,7 +50,12 @@ export function BrandHero() {
     const ctaPrimaryLink = settings.hero_cta_primary_link || '/services';
     const ctaSecondaryText = settings.hero_cta_secondary_text || 'View Global Agencies';
     const ctaSecondaryLink = settings.hero_cta_secondary_link || '/vendors';
-    const bannerImage = settings.hero_banner_image || 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&q=80&w=2000';
+    // Professional office workspace image as poster/fallback
+    const bannerImage = settings.hero_banner_image || 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&q=80&w=2000';
+    // Premium video background - loops silently for professional effect
+    // NOTE: Super Admin can set 'hero_video' setting to any video URL
+    // For local video, place MP4 in /public folder and use: /your-video.mp4
+    const heroVideo = settings.hero_video || '/17564202-uhd_3840_2160_30fps.mp4'; // Professional office/business video
 
     const stats = [
         { value: settings.stat_agencies || '500+', label: settings.stat_agencies_label || 'Verified Agencies', icon: Building2 },
@@ -67,11 +72,23 @@ export function BrandHero() {
 
                     {/* Animated Background Layers */}
                     <div className="absolute inset-0 z-0">
-                        {/* Base High-End Tech Image */}
+                        {/* Premium Video Background - Professional Look */}
+                        <video
+                            autoPlay
+                            loop
+                            muted
+                            playsInline
+                            poster={bannerImage}
+                            className="w-full h-full object-cover opacity-45 transition-transform duration-[10s] ease-linear group-hover:scale-105"
+                        >
+                            <source src={heroVideo} type="video/mp4" />
+                            {/* Fallback to image if video fails */}
+                        </video>
+                        {/* Fallback Image (shown if video doesn't load) */}
                         <img
                             src={bannerImage}
                             alt="Global Tech Commerce"
-                            className="w-full h-full object-cover opacity-60 transition-transform duration-[10s] ease-linear group-hover:scale-110"
+                            className="absolute inset-0 w-full h-full object-cover opacity-60 -z-10"
                         />
 
                         {/* Floating Mesh Gradients */}
@@ -90,8 +107,8 @@ export function BrandHero() {
                             className="absolute -bottom-[20%] -right-[10%] w-[60%] h-[60%] bg-purple-600/20 blur-[120px] rounded-full pointer-events-none"
                         />
 
-                        {/* Dark Overlay */}
-                        <div className="absolute inset-0 bg-gradient-to-br from-black via-black/40 to-transparent" />
+                        {/* Dark Overlay - stronger for text readability */}
+                        <div className="absolute inset-0 bg-gradient-to-br from-black/80 via-black/60 to-black/40" />
                         <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10" />
                     </div>
 

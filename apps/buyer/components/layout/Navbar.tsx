@@ -132,7 +132,7 @@ export function Navbar() {
             <Suspense fallback={null}>
                 <SearchInput searchInput={searchInput} setSearchInput={setSearchInput} searchInputRef={searchInputRef} />
             </Suspense>
-            {/* Premium Top Bar */}
+            {/* Premium Top Bar - Desktop */}
             <div className="bg-gray-900 text-white py-2 px-4 hidden lg:block">
                 <div className="container-custom flex items-center justify-between text-[11px] font-bold tracking-widest uppercase">
                     <div className="flex items-center gap-6">
@@ -270,10 +270,19 @@ export function Navbar() {
 
                         {/* Right Section */}
                         <div className="flex items-center gap-2">
-                            {/* Search Icon - Mobile */}
-                            <button className="lg:hidden btn-icon">
-                                <Search className="w-5 h-5 text-gray-600" />
-                            </button>
+                            {/* Mobile Search - Always Visible */}
+                            <form onSubmit={handleSearch} className="lg:hidden flex-1 max-w-[180px] mr-1">
+                                <div className="search-bar w-full py-1 px-2">
+                                    <Search className="w-4 h-4 text-gray-400 mr-1.5" />
+                                    <input
+                                        type="text"
+                                        placeholder="Search..."
+                                        className="flex-1 bg-transparent border-none outline-none text-gray-900 placeholder-gray-400 text-xs font-medium w-full"
+                                        value={searchInput}
+                                        onChange={(e) => setSearchInput(e.target.value)}
+                                    />
+                                </div>
+                            </form>
 
                             {isLoggedIn ? (
                                 <>
@@ -401,6 +410,34 @@ export function Navbar() {
                                 className="lg:hidden border-t border-gray-100 overflow-hidden"
                             >
                                 <div className="py-4 space-y-1">
+                                    {/* Mobile Top Bar Links - Same as Desktop */}
+                                    <div className="px-4 pb-4 border-b border-gray-100 mb-2">
+                                        <div className="flex flex-col gap-3">
+                                            <Link
+                                                href="/support"
+                                                onClick={() => setIsOpen(false)}
+                                                className="flex items-center gap-2 text-gray-600 hover:text-primary-600 transition-colors text-sm font-medium"
+                                            >
+                                                <HelpCircle className="w-4 h-4" />
+                                                Help & Support
+                                            </Link>
+                                            <div className="flex items-center gap-2 text-primary-600 text-sm font-bold">
+                                                <Crown className="w-4 h-4" />
+                                                WENWEX Premium
+                                            </div>
+                                            <a
+                                                href={process.env.NEXT_PUBLIC_VENDOR_URL ? `${process.env.NEXT_PUBLIC_VENDOR_URL}/onboarding` : "https://vendor.wenwex.online/onboarding"}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                onClick={() => setIsOpen(false)}
+                                                className="flex items-center gap-2 bg-primary-600/10 text-primary-600 px-3 py-2 rounded-lg text-sm font-bold"
+                                            >
+                                                <Briefcase className="w-4 h-4" />
+                                                Become Service Partner
+                                            </a>
+                                        </div>
+                                    </div>
+
                                     {/* Mobile Search */}
                                     <div className="px-2 pb-4">
                                         <form onSubmit={handleSearch} className="search-bar">

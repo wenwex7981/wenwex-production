@@ -180,3 +180,509 @@
     aspect-ratio: 4/3;
   }
 }
+
+/* ===========================================
+   MOBILE RESPONSIVE FIXES (WENWEX PLATFORM)
+   Professional Mobile Layout Optimization
+   Using !important for critical overrides
+   =========================================== */
+
+/* --- CRITICAL: PREVENT HORIZONTAL OVERFLOW --- */
+html,
+body {
+  overflow-x: hidden !important;
+  width: 100% !important;
+  max-width: 100vw !important;
+}
+
+/* Force all containers to respect viewport on mobile */
+@media (max-width: 1023px) {
+
+  *,
+  *::before,
+  *::after {
+    max-width: 100vw;
+  }
+
+  section,
+  header,
+  footer,
+  main,
+  nav,
+  article,
+  div {
+    overflow-x: clip;
+  }
+
+  /* Force container-custom to be full width and respect viewport */
+  .container-custom {
+    max-width: 100% !important;
+    width: 100% !important;
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+  }
+
+  /* Force all flex containers to wrap on mobile */
+  .flex {
+    flex-wrap: wrap !important;
+  }
+
+  /* Exclude horizontal scroll carousels and specific elements that shouldn't wrap */
+  .flex.flex-nowrap,
+  .overflow-x-auto .flex,
+  [class*="overflow-x-auto"] .flex,
+  header nav .flex.items-center.gap-2,
+  .search-bar,
+  form.lg\:hidden {
+    flex-wrap: nowrap !important;
+  }
+}
+
+/* --- NAVBAR MOBILE FIXES --- */
+@media (max-width: 1023px) {
+
+  /* Hide desktop navigation links */
+  header nav .hidden.lg\:flex.items-center.gap-6 {
+    display: none !important;
+  }
+
+  /* Hide sign in/get started buttons - show in mobile menu instead */
+  header nav .flex.items-center.gap-4.ml-4 {
+    display: none !important;
+  }
+
+  /* Ensure hamburger menu is visible and accessible */
+  header nav button.lg\:hidden {
+    display: inline-flex !important;
+    flex-shrink: 0 !important;
+    z-index: 50 !important;
+  }
+
+  /* Fix navbar container layout */
+  header nav .container-custom>.flex {
+    justify-content: space-between !important;
+    width: 100% !important;
+  }
+
+  /* Fix navbar right section spacing */
+  header nav .flex.items-center.gap-2 {
+    gap: 0.25rem !important;
+    flex-shrink: 0 !important;
+  }
+
+  /* Ensure logo doesn't flex grow too much */
+  header nav a[href="/"] {
+    flex-shrink: 0 !important;
+  }
+
+  /* Hide desktop search bar on mobile */
+  header nav .hidden.lg\:flex.flex-1.max-w-sm {
+    display: none !important;
+  }
+}
+
+/* --- HERO SECTION MOBILE FIXES --- */
+@media (max-width: 640px) {
+
+  /* Fix hero container padding and dimensions */
+  section>.container-custom>.relative.w-full {
+    min-height: 450px !important;
+    border-radius: 24px !important;
+  }
+
+  /* Fix hero content padding */
+  section .relative.z-10.h-full.flex.flex-col.justify-center {
+    padding: 2rem 1.25rem !important;
+  }
+
+  /* Fix hero badge row - wrap on mobile */
+  section .flex.items-center.gap-3.mb-8 {
+    flex-wrap: wrap !important;
+    gap: 0.5rem !important;
+    margin-bottom: 1rem !important;
+  }
+
+  /* Hide decorative line on mobile */
+  section .flex.items-center.gap-3.mb-8>.h-\[1px\].w-12,
+  section .flex.items-center.gap-3.mb-8>div[class*="h-"][class*="w-12"] {
+    display: none !important;
+  }
+
+  /* Fix hero title size */
+  section h1.text-5xl,
+  section h1[class*="text-5xl"],
+  h1.text-5xl {
+    font-size: 1.75rem !important;
+    line-height: 1.2 !important;
+    margin-bottom: 1rem !important;
+  }
+
+  /* Fix hero subtitle */
+  section p.text-lg,
+  section p[class*="text-lg"][class*="text-2xl"] {
+    font-size: 0.95rem !important;
+    margin-bottom: 1.5rem !important;
+    line-height: 1.6 !important;
+  }
+
+  /* Fix CTA buttons - stack vertically */
+  section .flex.flex-wrap.items-center.gap-6 {
+    flex-direction: column !important;
+    width: 100% !important;
+    gap: 0.75rem !important;
+  }
+
+  section .flex.flex-wrap.items-center.gap-6>a,
+  section .flex.flex-wrap.items-center.gap-6>button {
+    width: 100% !important;
+    justify-content: center !important;
+    height: 3rem !important;
+    font-size: 0.875rem !important;
+    padding-left: 1.5rem !important;
+    padding-right: 1.5rem !important;
+  }
+}
+
+/* --- STATS SECTION MOBILE FIXES --- */
+@media (max-width: 640px) {
+
+  /* Fix stats grid */
+  .grid.grid-cols-2 {
+    gap: 1rem !important;
+    padding: 0 0.5rem !important;
+  }
+
+  /* Fix stat items layout */
+  .grid.grid-cols-2>div,
+  .grid.grid-cols-2>.flex {
+    gap: 0.5rem !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+  }
+
+  /* Fix stat icon size */
+  .grid.grid-cols-2 .w-14.h-14 {
+    width: 2.5rem !important;
+    height: 2.5rem !important;
+    border-radius: 0.75rem !important;
+  }
+
+  /* Fix stat values */
+  .grid.grid-cols-2 .text-2xl.font-black,
+  .grid.grid-cols-2 .text-3xl.font-black {
+    font-size: 1rem !important;
+    line-height: 1.3 !important;
+  }
+
+  /* Fix stat labels */
+  .grid.grid-cols-2 .text-\[10px\],
+  .grid.grid-cols-2 .text-\[11px\] {
+    font-size: 8px !important;
+    white-space: normal !important;
+    line-height: 1.3 !important;
+  }
+}
+
+/* --- SPONSORED/CAROUSEL SECTION MOBILE FIXES --- */
+@media (max-width: 640px) {
+
+  /* Fix section headers */
+  section.py-12 .flex.items-center.justify-between.mb-8,
+  .flex.items-center.justify-between.mb-8 {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 0.75rem !important;
+    margin-bottom: 1rem !important;
+  }
+
+  /* Fix carousel height */
+  .relative.h-\[400px\] {
+    height: 380px !important;
+  }
+
+  /* Fix carousel content */
+  .absolute.inset-0.flex.items-center.p-8 {
+    padding: 1rem !important;
+  }
+
+  /* Fix carousel title */
+  .text-3xl.font-black {
+    font-size: 1.25rem !important;
+    line-height: 1.3 !important;
+  }
+
+  /* Fix carousel description */
+  .text-lg.text-gray-600.mb-8 {
+    font-size: 0.875rem !important;
+    margin-bottom: 1rem !important;
+  }
+}
+
+/* --- PREMIUM AGENCIES SECTION MOBILE FIXES --- */
+@media (max-width: 640px) {
+
+  /* Fix section padding */
+  section.relative.py-24 {
+    padding-top: 3rem !important;
+    padding-bottom: 3rem !important;
+  }
+
+  /* Fix section header */
+  section .flex.flex-col.lg\:flex-row.lg\:items-end.justify-between.gap-8.mb-20 {
+    margin-bottom: 2rem !important;
+    gap: 1rem !important;
+  }
+
+  /* Fix large section titles */
+  .text-5xl,
+  h2.text-5xl,
+  h2[class*="text-5xl"] {
+    font-size: 1.5rem !important;
+    line-height: 1.2 !important;
+  }
+
+  /* Fix CTA buttons */
+  .h-16.px-10.rounded-2xl,
+  a.h-16 {
+    height: 3rem !important;
+    padding-left: 1.25rem !important;
+    padding-right: 1.25rem !important;
+    font-size: 0.7rem !important;
+    width: 100% !important;
+    justify-content: center !important;
+  }
+
+  /* Fix agency cards */
+  section .grid.grid-cols-1.lg\:grid-cols-3 article {
+    border-radius: 24px !important;
+    padding: 1.25rem !important;
+  }
+
+  /* Fix agency card titles */
+  section article h3.text-3xl {
+    font-size: 1.125rem !important;
+  }
+
+  /* Fix performance matrix */
+  section article .grid.grid-cols-3 {
+    gap: 0.375rem !important;
+  }
+
+  section article .grid.grid-cols-3>div {
+    padding: 0.5rem !important;
+    border-radius: 0.75rem !important;
+  }
+}
+
+/* --- FEATURED SERVICES SECTION MOBILE FIXES --- */
+@media (max-width: 640px) {
+
+  /* Fix section padding */
+  section.relative.pt-10,
+  section.relative[class*="pt-10"] {
+    padding-top: 2rem !important;
+    padding-bottom: 3rem !important;
+  }
+
+  /* Fix section header */
+  section .flex.flex-col.lg\:flex-row.lg\:items-end.justify-between.gap-10.mb-16 {
+    margin-bottom: 1.5rem !important;
+    gap: 1rem !important;
+  }
+
+  /* Hide scroll buttons on mobile */
+  section .flex.items-center.gap-4>.flex.items-center.gap-2.mr-4 {
+    display: none !important;
+  }
+
+  /* Fix horizontal scroll container */
+  .flex.flex-nowrap.gap-8.overflow-x-auto {
+    gap: 0.75rem !important;
+    margin-left: -1rem !important;
+    margin-right: -1rem !important;
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+  }
+
+  /* Fix service card size */
+  .w-\[320px\],
+  [class*="w-[320px]"] {
+    width: 260px !important;
+    min-width: 260px !important;
+    flex-shrink: 0 !important;
+  }
+
+  /* Fix service card content */
+  section article.group.flex.flex-col.bg-white {
+    height: auto !important;
+    min-height: 550px !important;
+  }
+
+  section article .relative.h-60 {
+    height: 10rem !important;
+  }
+
+  section article .flex-1.p-8.pb-10 {
+    padding: 1rem !important;
+    padding-bottom: 1.25rem !important;
+  }
+
+  section article h3.text-2xl {
+    font-size: 1rem !important;
+    min-height: auto !important;
+    line-height: 1.3 !important;
+  }
+
+  /* Fix price display */
+  section article .text-xl.font-black,
+  section article [class*="text-xl"][class*="font-black"] {
+    font-size: 1rem !important;
+  }
+}
+
+/* --- FOOTER MOBILE FIXES --- */
+@media (max-width: 640px) {
+
+  /* Fix newsletter form */
+  footer form.flex {
+    flex-direction: column !important;
+    gap: 0.5rem !important;
+  }
+
+  footer form input {
+    width: 100% !important;
+  }
+
+  footer form button {
+    width: 100% !important;
+    justify-content: center !important;
+  }
+
+  /* Fix footer grid */
+  footer .grid.grid-cols-2 {
+    gap: 1.5rem !important;
+  }
+
+  /* Fix footer headings */
+  footer h4 {
+    font-size: 0.8rem !important;
+    margin-bottom: 0.5rem !important;
+  }
+
+  /* Fix footer links */
+  footer ul a {
+    font-size: 0.8rem !important;
+  }
+
+  /* Fix bottom bar */
+  footer .flex.flex-col.md\:flex-row.items-center.justify-between {
+    text-align: center !important;
+    gap: 0.75rem !important;
+  }
+
+  footer .flex.items-center.gap-6 {
+    gap: 0.75rem !important;
+    justify-content: center !important;
+    flex-wrap: wrap !important;
+  }
+}
+
+/* --- GENERAL MOBILE IMPROVEMENTS --- */
+@media (max-width: 640px) {
+
+  /* Better touch targets */
+  button,
+  a.btn,
+  a.btn-primary {
+    min-height: 44px !important;
+  }
+
+  /* Fix inputs */
+  .input {
+    font-size: 16px !important;
+    /* Prevents iOS zoom */
+    padding: 0.75rem !important;
+  }
+
+  /* Fix cards */
+  .card {
+    padding: 1rem !important;
+    border-radius: 1rem !important;
+  }
+
+  /* Section titles */
+  .section-title {
+    font-size: 1.25rem !important;
+    margin-bottom: 0.5rem !important;
+  }
+
+  .section-subtitle {
+    font-size: 0.875rem !important;
+  }
+
+  /* Service cards */
+  .service-card {
+    flex-direction: column !important;
+    padding: 0.75rem !important;
+    gap: 0.75rem !important;
+  }
+
+  /* Category cards */
+  .category-card {
+    padding: 0.75rem !important;
+  }
+}
+
+/* --- TABLET FIXES (768px - 1023px) --- */
+@media (min-width: 641px) and (max-width: 1023px) {
+  .container-custom {
+    max-width: 100% !important;
+    padding-left: 1.5rem !important;
+    padding-right: 1.5rem !important;
+  }
+
+  section h1.text-5xl {
+    font-size: 2rem !important;
+  }
+
+  .grid.grid-cols-2 {
+    gap: 1.5rem !important;
+  }
+
+  .w-\[320px\] {
+    width: 320px !important;
+  }
+}
+
+/* --- NOTIFICATION AND DROPDOWNS MOBILE FIXES --- */
+@media (max-width: 640px) {
+
+  /* Fix dropdown positions */
+  .relative>.absolute.right-0 {
+    right: 0 !important;
+    left: auto !important;
+    max-width: calc(100vw - 2rem) !important;
+  }
+
+  /* Fix user menu */
+  header .relative>.absolute.right-0.mt-3.w-64 {
+    width: calc(100vw - 2rem) !important;
+    max-width: 18rem !important;
+  }
+}
+
+/* --- ACADEMIC & OTHER PAGES MOBILE FIXES --- */
+@media (max-width: 640px) {
+
+  /* Text wrapping */
+  .line-clamp-2,
+  .line-clamp-3 {
+    word-break: break-word !important;
+  }
+
+  /* Badge sizing */
+  .badge {
+    font-size: 0.7rem !important;
+    padding: 0.125rem 0.375rem !important;
+  }
+}
