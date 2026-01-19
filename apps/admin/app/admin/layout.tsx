@@ -1,8 +1,10 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import AdminSidebar from '@/components/Sidebar';
 import { Menu, LogOut, Bell, Search, Shield } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 export default function AdminLayout({
     children,
@@ -10,6 +12,15 @@ export default function AdminLayout({
     children: React.ReactNode;
 }) {
     const [sidebarOpen, setSidebarOpen] = useState(false);
+    const router = useRouter();
+
+    const handleLogout = () => {
+        localStorage.removeItem('wenwex_admin_auth');
+        localStorage.removeItem('wenwex_admin_auth_expiry');
+        localStorage.removeItem('wenwex_admin_user');
+        toast.success('Logged out successfully');
+        router.push('/login');
+    };
 
     return (
         <div className="min-h-screen bg-gray-900 flex text-gray-100">
@@ -36,10 +47,19 @@ export default function AdminLayout({
                             </div>
                         </div>
 
-                        <div className="flex items-center gap-2 sm: gap-4">
+                        <div className="flex items-center gap-2 sm:gap-4">
                             <button className="p-2 text-gray-400 hover:text-white hover:bg-gray-700 rounded-lg transition-colors relative">
                                 <Bell className="w-5 h-5" />
                                 <span className="absolute top-2 right-2 w-2 h-2 bg-primary-500 rounded-full border-2 border-gray-800"></span>
+                            </button>
+
+                            {/* Logout Button */}
+                            <button
+                                onClick={handleLogout}
+                                className="p-2 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
+                                title="Logout"
+                            >
+                                <LogOut className="w-5 h-5" />
                             </button>
 
                             <div className="h-8 w-[1px] bg-gray-700 mx-2 hidden sm:block" />
@@ -64,3 +84,4 @@ export default function AdminLayout({
         </div>
     );
 }
+

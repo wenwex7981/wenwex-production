@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Inter, Outfit } from 'next/font/google';
 import './globals.css';
 import { Toaster } from 'react-hot-toast';
+import { AdminAuthGuard } from '@/components/AdminAuthGuard';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter', display: 'swap' });
 const outfit = Outfit({ subsets: ['latin'], variable: '--font-outfit', display: 'swap' });
@@ -22,8 +23,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                         style: { background: '#1f2937', color: '#fff', borderRadius: '12px', border: '1px solid #374151' }
                     }}
                 />
-                {children}
+                <AdminAuthGuard>
+                    {children}
+                </AdminAuthGuard>
             </body>
         </html>
     );
 }
+
