@@ -452,10 +452,50 @@ body {
     justify-content: center !important;
   }
 
+  /* Fix agency cards grid */
+  section .grid.grid-cols-1.lg\:grid-cols-3 {
+    gap: 1.5rem !important;
+  }
+
   /* Fix agency cards */
   section .grid.grid-cols-1.lg\:grid-cols-3 article {
     border-radius: 24px !important;
     padding: 1.25rem !important;
+    padding-top: 0 !important;
+  }
+
+  /* Fix agency card background image container - FULL WIDTH */
+  section .grid.grid-cols-1.lg\:grid-cols-3 article .absolute.top-0.left-0.right-0.h-48 {
+    height: 140px !important;
+    left: 0 !important;
+    right: 0 !important;
+    width: 100% !important;
+    border-radius: 24px 24px 0 0 !important;
+    overflow: hidden !important;
+  }
+
+  /* Fix agency background image */
+  section .grid.grid-cols-1.lg\:grid-cols-3 article .absolute.top-0.left-0.right-0.h-48 img {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+    object-position: center !important;
+  }
+
+  /* Reduce blur effects for better scroll performance */
+  section.bg-\[\#050505\] .blur-\[120px\] {
+    display: none !important;
+  }
+
+  /* Fix agency card main content */
+  section .grid.grid-cols-1.lg\:grid-cols-3 article .relative.z-20.pt-24 {
+    padding-top: 100px !important;
+  }
+
+  /* Fix agency card avatar */
+  section .grid.grid-cols-1.lg\:grid-cols-3 article .relative.w-28.h-28 {
+    width: 70px !important;
+    height: 70px !important;
   }
 
   /* Fix agency card titles */
@@ -471,6 +511,73 @@ body {
   section article .grid.grid-cols-3>div {
     padding: 0.5rem !important;
     border-radius: 0.75rem !important;
+  }
+
+  /* Hide action hint on mobile */
+  section article .flex.items-center.gap-3.py-3.px-6.rounded-2xl.bg-white\/5 {
+    display: none !important;
+  }
+}
+
+/* --- TRENDING SERVICES SECTION MOBILE FIXES --- */
+@media (max-width: 640px) {
+
+  /* Fix section header alignment */
+  section.py-16 .flex.flex-col.sm\:flex-row.items-center.justify-between {
+    justify-content: center !important;
+    text-align: center !important;
+    margin-bottom: 1.5rem !important;
+  }
+
+  section.py-16 .text-center.sm\:text-left {
+    text-align: center !important;
+  }
+
+  /* Fix trending icon and title row */
+  section.py-16 .flex.items-center.justify-center.sm\:justify-start.gap-2 {
+    justify-content: center !important;
+  }
+
+  /* Fix horizontal scroll container for trending services */
+  section.py-16 .relative.-mx-4.px-4 {
+    margin-left: -1rem !important;
+    margin-right: -1rem !important;
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+  }
+
+  /* Fix trending services scroll container */
+  section.py-16 .flex.gap-5.overflow-x-auto {
+    flex-wrap: nowrap !important;
+    gap: 0.75rem !important;
+    padding-bottom: 1rem !important;
+    scroll-snap-type: x mandatory !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+
+  /* Fix trending service card width */
+  section.py-16 article.flex-shrink-0.w-80,
+  section.py-16 .flex.gap-5 article {
+    width: 280px !important;
+    min-width: 280px !important;
+    flex-shrink: 0 !important;
+    scroll-snap-align: start !important;
+  }
+
+  /* Fix trending card content */
+  section.py-16 article .p-6 {
+    padding: 1rem !important;
+  }
+
+  /* Fix trending card title */
+  section.py-16 article h3.text-lg {
+    font-size: 0.95rem !important;
+    min-height: auto !important;
+  }
+
+  /* Fix trending card image aspect ratio */
+  section.py-16 article .relative.aspect-\[16\/10\] {
+    aspect-ratio: 16/10 !important;
   }
 }
 
