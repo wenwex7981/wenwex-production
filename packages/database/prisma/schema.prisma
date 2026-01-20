@@ -590,8 +590,8 @@ model Order {
   // Payment details
   amount          Float
   currency        String   @default("INR")
-  paymentId       String?  @map("payment_id") // Razorpay payment ID
-  paymentOrderId  String?  @map("payment_order_id") // Razorpay order ID
+  paymentId       String?  @map("payment_id") // Dodo Payments payment ID
+  paymentOrderId  String?  @map("payment_order_id") // Dodo Payments order ID
   paymentStatus   String   @default("pending") @map("payment_status") // pending, paid, failed, refunded
   
   // Order details

@@ -13,7 +13,7 @@ import {
 } from 'lucide-react';
 import { getCurrentVendor } from '@/lib/vendor-service';
 import { getSupabaseClient } from '@/lib/supabase';
-import { initializeRazorpayPayment, toPaise, PaymentResponse } from '@/lib/razorpay';
+import { initializeDodoPayment, toPaise, PaymentResponse } from '@/lib/dodo-payments';
 import { toast } from 'react-hot-toast';
 import { useRouter } from 'next/navigation';
 import { signOut } from '@/lib/supabase';
@@ -120,17 +120,15 @@ export default function SubscriptionPage() {
         try {
             const amountInPaise = toPaise(plan.price);
 
-            await initializeRazorpayPayment(
+            await initializeDodoPayment(
                 {
                     amount: amountInPaise,
                     currency: plan.currency || 'INR',
-                    name: 'WENWEX Partner',
-                    description: `${plan.name} Plan Renewal - ${plan.billing_period}`,
-                    prefill: {
-                        name: vendor?.company_name,
-                        email: vendor?.email,
-                    },
-                    notes: {
+                    productName: 'WENWEX Partner Subscription',
+                    productDescription: `${plan.name} Plan Renewal - ${plan.billing_period}`,
+                    customerName: vendor?.company_name,
+                    customerEmail: vendor?.email,
+                    metadata: {
                         plan_id: plan.id,
                         vendor_id: vendor?.id,
                         type: 'subscription_renewal',
@@ -143,7 +141,7 @@ export default function SubscriptionPage() {
                         .update({
                             subscription_plan_id: plan.id,
                             subscription_status: 'active',
-                            razorpay_payment_id: response.razorpay_payment_id,
+                            dodo_payment_id: response.payment_id,
                             payment_status: 'paid',
                             updated_at: new Date().toISOString(),
                         })

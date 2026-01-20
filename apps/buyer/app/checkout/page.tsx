@@ -10,7 +10,7 @@ import {
     AlertCircle, BadgeCheck, Star, Loader2, Wallet, Smartphone
 } from 'lucide-react';
 import { useCurrencyStore } from '@/lib/currency-store';
-import { initializeRazorpayPayment, toPaise, convertUSDToINR, PaymentResponse } from '@/lib/razorpay';
+import { initializeDodoPayment, toPaise, convertUSDToINR, PaymentResponse } from '@/lib/dodo-payments';
 import { createClient } from '@supabase/supabase-js';
 
 // Initialize Supabase
@@ -69,19 +69,16 @@ export default function CheckoutPage() {
         setIsProcessing(true);
 
         try {
-            // Initialize Razorpay payment
-            await initializeRazorpayPayment(
+            // Initialize Dodo Payments
+            await initializeDodoPayment(
                 {
                     amount: priceInPaise,
                     currency: 'INR',
-                    name: 'WENWEX',
-                    description: service.title,
-                    prefill: {
-                        name: formData.name,
-                        email: formData.email,
-                        contact: formData.phone,
-                    },
-                    notes: {
+                    productName: service.title,
+                    productDescription: `Service by ${service.vendor.name}`,
+                    customerName: formData.name,
+                    customerEmail: formData.email,
+                    metadata: {
                         service_id: service.id,
                         service_title: service.title,
                         vendor_name: service.vendor.name,
@@ -116,7 +113,7 @@ export default function CheckoutPage() {
                 vendor_id: service.vendor.slug,
                 amount: priceInINR,
                 currency: 'INR',
-                payment_id: response.razorpay_payment_id,
+                payment_id: response.payment_id,
                 payment_status: 'paid',
                 order_status: 'confirmed',
                 requirements: formData.requirements,
@@ -310,7 +307,7 @@ export default function CheckoutPage() {
                                     animate={{ opacity: 1, x: 0 }}
                                     className="space-y-6"
                                 >
-                                    {/* Razorpay Payment */}
+                                    {/* Dodo Payments */}
                                     <div className="card">
                                         <h2 className="text-lg font-semibold text-gray-900 mb-4">
                                             Secure Payment
@@ -323,7 +320,7 @@ export default function CheckoutPage() {
                                                     <Shield className="w-5 h-5 text-white" />
                                                 </div>
                                                 <div>
-                                                    <h3 className="font-bold text-gray-900">Powered by Razorpay</h3>
+                                                    <h3 className="font-bold text-gray-900">Powered by Dodo Payments</h3>
                                                     <p className="text-sm text-gray-500">100% Secure Payment</p>
                                                 </div>
                                             </div>
@@ -470,7 +467,7 @@ export default function CheckoutPage() {
                             <div className="flex flex-col gap-3">
                                 <div className="flex items-center gap-3 text-sm text-gray-600">
                                     <Shield className="w-5 h-5 text-green-500" />
-                                    <span>Secure payment via Razorpay</span>
+                                    <span>Secure payment via Dodo Payments</span>
                                 </div>
                                 <div className="flex items-center gap-3 text-sm text-gray-600">
                                     <Lock className="w-5 h-5 text-green-500" />

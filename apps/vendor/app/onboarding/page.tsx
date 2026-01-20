@@ -13,7 +13,7 @@ import { createVendor, getCurrentVendor, uploadMedia } from '@/lib/vendor-servic
 import { toast } from 'react-hot-toast';
 import { useRouter } from 'next/navigation';
 import { getSupabaseClient } from '@/lib/supabase';
-import { initializeRazorpayPayment, toPaise, PaymentResponse } from '@/lib/razorpay';
+import { initializeDodoPayment, toPaise, PaymentResponse } from '@/lib/dodo-payments';
 
 // Initialize Supabase client
 const supabase = getSupabaseClient();
@@ -131,7 +131,7 @@ export default function OnboardingPage() {
         }
     };
 
-    const handleRazorpayPayment = async () => {
+    const handleDodoPayment = async () => {
         if (!selectedPlan) {
             toast.error('Please select a subscription plan');
             return;
@@ -147,33 +147,28 @@ export default function OnboardingPage() {
         try {
             const amountInPaise = toPaise(selectedPlan.price);
 
-            await initializeRazorpayPayment(
+            await initializeDodoPayment(
                 {
                     amount: amountInPaise,
                     currency: selectedPlan.currency || 'INR',
-                    name: 'WENWEX Partner',
-                    description: `${selectedPlan.name} Plan - ${selectedPlan.billing_period}`,
-                    prefill: {
-                        name: formData.company_name,
-                        email: formData.email,
-                    },
-                    notes: {
+                    productName: 'WENWEX Partner Subscription',
+                    productDescription: `${selectedPlan.name} Plan - ${selectedPlan.billing_period}`,
+                    customerName: formData.company_name,
+                    customerEmail: formData.email,
+                    metadata: {
                         plan_id: selectedPlan.id,
                         plan_name: selectedPlan.name,
                         company_name: formData.company_name,
                     },
-                    theme: {
-                        color: '#3b82f6',
-                    },
                 },
                 async (response: PaymentResponse) => {
                     // Payment successful
-                    setPaymentId(response.razorpay_payment_id);
+                    setPaymentId(response.payment_id);
                     setPaymentCompleted(true);
                     toast.success('Payment successful! Completing registration...');
 
                     // Auto-submit the application
-                    await submitApplication(response.razorpay_payment_id);
+                    await submitApplication(response.payment_id);
                 },
                 (error: any) => {
                     setIsVerifying(false);
@@ -188,7 +183,7 @@ export default function OnboardingPage() {
         }
     };
 
-    const submitApplication = async (razorpayPaymentId: string) => {
+    const submitApplication = async (dodoPaymentId: string) => {
         try {
             const slug = formData.company_name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
 
@@ -204,7 +199,7 @@ export default function OnboardingPage() {
                 slug: `${slug}-${Math.random().toString(36).substring(2, 6)}`,
                 subscription_plan_id: selectedPlan?.id,
                 subscription_status: 'active',
-                razorpay_payment_id: razorpayPaymentId,
+                dodo_payment_id: dodoPaymentId,
                 payment_status: 'paid',
             });
 
@@ -256,7 +251,7 @@ export default function OnboardingPage() {
                         setFormData={setFormData}
                         selectedPlan={selectedPlan}
                         handleFileUpload={handleFileUpload}
-                        handlePayment={handleRazorpayPayment}
+                        handlePayment={handleDodoPayment}
                         isProcessing={isVerifying}
                         paymentCompleted={paymentCompleted}
                         onBack={() => setStep(1)}
@@ -540,7 +535,7 @@ function PricingStep({ plans, selectedPlan, onSelectPlan, onNext, onBack, format
     );
 }
 
-// Step 2: Onboarding Form with Razorpay Payment
+// Step 2: Onboarding Form with Dodo Payment
 function OnboardingFormStep({ formData, setFormData, selectedPlan, handleFileUpload, handlePayment, isProcessing, paymentCompleted, onBack, formatPrice }: {
     formData: any;
     setFormData: (data: any) => void;
@@ -703,7 +698,7 @@ function OnboardingFormStep({ formData, setFormData, selectedPlan, handleFileUpl
                                 <Shield className="w-6 h-6 text-white" />
                             </div>
                             <div>
-                                <h4 className="font-bold text-gray-900">Secure Payment via Razorpay</h4>
+                                <h4 className="font-bold text-gray-900">Secure Payment via Dodo Payments</h4>
                                 <p className="text-sm text-gray-500">Pay using Cards, UPI, Wallets, or Net Banking</p>
                             </div>
                         </div>

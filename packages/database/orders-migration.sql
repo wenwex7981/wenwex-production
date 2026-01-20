@@ -1,9 +1,9 @@
 -- ==========================================
--- Orders Table Migration for Razorpay Integration
+-- Orders Table Migration for Dodo Payments Integration
 -- Run this SQL in your Supabase SQL Editor
 -- ==========================================
 
--- 1. Orders Table (for service bookings with Razorpay payments)
+-- 1. Orders Table (for service bookings with Dodo Payments)
 -- Note: user_id is TEXT to match Supabase auth.users.id format
 CREATE TABLE IF NOT EXISTS orders (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -14,8 +14,8 @@ CREATE TABLE IF NOT EXISTS orders (
     -- Payment details
     amount DECIMAL(12, 2) NOT NULL,
     currency VARCHAR(10) DEFAULT 'INR',
-    payment_id VARCHAR(255),  -- Razorpay payment ID
-    payment_order_id VARCHAR(255),  -- Razorpay order ID
+    payment_id VARCHAR(255),  -- Dodo Payments payment ID
+    payment_order_id VARCHAR(255),  -- Dodo Payments order ID
     payment_status VARCHAR(50) DEFAULT 'pending',  -- pending, paid, failed, refunded
     
     -- Order details
@@ -62,9 +62,10 @@ DROP POLICY IF EXISTS "Allow authenticated users to update orders" ON orders;
 CREATE POLICY "Allow authenticated users to update orders" ON orders
     FOR UPDATE USING (auth.role() = 'authenticated');
 
--- Add razorpay_payment_id column to vendors table for subscription payments
-ALTER TABLE vendors ADD COLUMN IF NOT EXISTS razorpay_payment_id VARCHAR(255);
+-- Add dodo_payment_id column to vendors table for subscription payments (replacing razorpay)
+ALTER TABLE vendors ADD COLUMN IF NOT EXISTS dodo_payment_id VARCHAR(255);
 ALTER TABLE vendors ADD COLUMN IF NOT EXISTS payment_status VARCHAR(50) DEFAULT 'pending';
 
 -- Done!
-SELECT 'Orders table migration complete!' AS status;
+SELECT 'Orders table migration complete with Dodo Payments support!' AS status;
+
