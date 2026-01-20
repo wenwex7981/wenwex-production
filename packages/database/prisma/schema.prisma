@@ -122,6 +122,8 @@ model Vendor {
   socialLinks           Json?        @map("social_links")
   subscriptionPlanId    String?      @map("subscription_plan_id")
   subscriptionStatus    String?      @default("pending") @map("subscription_status")
+  dodoPaymentId         String?      @map("dodo_payment_id")
+  paymentStatus         String?      @default("pending") @map("payment_status")
   isVerified            Boolean      @default(false) @map("is_verified")
   verificationDocuments String[]     @default([]) @map("verification_documents")
   status                VendorStatus @default(PENDING)
