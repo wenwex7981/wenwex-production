@@ -86,12 +86,21 @@ const notificationTypeConfig: Record<NotificationType, { icon: any; bgColor: str
     follow: { icon: BadgeCheck, bgColor: 'bg-pink-100', iconColor: 'text-pink-600' },
 };
 
+import { useNotifications } from '@/components/providers/NotificationProvider';
+
+// ... (keep types if useful, or adapt)
+
 export default function NotificationPanel() {
     const [isOpen, setIsOpen] = useState(false);
-    const [notifications, setNotifications] = useState<Notification[]>(recentNotifications);
+    const { notifications, unreadCount, markAsRead, markAllAsRead, refresh } = useNotifications();
     const panelRef = useRef<HTMLDivElement>(null);
 
-    const unreadCount = notifications.filter(n => !n.isRead).length;
+    // Refresh on open
+    useEffect(() => {
+        if (isOpen) {
+            refresh();
+        }
+    }, [isOpen, refresh]);
 
     // Close panel when clicking outside
     useEffect(() => {
@@ -104,16 +113,19 @@ export default function NotificationPanel() {
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
-    const markAsRead = (id: string) => {
-        setNotifications(prev =>
-            prev.map(n => n.id === id ? { ...n, isRead: true } : n)
-        );
-    };
+    // Helper to format time
+    const timeAgo = (dateStr: string) => {
+        const date = new Date(dateStr);
+        const now = new Date();
+        const seconds = Math.floor((now.getTime() - date.getTime()) / 1000);
 
-    const markAllAsRead = () => {
-        setNotifications(prev =>
-            prev.map(n => ({ ...n, isRead: true }))
-        );
+        if (seconds < 60) return 'Just now';
+        const minutes = Math.floor(seconds / 60);
+        if (minutes < 60) return `${minutes}m ago`;
+        const hours = Math.floor(minutes / 60);
+        if (hours < 24) return `${hours}h ago`;
+        const days = Math.floor(hours / 24);
+        return `${days}d ago`;
     };
 
     return (
@@ -186,32 +198,23 @@ export default function NotificationPanel() {
                             {notifications.length > 0 ? (
                                 <div className="divide-y divide-gray-50">
                                     {notifications.map((notification) => {
-                                        const config = notificationTypeConfig[notification.type];
+                                        const typeKey = (notification.type || 'system').toLowerCase() as NotificationType;
+                                        const config = notificationTypeConfig[typeKey] || notificationTypeConfig.system;
                                         const IconComponent = config.icon;
 
                                         return (
                                             <Link
                                                 key={notification.id}
-                                                href={notification.actionUrl || '/notifications'}
+                                                href={notification.link || '/notifications'}
                                                 onClick={() => markAsRead(notification.id)}
                                                 className={`flex items-start gap-3 px-5 py-4 hover:bg-gray-50 transition-colors ${!notification.isRead ? 'bg-blue-50/30' : ''
                                                     }`}
                                             >
                                                 {/* Icon */}
                                                 <div className="relative flex-shrink-0">
-                                                    {notification.imageUrl ? (
-                                                        <Image
-                                                            src={notification.imageUrl}
-                                                            alt=""
-                                                            width={40}
-                                                            height={40}
-                                                            className="rounded-xl object-cover"
-                                                        />
-                                                    ) : (
-                                                        <div className={`w-10 h-10 rounded-xl ${config.bgColor} flex items-center justify-center`}>
-                                                            <IconComponent className={`w-4 h-4 ${config.iconColor}`} />
-                                                        </div>
-                                                    )}
+                                                    <div className={`w-10 h-10 rounded-xl ${config.bgColor} flex items-center justify-center`}>
+                                                        <IconComponent className={`w-4 h-4 ${config.iconColor}`} />
+                                                    </div>
                                                     {!notification.isRead && (
                                                         <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-blue-500 rounded-full border-2 border-white" />
                                                     )}
@@ -227,7 +230,7 @@ export default function NotificationPanel() {
                                                     </p>
                                                     <span className="text-[10px] text-gray-400 mt-1 flex items-center gap-1">
                                                         <Clock className="w-2.5 h-2.5" />
-                                                        {notification.timestamp}
+                                                        {timeAgo(notification.createdAt)}
                                                     </span>
                                                 </div>
 

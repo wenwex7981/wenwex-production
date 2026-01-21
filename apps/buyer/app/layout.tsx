@@ -6,6 +6,7 @@ import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider } from '@/components/providers/AuthProvider';
+import { NotificationProvider } from '@/components/providers/NotificationProvider';
 import { GoogleAnalytics } from '@/components/analytics/GoogleAnalytics';
 
 const inter = Inter({
@@ -94,44 +95,46 @@ export default function RootLayout({
             <GoogleAnalytics />
             <body className="min-h-screen flex flex-col antialiased font-sans">
                 <AuthProvider>
-                    {/* Toast notifications */}
-                    <Toaster
-                        position="top-right"
-                        toastOptions={{
-                            duration: 4000,
-                            style: {
-                                background: '#1f2937',
-                                color: '#fff',
-                                borderRadius: '12px',
-                                padding: '16px',
-                            },
-                            success: {
-                                iconTheme: {
-                                    primary: '#22c55e',
-                                    secondary: '#fff',
+                    <NotificationProvider>
+                        {/* Toast notifications */}
+                        <Toaster
+                            position="top-right"
+                            toastOptions={{
+                                duration: 4000,
+                                style: {
+                                    background: '#1f2937',
+                                    color: '#fff',
+                                    borderRadius: '12px',
+                                    padding: '16px',
                                 },
-                            },
-                            error: {
-                                iconTheme: {
-                                    primary: '#ef4444',
-                                    secondary: '#fff',
+                                success: {
+                                    iconTheme: {
+                                        primary: '#22c55e',
+                                        secondary: '#fff',
+                                    },
                                 },
-                            },
-                        }}
-                    />
+                                error: {
+                                    iconTheme: {
+                                        primary: '#ef4444',
+                                        secondary: '#fff',
+                                    },
+                                },
+                            }}
+                        />
 
-                    {/* Navigation - wrapped in Suspense for useSearchParams */}
-                    <Suspense fallback={<div className="h-16 lg:h-20 bg-white border-b border-gray-100" />}>
-                        <Navbar />
-                    </Suspense>
+                        {/* Navigation - wrapped in Suspense for useSearchParams */}
+                        <Suspense fallback={<div className="h-16 lg:h-20 bg-white border-b border-gray-100" />}>
+                            <Navbar />
+                        </Suspense>
 
-                    {/* Main content */}
-                    <main className="flex-1">
-                        {children}
-                    </main>
+                        {/* Main content */}
+                        <main className="flex-1">
+                            {children}
+                        </main>
 
-                    {/* Footer */}
-                    <Footer />
+                        {/* Footer */}
+                        <Footer />
+                    </NotificationProvider>
                 </AuthProvider>
             </body>
         </html>
