@@ -92,10 +92,12 @@ export default function AdminCarouselsPage() {
                     .eq('id', item.id);
                 if (error) throw error;
             } else {
+                // Remove id from insert payload to let DB generate UUID
+                const { id, ...newItem } = item;
                 const { error } = await supabase
                     .from('promo_carousel_slides')
                     .insert({
-                        ...item,
+                        ...newItem,
                         display_order: promoSlides.length + 1
                     });
                 if (error) throw error;
@@ -132,10 +134,12 @@ export default function AdminCarouselsPage() {
                     .eq('id', item.id);
                 if (error) throw error;
             } else {
+                // Remove id from insert payload to let DB generate UUID
+                const { id, ...newItem } = item;
                 const { error } = await supabase
                     .from('sponsored_carousel_items')
                     .insert({
-                        ...item,
+                        ...newItem,
                         display_order: sponsoredItems.length + 1
                     });
                 if (error) throw error;
