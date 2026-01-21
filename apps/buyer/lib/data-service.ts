@@ -6,8 +6,9 @@ const supabase = getSupabaseClient();
 export async function fetchFeaturedServices() {
     const { data: services, error: sError } = await supabase
         .from('services')
-        .select('*')
+        .select('*, media:service_media(*)')
         .eq('status', 'APPROVED')
+        .order('is_featured', { ascending: false })
         .limit(4);
 
     if (sError) throw sError;
@@ -23,6 +24,7 @@ export async function fetchFeaturedServices() {
         const vendor = vendors?.find(v => v.id === s.vendor_id);
         return {
             ...s,
+            imageUrl: s.main_image_url || (s.media && s.media.length > 0 ? s.media[0].url : null),
             vendor: vendor ? {
                 name: vendor.company_name,
                 slug: vendor.slug,
@@ -227,7 +229,7 @@ export async function fetchAllVendors() {
 export async function fetchAllServices(serviceType?: string) {
     let query = supabase
         .from('services')
-        .select('*')
+        .select('*, media:service_media(*)')
         .eq('status', 'APPROVED')
         .order('created_at', { ascending: false });
 
@@ -274,7 +276,7 @@ export async function fetchAllServices(serviceType?: string) {
             deliveryDays: s.delivery_days || 7,
             rating: s.rating || 0,
             reviewCount: s.rating_count || 0,
-            imageUrl: s.main_image_url || 'https://images.unsplash.com/photo-1581291518857-4e27b48ff24e?auto=format&fit=crop&q=80&w=800',
+            imageUrl: s.main_image_url || (s.media && s.media.length > 0 ? s.media[0].url : 'https://images.unsplash.com/photo-1581291518857-4e27b48ff24e?auto=format&fit=crop&q=80&w=800'),
             vendor: vendor ? {
                 name: vendor.company_name,
                 slug: vendor.slug || vendor.id,
