@@ -586,6 +586,25 @@ export async function updateHomepageSection(id: string, sectionData: any) {
     return data;
 }
 
+export async function createHomepageSection(sectionData: any) {
+    const { data, error } = await supabase
+        .from('homepage_sections')
+        .insert([sectionData])
+        .select();
+
+    if (error) throw error;
+    return data?.[0];
+}
+
+export async function deleteHomepageSection(id: string) {
+    const { error } = await supabase
+        .from('homepage_sections')
+        .delete()
+        .eq('id', id);
+
+    if (error) throw error;
+}
+
 export async function fetchCountries() {
     const { data, error } = await supabase
         .from('countries')
