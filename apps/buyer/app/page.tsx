@@ -10,26 +10,22 @@ import { PromoCarousel } from '@/components/home/PromoCarousel';
 import { SponsoredCarousel } from '@/components/home/SponsoredCarousel';
 import { fetchHomepageSections } from '@/lib/data-service';
 
-// Component Map for Dynamic Rendering
-const SECTION_COMPONENTS: Record<string, React.FC<any>> = {
-    'HERO': BrandHero,
-    'PROMO_CAROUSEL': PromoCarousel,
-    'SPONSORED_CAROUSEL': SponsoredCarousel,
-    'CATEGORIES': VisualCategorySection,
-    'FEATURED_SERVICES': FeaturedServices,
-    'TOP_AGENCIES': PremiumAgencies,
-    'TRENDING_SERVICES': TrendingServices,
-    'ACADEMIC_SPOTLIGHT': AcademicSpotlight,
-    'SHORTS': ShortsPreview,
-    'CTA': CTASection,
-    // Add more mappings as needed (e.g. TESTIMONIALS)
-};
-
 export default async function HomePage() {
-    // 1. Fetch dynamic sections from DB (Already sorted by 'order')
     const sections = await fetchHomepageSections();
 
-    // 2. If no sections exist (e.g. fresh DB), fallback to default layout
+    // Track which sections are present in the DB
+    const sectionTypes = new Set(sections?.map((s: any) => s.type) || []);
+
+    // Helper to render a section from DB data or use default
+    const renderSection = (type: string, Component: React.FC<any>, key: string) => {
+        const section = sections?.find((s: any) => s.type === type);
+        if (section) {
+            return <Component key={section.id} content={section} />;
+        }
+        return null;
+    };
+
+    // If no sections at all, show full default layout
     if (!sections || sections.length === 0) {
         return (
             <>
@@ -47,20 +43,38 @@ export default async function HomePage() {
         );
     }
 
-    // 3. Render dynamic sections based on DB order
+    // Render sections from DB + ensure critical sections always appear
     return (
         <>
-            {sections.map((section: any) => {
-                const Component = SECTION_COMPONENTS[section.type];
-                if (!Component) {
-                    console.warn(`Unknown section type: ${section.type}`);
-                    return null;
-                }
-                return <Component key={section.id} content={section} />;
-            })}
+            {/* HERO - from DB or default */}
+            {sectionTypes.has('HERO') ? renderSection('HERO', BrandHero, 'hero') : <BrandHero />}
+
+            {/* PROMO CAROUSEL - from DB or default */}
+            {sectionTypes.has('PROMO_CAROUSEL') ? renderSection('PROMO_CAROUSEL', PromoCarousel, 'promo') : <PromoCarousel />}
+
+            {/* SPONSORED CAROUSEL - from DB or default */}
+            {sectionTypes.has('SPONSORED_CAROUSEL') ? renderSection('SPONSORED_CAROUSEL', SponsoredCarousel, 'sponsored') : <SponsoredCarousel />}
+
+            {/* CATEGORIES - from DB or default */}
+            {sectionTypes.has('CATEGORIES') ? renderSection('CATEGORIES', VisualCategorySection, 'categories') : <VisualCategorySection />}
+
+            {/* FEATURED SERVICES - from DB or default */}
+            {sectionTypes.has('FEATURED_SERVICES') ? renderSection('FEATURED_SERVICES', FeaturedServices, 'featured') : <FeaturedServices />}
+
+            {/* TOP AGENCIES - from DB or default */}
+            {sectionTypes.has('TOP_AGENCIES') ? renderSection('TOP_AGENCIES', PremiumAgencies, 'agencies') : <PremiumAgencies />}
+
+            {/* TRENDING SERVICES - from DB or default */}
+            {sectionTypes.has('TRENDING_SERVICES') ? renderSection('TRENDING_SERVICES', TrendingServices, 'trending') : <TrendingServices />}
+
+            {/* ACADEMIC SPOTLIGHT - ALWAYS SHOW (from DB or default) */}
+            {sectionTypes.has('ACADEMIC_SPOTLIGHT') ? renderSection('ACADEMIC_SPOTLIGHT', AcademicSpotlight, 'academic') : <AcademicSpotlight />}
+
+            {/* SHORTS PREVIEW - ALWAYS SHOW (from DB or default) */}
+            {sectionTypes.has('SHORTS') ? renderSection('SHORTS', ShortsPreview, 'shorts') : <ShortsPreview />}
+
+            {/* CTA - from DB or default */}
+            {sectionTypes.has('CTA') ? renderSection('CTA', CTASection, 'cta') : <CTASection />}
         </>
     );
 }
-
-// Ensure the page revalidates frequently to show Admin updates
-export const revalidate = 60; // Revalidate every 60 seconds

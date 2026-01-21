@@ -186,7 +186,7 @@ export function FeaturedServices({ content }: { content?: any }) {
                                 {/* Fixed Visual Header */}
                                 <div className="relative h-60 w-full flex-shrink-0">
                                     <img
-                                        src={service.imageUrl || 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=800'}
+                                        src={service.image_url || 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=800'}
                                         alt={service.title}
                                         className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110"
                                     />
