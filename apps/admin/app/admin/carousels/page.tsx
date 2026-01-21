@@ -93,11 +93,20 @@ export default function AdminCarouselsPage() {
                 if (error) throw error;
             } else {
                 // Remove id from insert payload to let DB generate UUID
-                const { id, ...newItem } = item;
                 const { error } = await supabase
                     .from('promo_carousel_slides')
                     .insert({
-                        ...newItem,
+                        title: item.title,
+                        subtitle: item.subtitle,
+                        description: item.description,
+                        image_url: item.image_url,
+                        gradient_from: item.gradient_from,
+                        gradient_to: item.gradient_to,
+                        cta_text: item.cta_text,
+                        cta_link: item.cta_link,
+                        badge_text: item.badge_text,
+                        is_active: item.is_active,
+                        type: 'promo', // Explicitly set type if column exists
                         display_order: promoSlides.length + 1
                     });
                 if (error) throw error;
@@ -135,11 +144,20 @@ export default function AdminCarouselsPage() {
                 if (error) throw error;
             } else {
                 // Remove id from insert payload to let DB generate UUID
-                const { id, ...newItem } = item;
                 const { error } = await supabase
                     .from('sponsored_carousel_items')
                     .insert({
-                        ...newItem,
+                        title: item.title,
+                        sponsor_name: item.sponsor_name,
+                        description: item.description,
+                        image_url: item.image_url,
+                        cta_text: item.cta_text,
+                        cta_link: item.cta_link,
+                        tag: item.tag,
+                        color_from: item.color_from,
+                        color_to: item.color_to,
+                        is_active: item.is_active,
+                        type: 'sponsored', // Explicitly set type if column exists
                         display_order: sponsoredItems.length + 1
                     });
                 if (error) throw error;
