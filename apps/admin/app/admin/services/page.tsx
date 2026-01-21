@@ -61,17 +61,6 @@ export default function AdminServicesPage() {
         }
     };
 
-    const handleToggleFeatured = async (service: any) => {
-        try {
-            const newStatus = !service.is_featured;
-            await updateService(service.id, { is_featured: newStatus });
-            toast.success(newStatus ? 'Service added to Featured' : 'Service removed from Featured');
-            loadData();
-        } catch (error: any) {
-            toast.error('Failed to update featured status: ' + error.message);
-        }
-    };
-
     const handleCreateService = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
@@ -168,7 +157,6 @@ export default function AdminServicesPage() {
                                 <th className="table-header px-4">Vendor</th>
                                 <th className="table-header px-4">Price</th>
                                 <th className="table-header px-4">Status</th>
-                                <th className="table-header px-4 text-center">Featured</th>
                                 <th className="table-header px-4">Rating</th>
                                 <th className="table-header px-4 text-right">Actions</th>
                             </tr>
@@ -176,7 +164,7 @@ export default function AdminServicesPage() {
                         <tbody className="divide-y divide-gray-700/50">
                             {isLoading ? (
                                 <tr>
-                                    <td colSpan={7} className="py-20 text-center">
+                                    <td colSpan={6} className="py-20 text-center">
                                         <Loader2 className="w-8 h-8 text-primary-500 animate-spin mx-auto mb-2" />
                                         <p className="text-gray-400">Loading services...</p>
                                     </td>
@@ -202,18 +190,6 @@ export default function AdminServicesPage() {
                                             }`}>
                                             {service.status}
                                         </span>
-                                    </td>
-                                    <td className="table-cell px-4 text-center">
-                                        <button
-                                            onClick={() => handleToggleFeatured(service)}
-                                            className={`p-1.5 rounded-lg transition-colors ${service.is_featured
-                                                ? 'bg-yellow-500/10 text-yellow-500 hover:bg-yellow-500/20'
-                                                : 'text-gray-600 hover:text-gray-400'
-                                                }`}
-                                            title={service.is_featured ? "Remove from Featured" : "Add to Featured"}
-                                        >
-                                            <Star className={`w-5 h-5 ${service.is_featured ? 'fill-yellow-500' : ''}`} />
-                                        </button>
                                     </td>
                                     <td className="table-cell px-4">
                                         <div className="flex items-center gap-1">
@@ -282,176 +258,172 @@ export default function AdminServicesPage() {
             </div>
 
             {/* Add Service Modal */}
-            {
-                isAddModalOpen && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-                        <div className="absolute inset-0 bg-black/70" onClick={() => setIsAddModalOpen(false)} />
-                        <motion.div
-                            initial={{ opacity: 0, scale: 0.95 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            className="relative bg-gray-800 rounded-2xl p-6 max-w-lg w-full border border-gray-700"
-                        >
-                            <h2 className="text-xl font-bold text-white mb-6">Add New Service</h2>
-                            <form onSubmit={handleCreateService} className="space-y-4">
+            {isAddModalOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                    <div className="absolute inset-0 bg-black/70" onClick={() => setIsAddModalOpen(false)} />
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="relative bg-gray-800 rounded-2xl p-6 max-w-lg w-full border border-gray-700"
+                    >
+                        <h2 className="text-xl font-bold text-white mb-6">Add New Service</h2>
+                        <form onSubmit={handleCreateService} className="space-y-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-400 mb-1">Title</label>
+                                <input
+                                    type="text"
+                                    className="input w-full"
+                                    value={newService.title}
+                                    onChange={e => setNewService({ ...newService, title: e.target.value })}
+                                    required
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-400 mb-1">Description</label>
+                                <textarea
+                                    className="input w-full h-24 resize-none"
+                                    value={newService.description}
+                                    onChange={e => setNewService({ ...newService, description: e.target.value })}
+                                    required
+                                />
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-400 mb-1">Title</label>
+                                    <label className="block text-sm font-medium text-gray-400 mb-1">Price ($)</label>
                                     <input
-                                        type="text"
+                                        type="number"
                                         className="input w-full"
-                                        value={newService.title}
-                                        onChange={e => setNewService({ ...newService, title: e.target.value })}
+                                        value={newService.price}
+                                        onChange={e => setNewService({ ...newService, price: e.target.value })}
                                         required
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-400 mb-1">Description</label>
-                                    <textarea
-                                        className="input w-full h-24 resize-none"
-                                        value={newService.description}
-                                        onChange={e => setNewService({ ...newService, description: e.target.value })}
-                                        required
-                                    />
-                                </div>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-400 mb-1">Price ($)</label>
-                                        <input
-                                            type="number"
-                                            className="input w-full"
-                                            value={newService.price}
-                                            onChange={e => setNewService({ ...newService, price: e.target.value })}
-                                            required
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-400 mb-1">Category</label>
-                                        <select
-                                            className="input w-full"
-                                            value={newService.category_id}
-                                            onChange={e => setNewService({ ...newService, category_id: e.target.value })}
-                                            required
-                                        >
-                                            <option value="">Select Category</option>
-                                            {categories.map(c => (
-                                                <option key={c.id} value={c.id}>{c.name}</option>
-                                            ))}
-                                        </select>
-                                    </div>
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-400 mb-1">Service Type</label>
+                                    <label className="block text-sm font-medium text-gray-400 mb-1">Category</label>
                                     <select
                                         className="input w-full"
-                                        value={newService.service_type}
-                                        onChange={e => setNewService({ ...newService, service_type: e.target.value })}
+                                        value={newService.category_id}
+                                        onChange={e => setNewService({ ...newService, category_id: e.target.value })}
                                         required
                                     >
-                                        <option value="IT & TECH">IT & TECH</option>
-                                        <option value="ACADEMIC">ACADEMIC</option>
+                                        <option value="">Select Category</option>
+                                        {categories.map(c => (
+                                            <option key={c.id} value={c.id}>{c.name}</option>
+                                        ))}
                                     </select>
                                 </div>
-                                <div className="flex gap-4 mt-8">
-                                    <button
-                                        type="button"
-                                        className="btn-secondary flex-1"
-                                        onClick={() => setIsAddModalOpen(false)}
-                                    >
-                                        Cancel
-                                    </button>
-                                    <button type="submit" className="btn-primary flex-1">
-                                        Create Service
-                                    </button>
-                                </div>
-                            </form>
-                        </motion.div>
-                    </div>
-                )
-            }
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-400 mb-1">Service Type</label>
+                                <select
+                                    className="input w-full"
+                                    value={newService.service_type}
+                                    onChange={e => setNewService({ ...newService, service_type: e.target.value })}
+                                    required
+                                >
+                                    <option value="IT & TECH">IT & TECH</option>
+                                    <option value="ACADEMIC">ACADEMIC</option>
+                                </select>
+                            </div>
+                            <div className="flex gap-4 mt-8">
+                                <button
+                                    type="button"
+                                    className="btn-secondary flex-1"
+                                    onClick={() => setIsAddModalOpen(false)}
+                                >
+                                    Cancel
+                                </button>
+                                <button type="submit" className="btn-primary flex-1">
+                                    Create Service
+                                </button>
+                            </div>
+                        </form>
+                    </motion.div>
+                </div>
+            )}
             {/* Edit Service Modal */}
-            {
-                isEditModalOpen && editingService && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-                        <div className="absolute inset-0 bg-black/70" onClick={() => setIsEditModalOpen(false)} />
-                        <motion.div
-                            initial={{ opacity: 0, scale: 0.95 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            className="relative bg-gray-800 rounded-2xl p-6 max-w-lg w-full border border-gray-700"
-                        >
-                            <h2 className="text-xl font-bold text-white mb-6">Edit Service</h2>
-                            <form onSubmit={handleEditService} className="space-y-4">
+            {isEditModalOpen && editingService && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                    <div className="absolute inset-0 bg-black/70" onClick={() => setIsEditModalOpen(false)} />
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="relative bg-gray-800 rounded-2xl p-6 max-w-lg w-full border border-gray-700"
+                    >
+                        <h2 className="text-xl font-bold text-white mb-6">Edit Service</h2>
+                        <form onSubmit={handleEditService} className="space-y-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-400 mb-1">Title</label>
+                                <input
+                                    type="text"
+                                    className="input w-full"
+                                    value={editingService.title}
+                                    onChange={e => setEditingService({ ...editingService, title: e.target.value })}
+                                    required
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-400 mb-1">Description</label>
+                                <textarea
+                                    className="input w-full h-24 resize-none"
+                                    value={editingService.description || ''}
+                                    onChange={e => setEditingService({ ...editingService, description: e.target.value })}
+                                />
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-400 mb-1">Title</label>
+                                    <label className="block text-sm font-medium text-gray-400 mb-1">Price ($)</label>
                                     <input
-                                        type="text"
+                                        type="number"
                                         className="input w-full"
-                                        value={editingService.title}
-                                        onChange={e => setEditingService({ ...editingService, title: e.target.value })}
+                                        value={editingService.price}
+                                        onChange={e => setEditingService({ ...editingService, price: e.target.value })}
                                         required
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-400 mb-1">Description</label>
-                                    <textarea
-                                        className="input w-full h-24 resize-none"
-                                        value={editingService.description || ''}
-                                        onChange={e => setEditingService({ ...editingService, description: e.target.value })}
-                                    />
-                                </div>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-400 mb-1">Price ($)</label>
-                                        <input
-                                            type="number"
-                                            className="input w-full"
-                                            value={editingService.price}
-                                            onChange={e => setEditingService({ ...editingService, price: e.target.value })}
-                                            required
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-400 mb-1">Category</label>
-                                        <select
-                                            className="input w-full"
-                                            value={editingService.category_id}
-                                            onChange={e => setEditingService({ ...editingService, category_id: e.target.value })}
-                                            required
-                                        >
-                                            <option value="">Select Category</option>
-                                            {categories.map(c => (
-                                                <option key={c.id} value={c.id}>{c.name}</option>
-                                            ))}
-                                        </select>
-                                    </div>
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-400 mb-1">Service Type</label>
+                                    <label className="block text-sm font-medium text-gray-400 mb-1">Category</label>
                                     <select
                                         className="input w-full"
-                                        value={editingService.service_type || 'IT & TECH'}
-                                        onChange={e => setEditingService({ ...editingService, service_type: e.target.value })}
+                                        value={editingService.category_id}
+                                        onChange={e => setEditingService({ ...editingService, category_id: e.target.value })}
                                         required
                                     >
-                                        <option value="IT & TECH">IT & TECH</option>
-                                        <option value="ACADEMIC">ACADEMIC</option>
+                                        <option value="">Select Category</option>
+                                        {categories.map(c => (
+                                            <option key={c.id} value={c.id}>{c.name}</option>
+                                        ))}
                                     </select>
                                 </div>
-                                <div className="flex gap-4 mt-8">
-                                    <button
-                                        type="button"
-                                        className="btn-secondary flex-1"
-                                        onClick={() => setIsEditModalOpen(false)}
-                                    >
-                                        Cancel
-                                    </button>
-                                    <button type="submit" className="btn-primary flex-1">
-                                        Update Service
-                                    </button>
-                                </div>
-                            </form>
-                        </motion.div>
-                    </div>
-                )
-            }
-        </div >
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-400 mb-1">Service Type</label>
+                                <select
+                                    className="input w-full"
+                                    value={editingService.service_type || 'IT & TECH'}
+                                    onChange={e => setEditingService({ ...editingService, service_type: e.target.value })}
+                                    required
+                                >
+                                    <option value="IT & TECH">IT & TECH</option>
+                                    <option value="ACADEMIC">ACADEMIC</option>
+                                </select>
+                            </div>
+                            <div className="flex gap-4 mt-8">
+                                <button
+                                    type="button"
+                                    className="btn-secondary flex-1"
+                                    onClick={() => setIsEditModalOpen(false)}
+                                >
+                                    Cancel
+                                </button>
+                                <button type="submit" className="btn-primary flex-1">
+                                    Update Service
+                                </button>
+                            </div>
+                        </form>
+                    </motion.div>
+                </div>
+            )}
+        </div>
     );
 }
