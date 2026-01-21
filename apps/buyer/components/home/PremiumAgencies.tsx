@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { Star, BadgeCheck, Users, ArrowRight, Loader2, Award, ExternalLink, ShieldCheck } from 'lucide-react';
 import { fetchAllVendors } from '@/lib/data-service';
+import { VendorLogo } from '@/components/ui/VendorLogo';
 
 // Mock data as fallback
 const mockAgencies = [
@@ -216,10 +217,11 @@ export function PremiumAgencies({ content }: { content?: any }) {
                                         <div className="relative mb-8 transform group-hover:scale-105 transition-transform duration-700">
                                             <div className="absolute inset-0 bg-primary-500/30 blur-2xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
                                             <div className="relative w-28 h-28 rounded-[36px] overflow-hidden border-8 border-[#111] shadow-2xl bg-[#090909]">
-                                                <img
+                                                <VendorLogo
                                                     src={agency.logo}
                                                     alt={agency.name}
-                                                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                                                    fill
+                                                    className="object-cover group-hover:scale-110 transition-transform duration-700"
                                                 />
                                             </div>
                                         </div>

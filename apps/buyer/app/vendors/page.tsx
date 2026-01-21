@@ -9,6 +9,7 @@ import {
     Grid3X3, List, SlidersHorizontal, X, ArrowUpDown, Loader2
 } from 'lucide-react';
 import { fetchAllVendors } from '@/lib/data-service';
+import { VendorLogo } from '@/components/ui/VendorLogo';
 
 // Mock data - used as fallback
 const mockVendors = [
@@ -248,7 +249,7 @@ export default function VendorsPage() {
                                     <div className="p-5 pt-0">
                                         {/* Logo */}
                                         <div className="relative -mt-10 mb-4">
-                                            <Image
+                                            <VendorLogo
                                                 src={vendor.logoUrl}
                                                 alt={vendor.companyName}
                                                 width={64}
@@ -297,7 +298,7 @@ export default function VendorsPage() {
                             ) : (
                                 <>
                                     {/* List View */}
-                                    <Image
+                                    <VendorLogo
                                         src={vendor.logoUrl}
                                         alt={vendor.companyName}
                                         width={80}
