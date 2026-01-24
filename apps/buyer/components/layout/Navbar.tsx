@@ -31,14 +31,15 @@ import {
     Globe2,
     Briefcase,
     Sparkles,
-    MessageSquare
+    MessageSquare,
+    Newspaper
 } from 'lucide-react';
 
 const navLinks = [
     { href: '/categories', label: 'Categories', icon: LayoutGrid },
+    { href: '/blogs', label: 'Blogs', icon: Newspaper },
     { href: '/services', label: 'Services', icon: null },
     { href: '/vendors', label: 'Agencies', icon: Building2 },
-    { href: '/academic', label: 'Academic', icon: GraduationCap },
     { href: '/shorts', label: 'Shorts', icon: Play },
 ];
 
