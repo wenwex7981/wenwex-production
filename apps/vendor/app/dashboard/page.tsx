@@ -9,7 +9,7 @@ import {
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { getCurrentVendor, getVendorStats, fetchVendorServices } from '@/lib/vendor-service';
-import { signOut } from '@/lib/supabase';
+import { signOut, getSupabaseClient } from '@/lib/supabase';
 import { toast } from 'react-hot-toast';
 import { useRouter } from 'next/navigation';
 
@@ -20,10 +20,34 @@ export default function VendorDashboard() {
     const [vendor, setVendor] = useState<any>(null);
     const [stats, setStats] = useState<any>(null);
     const [recentServices, setRecentServices] = useState<any[]>([]);
+    const supabase = getSupabaseClient();
 
     useEffect(() => {
         loadDashboardData();
-    }, []);
+
+        // Realtime Subscription for Followers and other stats
+        const channel = supabase.channel('dashboard-realtime')
+            .on(
+                'postgres_changes',
+                { event: '*', schema: 'public', table: 'follows' },
+                () => {
+                    // Refresh stats when follows change
+                    if (vendor?.id) {
+                        getVendorStats(vendor.id).then(newStats => {
+                            setStats((prev: any) => ({
+                                ...prev,
+                                followers: newStats.followers
+                            }));
+                        });
+                    }
+                }
+            )
+            .subscribe();
+
+        return () => {
+            supabase.removeChannel(channel);
+        };
+    }, [vendor?.id]);
 
     const loadDashboardData = async () => {
         setIsLoading(true);
@@ -65,7 +89,7 @@ export default function VendorDashboard() {
         { label: 'Total Services', value: stats?.services || 0, icon: Package, color: 'text-blue-600 bg-blue-50' },
         { label: 'Active Reels', value: stats?.shorts || 0, icon: Play, color: 'text-green-600 bg-green-50' },
         { label: 'Avg Rating', value: stats?.avgRating?.toFixed(1) || '0.0', icon: Star, color: 'text-yellow-600 bg-yellow-50' },
-        { label: 'Followers', value: '0', icon: Users, color: 'text-purple-600 bg-purple-50' },
+        { label: 'Followers', value: stats?.followers || 0, icon: Users, color: 'text-purple-600 bg-purple-50' },
     ];
 
     const sidebarLinks = [

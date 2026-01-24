@@ -120,11 +120,16 @@ export async function getVendorStats(vendorId: string) {
             .select('*', { count: 'exact' })
             .eq('vendor_id', vendorId);
 
-        // Placeholder for views/followers if tables exist later
+        const { count: followersCount } = await supabase
+            .from('follows')
+            .select('*', { count: 'exact', head: true })
+            .eq('vendor_id', vendorId);
+
         return {
             services: servicesCount || 0,
             shorts: shortsCount || 0,
             avgRating: services?.length ? (services.reduce((acc, s) => acc + (s.rating || 0), 0) / services.length) : 0,
+            followers: followersCount || 0,
         };
     } catch (error) {
         console.error('Error fetching vendor stats:', error);
@@ -133,6 +138,7 @@ export async function getVendorStats(vendorId: string) {
             services: 0,
             shorts: 0,
             avgRating: 0,
+            followers: 0,
         };
     }
 }
