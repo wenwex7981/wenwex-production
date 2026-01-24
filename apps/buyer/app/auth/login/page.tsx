@@ -9,7 +9,7 @@ import {
     Sparkles, Shield, CheckCircle2, Star,
     Rocket, Globe, Zap, Award, TrendingUp
 } from 'lucide-react';
-import { signInWithGoogle, signInWithEmail } from '@/lib/supabase';
+import { signInWithGoogle, signInWithEmail, resendVerificationEmail } from '@/lib/supabase';
 import { toast } from 'react-hot-toast';
 
 // Component to handle search params safely
@@ -43,6 +43,24 @@ function LoginContent() {
         }));
     };
 
+    const handleResendEmail = async (email: string) => {
+        const toastId = toast.loading('Resending verification email...');
+        try {
+            const { error } = await resendVerificationEmail(email);
+            if (error) {
+                // Supabase rate limit error often comes as 429
+                if (error.status === 429) {
+                    throw new Error('Please wait a minute before resending.');
+                }
+                throw error;
+            }
+            toast.success('Verification email sent! Please check your inbox.', { id: toastId });
+        } catch (error: any) {
+            console.error('Resend error:', error);
+            toast.error(error.message || 'Failed to resend email', { id: toastId });
+        }
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
@@ -71,7 +89,20 @@ function LoginContent() {
             if (error.message.includes('Invalid login credentials')) {
                 toast.error('Invalid email or password. Please try again.');
             } else if (error.message.includes('Email not confirmed')) {
-                toast.error('Please verify your email before signing in.');
+                toast((t) => (
+                    <div className="flex flex-col gap-2">
+                        <span>Please verify your email before signing in.</span>
+                        <button
+                            onClick={() => {
+                                handleResendEmail(formData.email);
+                                toast.dismiss(t.id);
+                            }}
+                            className="bg-purple-100 text-purple-700 px-3 py-1.5 rounded-md text-sm font-bold hover:bg-purple-200 transition-colors border border-purple-200"
+                        >
+                            Resend Verification Email
+                        </button>
+                    </div>
+                ), { duration: 6000, icon: '⚠️' });
             } else {
                 toast.error(error.message || 'Failed to sign in. Please try again.');
             }

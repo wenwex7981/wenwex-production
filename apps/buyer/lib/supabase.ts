@@ -41,9 +41,22 @@ export const signUpWithEmail = async (email: string, password: string, fullName:
             data: {
                 full_name: fullName,
             },
+            emailRedirectTo: `${window.location.origin}/auth/callback`,
         },
     });
     return { data, error };
+};
+
+export const resendVerificationEmail = async (email: string) => {
+    const supabase = getSupabaseClient();
+    const { error } = await supabase.auth.resend({
+        type: 'signup',
+        email,
+        options: {
+            emailRedirectTo: `${window.location.origin}/auth/callback`,
+        }
+    });
+    return { error };
 };
 
 export const signInWithGoogle = async () => {
