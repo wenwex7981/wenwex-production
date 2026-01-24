@@ -73,6 +73,7 @@ export default function VendorDashboard() {
         { href: '/dashboard/services', label: 'My Services', icon: Package },
         { href: '/dashboard/portfolio', label: 'Portfolio', icon: FolderOpen },
         { href: '/dashboard/shorts', label: 'Shorts', icon: Play },
+        { href: '/dashboard/feed', label: 'Feed', icon: LayoutDashboard },
         { href: '/dashboard/followers', label: 'Followers', icon: Users },
         { href: '/dashboard/analytics', label: 'Analytics', icon: BarChart3 },
         { href: '/dashboard/subscription', label: 'Subscription', icon: CreditCard },

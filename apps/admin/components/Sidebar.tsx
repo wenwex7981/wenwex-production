@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
     LayoutDashboard, Users, Building2, Package, FolderKanban, Play,
-    CreditCard, Globe, BarChart3, Settings, Shield, X, MessageSquare, Database, Palette, Image, FileText, Mail
+    CreditCard, Globe, BarChart3, Settings, Shield, X, MessageSquare, Database, Palette, Image, FileText, Mail, Newspaper
 } from 'lucide-react';
 
 const sidebarLinks = [
@@ -22,6 +22,7 @@ const sidebarLinks = [
     { href: '/admin/shorts', label: 'Shorts', icon: Play },
     { href: '/admin/subscriptions', label: 'Subscriptions', icon: CreditCard },
     { href: '/admin/messages', label: 'Messages', icon: MessageSquare },
+    { href: '/admin/feed', label: 'Feed & Community', icon: Newspaper },
     { href: '/admin/fields', label: 'Dynamic Fields', icon: Database },
     { href: '/admin/analytics', label: 'Analytics', icon: BarChart3 },
     { href: '/admin/settings', label: 'Settings', icon: Settings },
