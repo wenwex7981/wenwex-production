@@ -51,6 +51,7 @@ CREATE POLICY "Everyone can view posts" ON public.feed_posts FOR SELECT USING (t
 -- The INSERT policy:
 -- Checks if the authenticated user's ID matches the user_id of the vendor owner.
 -- We cast auth.uid() to text to ensure safe comparison with vendor.user_id (which is text).
+-- SECURITY DEFINER is important if the user doesn't have direct access to read public.vendors
 CREATE POLICY "Vendors can create posts" ON public.feed_posts FOR INSERT WITH CHECK (
   auth.uid()::text = (SELECT user_id FROM public.vendors WHERE id = vendor_id LIMIT 1)
 );
@@ -71,6 +72,22 @@ CREATE POLICY "Users can unlike" ON public.feed_likes FOR DELETE USING (auth.uid
 -- Comments: Everyone views, Auth users interact
 CREATE POLICY "Everyone can view comments" ON public.feed_comments FOR SELECT USING (true);
 CREATE POLICY "Authenticated users can comment" ON public.feed_comments FOR INSERT WITH CHECK (auth.uid()::text = user_id);
+
+-- 7. GRANT PERMISSIONS (CRITICAL FIX FOR PERMISSION DENIED)
+GRANT ALL ON public.feed_posts TO postgres;
+GRANT ALL ON public.feed_posts TO service_role;
+GRANT ALL ON public.feed_posts TO authenticated;
+GRANT ALL ON public.feed_posts TO anon;
+
+GRANT ALL ON public.feed_likes TO postgres;
+GRANT ALL ON public.feed_likes TO service_role;
+GRANT ALL ON public.feed_likes TO authenticated;
+GRANT ALL ON public.feed_likes TO anon;
+
+GRANT ALL ON public.feed_comments TO postgres;
+GRANT ALL ON public.feed_comments TO service_role;
+GRANT ALL ON public.feed_comments TO authenticated;
+GRANT ALL ON public.feed_comments TO anon;
 
 -- 5. REALTIME (Ignore errors if publication modifies)
 DO $$
