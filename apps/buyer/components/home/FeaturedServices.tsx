@@ -40,6 +40,19 @@ export function FeaturedServices({ content }: { content?: any }) {
                             vendor: { name: 'AI Solutions Lab', is_verified: true }
                         },
                         {
+                            id: 'mock-2',
+                            title: 'Cloud Infrastructure Migration (AWS/Azure)',
+                            slug: 'cloud-migration-aws-azure',
+                            description: 'Seamless migration of legacy systems to modern cloud architectures with zero downtime.',
+                            image_url: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=800',
+                            price: 150000,
+                            rating: 4.9,
+                            total_reviews: 82,
+                            delivery_days: 21,
+                            category: { name: 'Cloud & DevOps' },
+                            vendor: { name: 'CloudNine DevOps', is_verified: true }
+                        },
+                        {
                             id: 'mock-3',
                             title: 'Next-Gen Mobile App Ecosystem',
                             slug: 'next-gen-mobile',
@@ -64,6 +77,110 @@ export function FeaturedServices({ content }: { content?: any }) {
                             delivery_days: 10,
                             category: { name: 'Custom Software' },
                             vendor: { name: 'SecureShield', is_verified: true }
+                        },
+                        {
+                            id: 'mock-5',
+                            title: 'Full-Scale Porter Logistics CRM',
+                            slug: 'logistics-crm-dev',
+                            description: 'End-to-end logistics management system with real-time tracking and fleet management.',
+                            image_url: 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=800',
+                            price: 450000,
+                            rating: 4.9,
+                            total_reviews: 15,
+                            delivery_days: 60,
+                            category: { name: 'Web Development' },
+                            vendor: { name: 'LogiTech Systems', is_verified: true }
+                        },
+                        {
+                            id: 'mock-6',
+                            title: 'Corporate Brand Identity & UX Overhaul',
+                            slug: 'brand-identity-ux',
+                            description: 'Complete rebranding package including logo, guidelines, and localized UI/UX design.',
+                            image_url: 'https://images.unsplash.com/photo-1561070791-2526d30994b5?w=800',
+                            price: 85000,
+                            rating: 4.9,
+                            total_reviews: 210,
+                            delivery_days: 14,
+                            category: { name: 'UI/UX Design' },
+                            vendor: { name: 'PixelPerfect', is_verified: true }
+                        },
+                        {
+                            id: 'mock-7',
+                            title: 'Cybersecurity Penetration Testing',
+                            slug: 'pentesting-services',
+                            description: 'Identify vulnerabilities in your infrastructure before hackers do. Certified ethical hackers.',
+                            image_url: 'https://images.unsplash.com/photo-1555949963-ff9fe0c870eb?w=800',
+                            price: 120000,
+                            rating: 5.0,
+                            total_reviews: 56,
+                            delivery_days: 7,
+                            category: { name: 'IT Security' },
+                            vendor: { name: 'SecOps Elite', is_verified: true }
+                        },
+                        {
+                            id: 'mock-8',
+                            title: 'Custom ERP for Manufacturing',
+                            slug: 'manufacturing-erp',
+                            description: 'Tailored ERP solution to streamline production, inventory, and supply chain.',
+                            image_url: 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=800',
+                            price: 550000,
+                            rating: 4.8,
+                            total_reviews: 28,
+                            delivery_days: 90,
+                            category: { name: 'Custom Software' },
+                            vendor: { name: 'Enterprise Soft', is_verified: true }
+                        },
+                        {
+                            id: 'mock-9',
+                            title: 'High-Frequency Trading Bot Development',
+                            slug: 'trading-bot-dev',
+                            description: 'Low-latency algorithmic trading bots for crypto and stock markets.',
+                            image_url: 'https://images.unsplash.com/photo-1611974765270-ca1258634369?w=800',
+                            price: 280000,
+                            rating: 4.7,
+                            total_reviews: 19,
+                            delivery_days: 25,
+                            category: { name: 'FinTech' },
+                            vendor: { name: 'AlgoTraders', is_verified: true }
+                        },
+                        {
+                            id: 'mock-10',
+                            title: 'SaaS Multi-Tenant Architecture Setup',
+                            slug: 'saas-architecture',
+                            description: 'Robust backend infrastructure for scalable multi-tenant SaaS applications.',
+                            image_url: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800',
+                            price: 200000,
+                            rating: 4.9,
+                            total_reviews: 44,
+                            delivery_days: 20,
+                            category: { name: 'Cloud & DevOps' },
+                            vendor: { name: 'ScaleUp Tech', is_verified: true }
+                        },
+                        {
+                            id: 'mock-11',
+                            title: 'AR/VR Training Simulations',
+                            slug: 'ar-vr-training',
+                            description: 'Immersive training modules for industrial safety and healthcare.',
+                            image_url: 'https://images.unsplash.com/photo-1592478411213-61535f94d076?w=800',
+                            price: 350000,
+                            rating: 5.0,
+                            total_reviews: 12,
+                            delivery_days: 40,
+                            category: { name: 'AR/VR' },
+                            vendor: { name: 'Immersive Labs', is_verified: true }
+                        },
+                        {
+                            id: 'mock-12',
+                            title: 'Data Lake & Analytics Dashboard',
+                            slug: 'data-lake-analytics',
+                            description: 'Centralized data repository with real-time BI dashboards for actionable insights.',
+                            image_url: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800',
+                            price: 175000,
+                            rating: 4.8,
+                            total_reviews: 65,
+                            delivery_days: 18,
+                            category: { name: 'AI & Data' },
+                            vendor: { name: 'DataFlow Systems', is_verified: true }
                         }
                     ];
                     setServices([...(data || []), ...mockServices]);

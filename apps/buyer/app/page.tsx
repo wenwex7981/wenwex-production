@@ -3,7 +3,6 @@ import { VisualCategorySection } from '@/components/home/VisualCategorySection';
 import { FeaturedServices } from '@/components/home/FeaturedServices';
 import { PremiumAgencies } from '@/components/home/PremiumAgencies';
 import { TrendingServices } from '@/components/home/TrendingServices';
-import { AcademicSpotlight } from '@/components/home/AcademicSpotlight';
 import { ShortsPreview } from '@/components/home/ShortsPreview';
 import { CTASection } from '@/components/home/CTASection';
 import { PromoCarousel } from '@/components/home/PromoCarousel';
@@ -32,11 +31,10 @@ export default async function HomePage() {
                 <BrandHero />
                 <PromoCarousel />
                 <SponsoredCarousel />
-                <VisualCategorySection />
+                <VisualCategorySection mode="tech" />
                 <FeaturedServices />
                 <PremiumAgencies />
                 <TrendingServices />
-                <AcademicSpotlight />
                 <ShortsPreview />
                 <CTASection />
             </>
@@ -56,7 +54,7 @@ export default async function HomePage() {
             {sectionTypes.has('SPONSORED_CAROUSEL') ? renderSection('SPONSORED_CAROUSEL', SponsoredCarousel, 'sponsored') : <SponsoredCarousel />}
 
             {/* CATEGORIES - from DB or default */}
-            {sectionTypes.has('CATEGORIES') ? renderSection('CATEGORIES', VisualCategorySection, 'categories') : <VisualCategorySection />}
+            {sectionTypes.has('CATEGORIES') ? renderSection('CATEGORIES', VisualCategorySection, 'categories') : <VisualCategorySection mode="tech" />}
 
             {/* FEATURED SERVICES - from DB or default */}
             {sectionTypes.has('FEATURED_SERVICES') ? renderSection('FEATURED_SERVICES', FeaturedServices, 'featured') : <FeaturedServices />}
@@ -67,8 +65,7 @@ export default async function HomePage() {
             {/* TRENDING SERVICES - from DB or default */}
             {sectionTypes.has('TRENDING_SERVICES') ? renderSection('TRENDING_SERVICES', TrendingServices, 'trending') : <TrendingServices />}
 
-            {/* ACADEMIC SPOTLIGHT - ALWAYS SHOW (from DB or default) */}
-            {sectionTypes.has('ACADEMIC_SPOTLIGHT') ? renderSection('ACADEMIC_SPOTLIGHT', AcademicSpotlight, 'academic') : <AcademicSpotlight />}
+
 
             {/* SHORTS PREVIEW - ALWAYS SHOW (from DB or default) */}
             {sectionTypes.has('SHORTS') ? renderSection('SHORTS', ShortsPreview, 'shorts') : <ShortsPreview />}

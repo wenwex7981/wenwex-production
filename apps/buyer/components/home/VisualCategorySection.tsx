@@ -47,7 +47,7 @@ const colorMap: Record<string, string> = {
     'Research Papers': 'from-rose-600 to-pink-500',
 };
 
-export function VisualCategorySection({ content }: { content?: any }) {
+export function VisualCategorySection({ content, mode = 'all' }: { content?: any, mode?: 'tech' | 'academic' | 'all' }) {
     const title = content?.title || "Explore Global Expertise";
     const subtitle = content?.subtitle || "Discover specialized solutions across world-class digital and academic domains.";
     const [categories, setCategories] = useState<any[]>([]);
@@ -71,10 +71,16 @@ export function VisualCategorySection({ content }: { content?: any }) {
 
     if (!mounted) return null;
 
-    const academicCategories = categories.filter(c =>
+    const allAcademicCategories = categories.filter(c =>
         c.name.includes('Project') || c.name.includes('Paper') || c.name.includes('Research')
     );
-    const itCategories = categories.filter(c => !academicCategories.includes(c));
+    const allItCategories = categories.filter(c => !allAcademicCategories.includes(c));
+
+    const showTech = mode === 'all' || mode === 'tech';
+    const showAcademic = mode === 'all' || mode === 'academic';
+
+    const itCategories = showTech ? allItCategories : [];
+    const academicCategories = showAcademic ? allAcademicCategories : [];
 
     const renderCategoryCard = (category: any, index: number) => {
         const Icon = iconMap[category.name] || Terminal;

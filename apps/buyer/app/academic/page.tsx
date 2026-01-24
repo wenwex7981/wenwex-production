@@ -23,6 +23,8 @@ import {
     Loader2
 } from 'lucide-react';
 import Link from 'next/link';
+import { VisualCategorySection } from '@/components/home/VisualCategorySection';
+import { AcademicSpotlight } from '@/components/home/AcademicSpotlight';
 import { useSearchParams } from 'next/navigation';
 import { useCurrencyStore } from '@/lib/currency-store';
 import { fetchAcademicServices } from '@/lib/data-service';
@@ -288,6 +290,10 @@ function AcademicContent() {
                     )}
                 </AnimatePresence>
             </section>
+
+            {/* Shifted Sections from Home Page */}
+            <VisualCategorySection mode="academic" content={{ title: "Academic Disciplines", subtitle: "Explore specialized domains for your academic success." }} />
+            <AcademicSpotlight content={{ title: "Featured Projects & Papers", subtitle: "Top-rated academic resources curated for you." }} />
 
             {/* Category Navigation - RESTORED */}
             <section className="bg-white border-b border-gray-100 sticky top-16 lg:top-20 z-30 overflow-x-auto scrollbar-hide">
