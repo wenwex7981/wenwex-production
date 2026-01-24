@@ -147,11 +147,11 @@ export function VisualCategorySection({ content }: { content?: any }) {
     };
 
     return (
-        <section className="relative pt-32 pb-24 bg-[#050505] overflow-hidden">
+        <section className="relative pt-32 pb-24 bg-[#F8FAFC] overflow-hidden">
             {/* Dynamic Background Elements */}
             <div className="absolute top-0 left-0 w-full h-full pointer-events-none overflow-hidden">
-                <div className="absolute -top-[20%] -left-[10%] w-[60%] h-[60%] bg-blue-600/10 blur-[120px] rounded-full animate-pulse" />
-                <div className="absolute -bottom-[20%] -right-[10%] w-[60%] h-[60%] bg-purple-600/10 blur-[120px] rounded-full animate-pulse" />
+                <div className="absolute -top-[20%] -left-[10%] w-[60%] h-[60%] bg-blue-200/20 blur-[120px] rounded-full animate-pulse" />
+                <div className="absolute -bottom-[20%] -right-[10%] w-[60%] h-[60%] bg-purple-200/20 blur-[120px] rounded-full animate-pulse" />
             </div>
 
             <div className="container-custom relative z-10">
@@ -173,9 +173,9 @@ export function VisualCategorySection({ content }: { content?: any }) {
                         initial={{ opacity: 0, y: 30 }}
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true }}
-                        className="text-6xl lg:text-8xl font-black text-white mb-8 tracking-tighter leading-none"
+                        className="text-6xl lg:text-8xl font-black text-slate-900 mb-8 tracking-tighter leading-none"
                     >
-                        Browse <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-400 via-primary-300 to-blue-400">Categories.</span>
+                        Browse <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-600 via-primary-500 to-blue-600">Categories.</span>
                     </motion.h2>
 
                     <motion.p
@@ -183,7 +183,7 @@ export function VisualCategorySection({ content }: { content?: any }) {
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true }}
                         transition={{ delay: 0.2 }}
-                        className="text-xl lg:text-2xl text-gray-400 font-medium leading-relaxed max-w-2xl"
+                        className="text-xl lg:text-2xl text-slate-600 font-medium leading-relaxed max-w-2xl"
                     >
                         {subtitle}
                     </motion.p>
@@ -192,14 +192,14 @@ export function VisualCategorySection({ content }: { content?: any }) {
                 {/* Grid for IT Categories */}
                 {itCategories.length > 0 && (
                     <div className="mb-32">
-                        <div className="flex items-end justify-between mb-12 border-b border-white/10 pb-8">
+                        <div className="flex items-end justify-between mb-12 border-b border-slate-200 pb-8">
                             <div>
-                                <h3 className="text-4xl font-black text-white tracking-tight mb-2">
+                                <h3 className="text-4xl font-black text-slate-900 tracking-tight mb-2">
                                     Tech & Digital
                                 </h3>
-                                <p className="text-gray-500 font-medium">Enterprise-grade technology solutions</p>
+                                <p className="text-slate-600 font-medium">Enterprise-grade technology solutions</p>
                             </div>
-                            <Link href="/services" className="group flex items-center gap-3 text-sm font-bold text-white uppercase tracking-widest py-4 px-8 rounded-2xl border border-white/10 hover:bg-white hover:text-black transition-all">
+                            <Link href="/services" className="group flex items-center gap-3 text-sm font-bold text-slate-900 uppercase tracking-widest py-4 px-8 rounded-2xl border border-slate-200 hover:bg-slate-900 hover:text-white transition-all">
                                 All Services
                                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                             </Link>
@@ -222,14 +222,14 @@ export function VisualCategorySection({ content }: { content?: any }) {
                 {/* Grid for Academic Categories */}
                 {academicCategories.length > 0 && (
                     <div>
-                        <div className="flex items-end justify-between mb-12 border-b border-white/10 pb-8">
+                        <div className="flex items-end justify-between mb-12 border-b border-slate-200 pb-8">
                             <div>
-                                <h3 className="text-4xl font-black text-white tracking-tight mb-2">
+                                <h3 className="text-4xl font-black text-slate-900 tracking-tight mb-2">
                                     Academic Hub
                                 </h3>
-                                <p className="text-gray-500 font-medium">Research assistance and student support</p>
+                                <p className="text-slate-600 font-medium">Research assistance and student support</p>
                             </div>
-                            <Link href="/academic" className="group flex items-center gap-3 text-sm font-bold text-white uppercase tracking-widest py-4 px-8 rounded-2xl border border-white/10 hover:bg-white hover:text-black transition-all">
+                            <Link href="/academic" className="group flex items-center gap-3 text-sm font-bold text-slate-900 uppercase tracking-widest py-4 px-8 rounded-2xl border border-slate-200 hover:bg-slate-900 hover:text-white transition-all">
                                 Academic Core
                                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                             </Link>
