@@ -115,7 +115,7 @@ export default function VendorFeedPage() {
 
         } catch (error: any) {
             console.error('Error creating post:', error);
-            toast.error('Failed to post update');
+            toast.error(error.message || 'Failed to post update');
         } finally {
             setIsPosting(false);
         }
