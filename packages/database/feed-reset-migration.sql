@@ -6,7 +6,8 @@ DROP TABLE IF EXISTS public.feed_likes CASCADE;
 DROP TABLE IF EXISTS public.feed_comments CASCADE;
 DROP TABLE IF EXISTS public.feed_posts CASCADE;
 
--- 2. CREATE TABLES (With correct TEXT types for IDs)
+-- 2. CREATE TABLES (With correct TEXT types for FKs to match Prisma schema)
+-- Note: vendor_id and user_id must be TEXT because Supabase/Prisma tables use TEXT IDs.
 CREATE TABLE public.feed_posts (
   id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
   vendor_id text NOT NULL REFERENCES public.vendors(id) ON DELETE CASCADE,
@@ -42,23 +43,24 @@ ALTER TABLE public.feed_posts ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.feed_likes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.feed_comments ENABLE ROW LEVEL SECURITY;
 
--- 4. RLS POLICIES (Strictly checked against text IDs)
+-- 4. RLS POLICIES (Strictly checked against text IDs with explicit casting)
 
 -- Posts: Everyone views, Only correct Vendor inserts
 CREATE POLICY "Everyone can view posts" ON public.feed_posts FOR SELECT USING (true);
 
 -- The INSERT policy:
--- Checks if the authenticated user's ID (auth.uid) matches the user_id of the vendor they are trying to post as.
+-- Checks if the authenticated user's ID matches the user_id of the vendor owner.
+-- We cast auth.uid() to text to ensure safe comparison with vendor.user_id (which is text).
 CREATE POLICY "Vendors can create posts" ON public.feed_posts FOR INSERT WITH CHECK (
-  auth.uid()::text = (SELECT user_id FROM public.vendors WHERE id = vendor_id)
+  auth.uid()::text = (SELECT user_id FROM public.vendors WHERE id = vendor_id LIMIT 1)
 );
 
 -- Posts: Update/Delete own
 CREATE POLICY "Vendors can update own posts" ON public.feed_posts FOR UPDATE USING (
-  auth.uid()::text = (SELECT user_id FROM public.vendors WHERE id = vendor_id)
+  auth.uid()::text = (SELECT user_id FROM public.vendors WHERE id = vendor_id LIMIT 1)
 );
 CREATE POLICY "Vendors can delete own posts" ON public.feed_posts FOR DELETE USING (
-  auth.uid()::text = (SELECT user_id FROM public.vendors WHERE id = vendor_id)
+  auth.uid()::text = (SELECT user_id FROM public.vendors WHERE id = vendor_id LIMIT 1)
 );
 
 -- Likes: Everyone views, Auth users interact
@@ -70,17 +72,36 @@ CREATE POLICY "Users can unlike" ON public.feed_likes FOR DELETE USING (auth.uid
 CREATE POLICY "Everyone can view comments" ON public.feed_comments FOR SELECT USING (true);
 CREATE POLICY "Authenticated users can comment" ON public.feed_comments FOR INSERT WITH CHECK (auth.uid()::text = user_id);
 
--- 5. REALTIME
-ALTER PUBLICATION supabase_realtime ADD TABLE public.feed_posts;
-ALTER PUBLICATION supabase_realtime ADD TABLE public.feed_likes;
-ALTER PUBLICATION supabase_realtime ADD TABLE public.feed_comments;
+-- 5. REALTIME (Ignore errors if publication modifies)
+DO $$
+BEGIN
+    ALTER PUBLICATION supabase_realtime ADD TABLE public.feed_posts;
+EXCEPTION WHEN OTHERS THEN NULL;
+END $$;
+
+DO $$
+BEGIN
+    ALTER PUBLICATION supabase_realtime ADD TABLE public.feed_likes;
+EXCEPTION WHEN OTHERS THEN NULL;
+END $$;
+
+DO $$
+BEGIN
+    ALTER PUBLICATION supabase_realtime ADD TABLE public.feed_comments;
+EXCEPTION WHEN OTHERS THEN NULL;
+END $$;
 
 -- 6. STORAGE BUCKET (Ensure it exists)
 INSERT INTO storage.buckets (id, name, public) VALUES ('feed-media', 'feed-media', true) ON CONFLICT (id) DO NOTHING;
 
 -- Storage Policies
-DROP POLICY IF EXISTS "Vendors can upload feed media" ON storage.objects;
-DROP POLICY IF EXISTS "Everyone can view feed media" ON storage.objects;
+-- We do a safer drop to avoid errors
+DO $$
+BEGIN
+    DROP POLICY IF EXISTS "Vendors can upload feed media" ON storage.objects;
+    DROP POLICY IF EXISTS "Everyone can view feed media" ON storage.objects;
+EXCEPTION WHEN OTHERS THEN NULL;
+END $$;
 
 CREATE POLICY "Vendors can upload feed media" ON storage.objects FOR INSERT TO authenticated WITH CHECK ( bucket_id = 'feed-media' );
 CREATE POLICY "Everyone can view feed media" ON storage.objects FOR SELECT TO public USING ( bucket_id = 'feed-media' );
