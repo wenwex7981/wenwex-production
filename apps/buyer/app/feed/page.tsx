@@ -1,144 +1,23 @@
-// Comments Modal Component
-function CommentsModal({ postId, isOpen, onClose }: { postId: string, isOpen: boolean, onClose: () => void }) {
-    const supabase = getSupabaseClient();
-    const { user } = useAuthStore();
-    const [comments, setComments] = useState<any[]>([]);
-    const [newComment, setNewComment] = useState('');
-    const [isLoading, setIsLoading] = useState(true);
-    const [isSubmitting, setIsSubmitting] = useState(false);
+'use client';
 
-    useEffect(() => {
-        if (isOpen && postId) {
-            loadComments();
-            // Subscribe to new comments
-            const channel = supabase
-                .channel(`comments:${postId}`)
-                .on('postgres_changes', {
-                    event: 'INSERT',
-                    schema: 'public',
-                    table: 'feed_comments',
-                    filter: `post_id=eq.${postId}`
-                }, (payload) => {
-                    setComments(prev => [...prev, payload.new]);
-                })
-                .subscribe();
-
-            return () => {
-                supabase.removeChannel(channel);
-            };
-        }
-    }, [isOpen, postId]);
-
-    const loadComments = async () => {
-        setIsLoading(true);
-        const { data, error } = await supabase
-            .from('feed_comments')
-            .select('*')
-            .eq('post_id', postId)
-            .order('created_at', { ascending: true });
-
-        if (!error && data) {
-            setComments(data);
-        }
-        setIsLoading(false);
-    };
-
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!newComment.trim() || !user) return;
-
-        setIsSubmitting(true);
-        try {
-            const { error } = await supabase
-                .from('feed_comments')
-                .insert({
-                    post_id: postId,
-                    user_id: user.id,
-                    user_name: user.fullName || user.email?.split('@')[0],
-                    user_avatar: user.avatarUrl,
-                    content: newComment.trim()
-                });
-
-            if (error) throw error;
-            setNewComment('');
-
-            // Increment comment count locally (optimistic handled by parent refresh usually, requires callback)
-            // Ideally call a callback passed from parent to update post comment count
-
-        } catch (error) {
-            console.error('Error adding comment:', error);
-            toast.error('Failed to post comment');
-        } finally {
-            setIsSubmitting(false);
-        }
-    };
-
-    if (!isOpen) return null;
-
-    return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={onClose}>
-            <motion.div
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-                onClick={e => e.stopPropagation()}
-                className="w-full max-w-lg bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[80vh]"
-            >
-                <div className="p-4 border-b border-gray-100 flex items-center justify-between">
-                    <h3 className="font-bold text-gray-900">Comments</h3>
-                    <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-full">
-                        <Loader2 className={`w-5 h-5 ${isLoading ? 'animate-spin text-primary-500' : 'hidden'}`} />
-                        {!isLoading && <span className="text-xl">×</span>}
-                    </button>
-                </div>
-
-                <div className="flex-1 overflow-y-auto p-4 space-y-4">
-                    {comments.length === 0 && !isLoading ? (
-                        <div className="text-center py-8 text-gray-500 text-sm">No comments yet. Be the first!</div>
-                    ) : (
-                        comments.map((comment) => (
-                            <div key={comment.id} className="flex gap-3">
-                                <div className="w-8 h-8 rounded-full bg-gray-200 overflow-hidden flex-shrink-0">
-                                    {comment.user_avatar ? (
-                                        <img src={comment.user_avatar} alt="" className="w-full h-full object-cover" />
-                                    ) : (
-                                        <div className="w-full h-full flex items-center justify-center bg-primary-100 text-primary-600 font-bold text-xs">
-                                            {(comment.user_name || 'U')[0].toUpperCase()}
-                                        </div>
-                                    )}
-                                </div>
-                                <div className="bg-gray-50 rounded-2xl rounded-tl-none p-3 text-sm">
-                                    <p className="font-bold text-gray-900 text-xs mb-1">{comment.user_name || 'User'}</p>
-                                    <p className="text-gray-700">{comment.content}</p>
-                                </div>
-                            </div>
-                        ))
-                    )}
-                </div>
-
-                <div className="p-4 border-t border-gray-100 bg-gray-50">
-                    <form onSubmit={handleSubmit} className="flex gap-2">
-                        <input
-                            type="text"
-                            value={newComment}
-                            onChange={(e) => setNewComment(e.target.value)}
-                            placeholder={user ? "Write a comment..." : "Sign in to comment"}
-                            disabled={!user}
-                            className="flex-1 px-4 py-2 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-500"
-                        />
-                        <button
-                            type="submit"
-                            disabled={!user || !newComment.trim() || isSubmitting}
-                            className="p-2 bg-primary-600 text-white rounded-xl disabled:opacity-50"
-                        >
-                            <Send className="w-5 h-5" />
-                        </button>
-                    </form>
-                </div>
-            </motion.div>
-        </div>
-    );
-}
+import { useState, useEffect } from 'react';
+import {
+    Image as ImageIcon,
+    Video,
+    Link as LinkIcon,
+    MoreHorizontal,
+    Heart,
+    MessageCircle,
+    Share2,
+    Send,
+    Smile,
+    Loader2
+} from 'lucide-react';
+import Link from 'next/link';
+import { motion } from 'framer-motion';
+import { getSupabaseClient } from '@/lib/supabase';
+import { useAuthStore } from '@/lib/auth-store';
+import { toast } from 'react-hot-toast';
 
 export default function FeedPage() {
     const supabase = getSupabaseClient();
@@ -146,7 +25,6 @@ export default function FeedPage() {
     const [posts, setPosts] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [likedPosts, setLikedPosts] = useState<Set<string>>(new Set());
-    const [activeCommentPostId, setActiveCommentPostId] = useState<string | null>(null);
 
     useEffect(() => {
         loadPosts();
@@ -170,7 +48,7 @@ export default function FeedPage() {
                 .from('feed_posts')
                 .select(`
                     *,
-                    vendor:vendors!vendor_id(id, company_name, slug, logo_url, is_verified)
+                    vendor:vendors(id, company_name, slug, logo_url, is_verified)
                 `)
                 .order('created_at', { ascending: false });
 
@@ -227,28 +105,8 @@ export default function FeedPage() {
         }
     };
 
-    const handleShare = (post: any) => {
-        const url = `${window.location.origin}/feed?post=${post.id}`;
-        navigator.clipboard.writeText(url);
-        toast.success('Link copied to clipboard!');
-
-        // Optimistically update share count
-        setPosts(posts.map(p => p.id === post.id ? { ...p, shares_count: (p.shares_count || 0) + 1 } : p));
-
-        // Fire and forget update
-        supabase.rpc('increment_share_count', { post_id: post.id }).catch(() => { });
-    };
-
     return (
         <div className="min-h-screen bg-gray-100">
-            {activeCommentPostId && (
-                <CommentsModal
-                    postId={activeCommentPostId}
-                    isOpen={true}
-                    onClose={() => setActiveCommentPostId(null)}
-                />
-            )}
-
             <div className="container-custom py-8">
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
@@ -309,89 +167,78 @@ export default function FeedPage() {
                                 <p className="text-gray-400 font-medium">No posts yet. Be the first!</p>
                             </div>
                         ) : (
-                            posts.map(post => {
-                                // Fallback if vendor is null (optional chaining fallback)
-                                const vendor = post.vendor || { company_name: 'Unknown Vendor', slug: '#', logo_url: '' };
-
-                                return (
-                                    <motion.div
-                                        key={post.id}
-                                        initial={{ opacity: 0, y: 20 }}
-                                        whileInView={{ opacity: 1, y: 0 }}
-                                        viewport={{ once: true }}
-                                        className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden"
-                                    >
-                                        {/* Post Header */}
-                                        <div className="p-4 flex items-start justify-between">
-                                            <div className="flex gap-3">
-                                                <Link href={`/vendors/${vendor.slug}`} className="w-10 h-10 rounded-full bg-gray-100 overflow-hidden border border-gray-100">
-                                                    <img src={vendor.logo_url || `https://ui-avatars.com/api/?name=${vendor.company_name}`} alt="" className="w-full h-full object-cover" />
-                                                </Link>
-                                                <div>
-                                                    <div className="flex items-center gap-1.5">
-                                                        <Link href={`/vendors/${vendor.slug}`} className="font-bold text-gray-900 text-sm hover:underline">{vendor.company_name}</Link>
-                                                        {vendor.is_verified && <span className="text-primary-500 text-xs">✓</span>}
-                                                    </div>
-                                                    <div className="flex items-center text-xs text-gray-500 gap-2">
-                                                        <span className="font-medium">Vendor</span>
-                                                        <span>•</span>
-                                                        <span>{new Date(post.created_at).toLocaleDateString()}</span>
-                                                    </div>
+                            posts.map(post => (
+                                <motion.div
+                                    key={post.id}
+                                    initial={{ opacity: 0, y: 20 }}
+                                    whileInView={{ opacity: 1, y: 0 }}
+                                    viewport={{ once: true }}
+                                    className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden"
+                                >
+                                    {/* Post Header */}
+                                    <div className="p-4 flex items-start justify-between">
+                                        <div className="flex gap-3">
+                                            <Link href={`/vendors/${post.vendor?.slug}`} className="w-10 h-10 rounded-full bg-gray-100 overflow-hidden border border-gray-100">
+                                                <img src={post.vendor?.logo_url || `https://ui-avatars.com/api/?name=${post.vendor?.company_name}`} alt="" className="w-full h-full object-cover" />
+                                            </Link>
+                                            <div>
+                                                <div className="flex items-center gap-1.5">
+                                                    <Link href={`/vendors/${post.vendor?.slug}`} className="font-bold text-gray-900 text-sm hover:underline">{post.vendor?.company_name}</Link>
+                                                    {post.vendor?.is_verified && <span className="text-primary-500 text-xs">✓</span>}
+                                                </div>
+                                                <div className="flex items-center text-xs text-gray-500 gap-2">
+                                                    <span className="font-medium">Vendor</span>
+                                                    <span>•</span>
+                                                    <span>{new Date(post.created_at).toLocaleDateString()}</span>
                                                 </div>
                                             </div>
-                                            <button className="text-gray-400 hover:text-gray-600">
-                                                <MoreHorizontal className="w-5 h-5" />
-                                            </button>
                                         </div>
+                                        <button className="text-gray-400 hover:text-gray-600">
+                                            <MoreHorizontal className="w-5 h-5" />
+                                        </button>
+                                    </div>
 
-                                        {/* Post Content */}
-                                        <div className="px-4 pb-3">
-                                            <p className="text-gray-800 text-sm leading-relaxed whitespace-pre-wrap">{post.content}</p>
+                                    {/* Post Content */}
+                                    <div className="px-4 pb-3">
+                                        <p className="text-gray-800 text-sm leading-relaxed whitespace-pre-wrap">{post.content}</p>
+                                    </div>
+
+                                    {/* Post Media */}
+                                    {post.media_url && (
+                                        <div className="w-full bg-gray-50 overflow-hidden">
+                                            {post.media_type === 'VIDEO' ? (
+                                                <video src={post.media_url} controls className="w-full max-h-[500px]" />
+                                            ) : (
+                                                <img src={post.media_url} alt="Post content" className="w-full object-cover" />
+                                            )}
                                         </div>
+                                    )}
 
-                                        {/* Post Media */}
-                                        {post.media_url && (
-                                            <div className="w-full bg-gray-50 overflow-hidden">
-                                                {post.media_type === 'VIDEO' ? (
-                                                    <video src={post.media_url} controls className="w-full max-h-[500px]" />
-                                                ) : (
-                                                    <img src={post.media_url} alt="Post content" className="w-full object-cover" />
-                                                )}
-                                            </div>
-                                        )}
+                                    {/* Interaction Bar */}
+                                    <div className="px-4 py-3 border-t border-gray-50 flex items-center justify-between">
+                                        <button
+                                            className={`flex items-center gap-2 text-sm font-medium transition-colors ${likedPosts.has(post.id) ? 'text-red-500' : 'text-gray-500 hover:text-red-500'}`}
+                                            onClick={() => toggleLike(post.id)}
+                                        >
+                                            <Heart className={`w-5 h-5 ${likedPosts.has(post.id) ? 'fill-current' : ''}`} />
+                                            <span>{post.likes_count || 0}</span>
+                                        </button>
 
-                                        {/* Interaction Bar */}
-                                        <div className="px-4 py-3 border-t border-gray-50 flex items-center justify-between">
-                                            <button
-                                                className={`flex items-center gap-2 text-sm font-medium transition-colors ${likedPosts.has(post.id) ? 'text-red-500' : 'text-gray-500 hover:text-red-500'}`}
-                                                onClick={() => toggleLike(post.id)}
-                                            >
-                                                <Heart className={`w-5 h-5 ${likedPosts.has(post.id) ? 'fill-current' : ''}`} />
-                                                <span>{post.likes_count || 0}</span>
-                                            </button>
+                                        <button className="flex items-center gap-2 text-sm font-medium text-gray-500 hover:text-primary-600 transition-colors">
+                                            <MessageCircle className="w-5 h-5" />
+                                            <span>{post.comments_count || 0}</span>
+                                        </button>
 
-                                            <button
-                                                onClick={() => setActiveCommentPostId(post.id)}
-                                                className="flex items-center gap-2 text-sm font-medium text-gray-500 hover:text-primary-600 transition-colors"
-                                            >
-                                                <MessageCircle className="w-5 h-5" />
-                                                <span>{post.comments_count || 0}</span>
-                                            </button>
-
-                                            <button
-                                                onClick={() => handleShare(post)}
-                                                className="flex items-center gap-2 text-sm font-medium text-gray-500 hover:text-green-600 transition-colors"
-                                            >
-                                                <Share2 className="w-5 h-5" />
-                                                <span>{post.shares_count || 0}</span>
-                                            </button>
-                                            <button className="flex items-center gap-2 text-sm font-medium text-gray-500 hover:text-primary-600 transition-colors ml-auto">
-                                                <Send className="w-4 h-4" />
-                                            </button>
-                                        </div>
-                                    </motion.div>
-                                );
-                            })
+                                        <button className="flex items-center gap-2 text-sm font-medium text-gray-500 hover:text-green-600 transition-colors">
+                                            <Share2 className="w-5 h-5" />
+                                            <span>{post.shares_count || 0}</span>
+                                        </button>
+                                        <button className="flex items-center gap-2 text-sm font-medium text-gray-500 hover:text-primary-600 transition-colors ml-auto">
+                                            <Send className="w-4 h-4" />
+                                        </button>
+                                    </div>
+                                </motion.div>
+                            ))
                         )}
 
                         {/* Loading Text */}
