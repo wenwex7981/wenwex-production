@@ -7,7 +7,8 @@ import {
     Trash2,
     Send,
     Loader2,
-    X as XIcon
+    X as XIcon,
+    Link as LinkIcon
 } from 'lucide-react';
 import Link from 'next/link';
 import { getSupabaseClient } from '@/lib/supabase';
@@ -190,10 +191,24 @@ export default function VendorFeedPage() {
                     <div className="flex gap-2">
                         <button
                             onClick={() => fileInputRef.current?.click()}
-                            className="p-2.5 rounded-xl hover:bg-gray-50 text-gray-500 hover:text-primary-600 transition-colors bg-gray-50/50 flex items-center gap-2"
+                            className="p-2.5 rounded-xl hover:bg-gray-50 text-gray-500 hover:text-primary-600 transition-colors bg-gray-50/50 tooltip"
+                            title="Add Image"
                         >
                             <ImageIcon className="w-5 h-5" />
-                            <span className="text-xs font-bold">Media</span>
+                        </button>
+                        <button
+                            onClick={() => fileInputRef.current?.click()}
+                            className="p-2.5 rounded-xl hover:bg-gray-50 text-gray-500 hover:text-primary-600 transition-colors bg-gray-50/50 tooltip"
+                            title="Add Video"
+                        >
+                            <Video className="w-5 h-5" />
+                        </button>
+                        <button
+                            onClick={() => toast.success('Link functionality coming soon!')} // Placeholder for link functionality
+                            className="p-2.5 rounded-xl hover:bg-gray-50 text-gray-500 hover:text-primary-600 transition-colors bg-gray-50/50 tooltip"
+                            title="Add Link"
+                        >
+                            <LinkIcon className="w-5 h-5" />
                         </button>
                     </div>
                     <button
