@@ -29,7 +29,7 @@ export default function VendorDashboard() {
         const channel = supabase.channel('dashboard-realtime')
             .on(
                 'postgres_changes',
-                { event: '*', schema: 'public', table: 'follows' },
+                { event: '*', schema: 'public', table: 'vendor_followers' },
                 () => {
                     // Refresh stats when follows change
                     if (vendor?.id) {

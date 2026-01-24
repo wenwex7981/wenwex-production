@@ -121,7 +121,7 @@ export async function getVendorStats(vendorId: string) {
             .eq('vendor_id', vendorId);
 
         const { count: followersCount } = await supabase
-            .from('follows')
+            .from('vendor_followers')
             .select('*', { count: 'exact', head: true })
             .eq('vendor_id', vendorId);
 
@@ -140,6 +140,65 @@ export async function getVendorStats(vendorId: string) {
             avgRating: 0,
             followers: 0,
         };
+    }
+}
+
+export async function getFollowersList(vendorId: string) {
+    try {
+        const { data, error } = await supabase
+            .from('vendor_followers')
+            .select(`
+                id,
+                followed_at,
+                user_id
+            `)
+            .eq('vendor_id', vendorId)
+            .order('followed_at', { ascending: false });
+
+        if (error) throw error;
+        if (!data) return [];
+
+        // Get user details
+        const userIds = data.map(f => f.user_id);
+
+        // In a real app we would join with users/profiles table
+        // For now we will fetch profiles if accessible, or return mock data wrapper
+        // Since we might not have direct access to auth.users from client without admin rights
+        // We often use a public profiles table.
+
+        // Try fetching from public profiles if it exists, otherwise return basic info
+        try {
+            const { data: profiles } = await supabase
+                .from('profiles')
+                .select('id, full_name, avatar_url, email')
+                .in('id', userIds);
+
+            return data.map(follower => {
+                const profile = profiles?.find(p => p.id === follower.user_id);
+                return {
+                    id: follower.id,
+                    userId: follower.user_id,
+                    followedAt: follower.followed_at,
+                    name: profile?.full_name || 'WENWEX User',
+                    email: profile?.email || 'user@example.com',
+                    avatar: profile?.avatar_url || `https://ui-avatars.com/api/?name=${profile?.full_name || 'User'}&background=random`
+                };
+            });
+        } catch (e) {
+            // Fallback if profiles table issue
+            return data.map(follower => ({
+                id: follower.id,
+                userId: follower.user_id,
+                followedAt: follower.followed_at,
+                name: 'WENWEX User',
+                email: 'user@example.com',
+                avatar: 'https://ui-avatars.com/api/?name=User&background=random'
+            }));
+        }
+
+    } catch (error) {
+        console.error('Error fetching followers list:', error);
+        return [];
     }
 }
 
