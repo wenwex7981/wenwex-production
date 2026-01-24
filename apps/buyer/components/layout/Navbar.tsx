@@ -32,14 +32,16 @@ import {
     Briefcase,
     Sparkles,
     MessageSquare,
-    Newspaper
+    Newspaper,
+    LayoutList
 } from 'lucide-react';
 
 const navLinks = [
     { href: '/categories', label: 'Categories', icon: LayoutGrid },
-    { href: '/blogs', label: 'Blogs', icon: Newspaper },
+    { href: '/feed', label: 'Feed', icon: LayoutList },
     { href: '/services', label: 'Services', icon: null },
     { href: '/vendors', label: 'Agencies', icon: Building2 },
+    { href: '/academic', label: 'Academic', icon: GraduationCap },
     { href: '/shorts', label: 'Shorts', icon: Play },
 ];
 
