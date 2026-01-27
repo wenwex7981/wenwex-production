@@ -25,29 +25,29 @@ const defaultMembers: TeamMember[] = [
     {
         name: "Appala Nithin",
         role: "Founder & CEO",
-        image: "https://ui-avatars.com/api/?name=Appala+Nithin&background=0c8bff&color=fff&size=400",
+        image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop",
         linkedin: "#",
     },
     {
         name: "Sarah Chen",
         role: "Head of Technology",
-        image: "https://ui-avatars.com/api/?name=Sarah+Chen&background=6366f1&color=fff&size=400",
+        image: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&h=400&fit=crop",
         linkedin: "#",
     },
     {
         name: "Marcus Rodriguez",
         role: "Product Strategy",
-        image: "https://ui-avatars.com/api/?name=Marcus+Rodriguez&background=10b981&color=fff&size=400",
+        image: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&h=400&fit=crop",
     },
     {
         name: "Aman Gupta",
         role: "Global Operations",
-        image: "https://ui-avatars.com/api/?name=Aman+Gupta&background=f59e0b&color=fff&size=400",
+        image: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop",
     },
     {
         name: "Elena Petrov",
         role: "Lead Architect",
-        image: "https://ui-avatars.com/api/?name=Elena+Petrov&background=ec4899&color=fff&size=400",
+        image: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400&h=400&fit=crop",
     }
 ];
 
@@ -56,73 +56,95 @@ export function TeamSection({ content }: TeamSectionProps) {
     const subtitle = content?.subtitle || "Meet the experts building the future of global tech commerce at WENWEX.";
     const members = content?.config?.members || defaultMembers;
 
-    // Triple the members for a seamless loop
-    const scrollMembers = [...members, ...members, ...members];
+    // We need at least 10 items to fill the screen for a smooth loop usually, or just double it and use % animate
+    const scrollMembers = [...members, ...members, ...members, ...members];
 
     return (
-        <section className="py-20 bg-[#0a0a0b] relative overflow-hidden">
-            {/* Background pattern */}
-            <div className="absolute inset-0 opacity-[0.03] pointer-events-none">
-                <div className="absolute inset-0" style={{ backgroundImage: 'radial-gradient(#fff 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
-            </div>
+        <section className="py-24 bg-[#0a0a0b] relative overflow-hidden">
+            {/* Ambient background glow */}
+            <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary-600/10 rounded-full blur-[120px] pointer-events-none" />
+            <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-blue-600/10 rounded-full blur-[120px] pointer-events-none" />
 
-            <div className="container-custom relative z-10 mb-12">
+            <div className="container-custom relative z-10 mb-16">
                 <div className="max-w-3xl">
-                    <div className="flex items-center gap-2 mb-4">
-                        <Users className="w-5 h-5 text-primary-500" />
-                        <span className="text-primary-500 font-bold uppercase tracking-widest text-xs">The People Behind WENWEX</span>
-                    </div>
-                    <h2 className="text-3xl md:text-5xl font-bold text-white mb-6 leading-tight">
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                        className="flex items-center gap-2 mb-4"
+                    >
+                        <div className="w-8 h-[1px] bg-primary-500" />
+                        <span className="text-primary-500 font-bold uppercase tracking-[0.2em] text-[10px]">The People Behind WENWEX</span>
+                    </motion.div>
+                    <motion.h2
+                        initial={{ opacity: 0, y: 20 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ delay: 0.1 }}
+                        className="text-4xl md:text-6xl font-bold text-white mb-6 leading-[1.1] tracking-tight"
+                    >
                         {title}
-                    </h2>
-                    <p className="text-gray-400 text-lg">
+                    </motion.h2>
+                    <motion.p
+                        initial={{ opacity: 0, y: 20 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ delay: 0.2 }}
+                        className="text-gray-400 text-lg md:text-xl max-w-2xl leading-relaxed"
+                    >
                         {subtitle}
-                    </p>
+                    </motion.p>
                 </div>
             </div>
 
             {/* Horizontal Auto-Scrolling Marquee */}
-            <div className="relative flex overflow-hidden">
+            <div className="relative flex overflow-hidden select-none">
                 <motion.div
-                    className="flex gap-6 py-4"
-                    animate={{ x: [0, -100 * members.length + "%"] }}
+                    className="flex gap-8 py-8"
+                    animate={{ x: [0, "-50%"] }}
                     transition={{
                         x: {
                             repeat: Infinity,
                             repeatType: "loop",
-                            duration: 30, // Adjust speed here
+                            duration: 60, // Very slow and premium
                             ease: "linear",
                         },
                     }}
-                    style={{ width: "fit-content" }}
+                    style={{ width: "max-content" }}
                 >
                     {scrollMembers.map((member, idx) => (
                         <div
                             key={`${member.name}-${idx}`}
                             className="w-72 md:w-80 flex-shrink-0 group"
                         >
-                            <div className="bg-gray-900/50 backdrop-blur-sm border border-gray-800 rounded-3xl overflow-hidden hover:border-primary-500/50 transition-all duration-500 p-4">
-                                <div className="aspect-square rounded-2xl overflow-hidden mb-6 relative">
+                            <div className="bg-gray-900/40 backdrop-blur-md border border-gray-800/50 rounded-[2.5rem] overflow-hidden hover:border-primary-500/40 transition-all duration-700 p-5 relative">
+                                {/* Subtle card glow */}
+                                <div className="absolute -inset-1 bg-gradient-to-br from-primary-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 blur" />
+
+                                <div className="aspect-square rounded-[2rem] overflow-hidden mb-8 relative z-10">
                                     <img
                                         src={member.image}
                                         alt={member.name}
-                                        className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700 scale-110 group-hover:scale-100"
+                                        className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-1000 scale-110 group-hover:scale-100"
                                     />
-                                    {/* Social Links Overlay */}
-                                    <div className="absolute inset-0 bg-primary-600/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4">
-                                        <button className="w-10 h-10 rounded-full bg-white text-primary-600 flex items-center justify-center hover:scale-110 transition-transform">
-                                            <Linkedin className="w-5 h-5" />
-                                        </button>
-                                        <button className="w-10 h-10 rounded-full bg-white text-primary-600 flex items-center justify-center hover:scale-110 transition-transform">
-                                            <Github className="w-5 h-5" />
-                                        </button>
+                                    {/* Glass Overlay on Hover */}
+                                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-all duration-500 flex items-center justify-center gap-4">
+                                        <div className="flex gap-3 translate-y-4 group-hover:translate-y-0 transition-transform duration-500">
+                                            <button className="w-12 h-12 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white flex items-center justify-center hover:bg-primary-500 hover:border-primary-500 transition-all">
+                                                <Linkedin className="w-5 h-5" />
+                                            </button>
+                                            <button className="w-12 h-12 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white flex items-center justify-center hover:bg-gray-800 hover:border-gray-700 transition-all">
+                                                <Github className="w-5 h-5" />
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
-                                <div className="px-2 pb-2">
-                                    <h4 className="text-xl font-bold text-white mb-1 group-hover:text-primary-400 transition-colors">
+
+                                <div className="px-2 pb-2 relative z-10 text-center">
+                                    <h4 className="text-2xl font-bold text-white mb-1 group-hover:text-primary-400 transition-colors duration-500">
                                         {member.name}
                                     </h4>
-                                    <p className="text-gray-500 font-medium">
+                                    <p className="text-gray-500 font-medium tracking-wide text-sm uppercase">
                                         {member.role}
                                     </p>
                                 </div>
@@ -130,11 +152,11 @@ export function TeamSection({ content }: TeamSectionProps) {
                         </div>
                     ))}
                 </motion.div>
-            </div>
 
-            {/* Gradient Mask for Fade Effect */}
-            <div className="absolute inset-y-0 left-0 w-24 bg-gradient-to-r from-[#0a0a0b] to-transparent z-10 pointer-events-none" />
-            <div className="absolute inset-y-0 right-0 w-24 bg-gradient-to-l from-[#0a0a0b] to-transparent z-10 pointer-events-none" />
+                {/* Side Fades */}
+                <div className="absolute inset-y-0 left-0 w-48 bg-gradient-to-r from-[#0a0a0b] via-[#0a0a0b]/80 to-transparent z-10" />
+                <div className="absolute inset-y-0 right-0 w-48 bg-gradient-to-l from-[#0a0a0b] via-[#0a0a0b]/80 to-transparent z-10" />
+            </div>
         </section>
     );
 }
