@@ -1,4 +1,5 @@
 'use client';
+// Deployment Trigger: 2026-01-27 12:51 (GMT+5:30)
 
 import { motion } from 'framer-motion';
 import { Users, Linkedin, Github, Twitter } from 'lucide-react';
