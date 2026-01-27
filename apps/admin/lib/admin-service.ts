@@ -553,11 +553,32 @@ export async function initializeHomepage() {
             }
         },
         {
+            title: 'Our Visionary Leadership & Team',
+            subtitle: 'Meet the experts building the future of global tech commerce at WENWEX.',
+            type: 'TEAM',
+            is_visible: true,
+            order: 7,
+            config: {
+                members: [
+                    {
+                        name: "Appala Nithin",
+                        role: "Founder & CEO",
+                        image: "https://ui-avatars.com/api/?name=Appala+Nithin&background=0c8bff&color=fff&size=400"
+                    },
+                    {
+                        name: "Sarah Chen",
+                        role: "Head of Technology",
+                        image: "https://ui-avatars.com/api/?name=Sarah+Chen&background=6366f1&color=fff&size=400"
+                    }
+                ]
+            }
+        },
+        {
             title: 'Ready to Scale?',
             subtitle: 'Join thousands of businesses that trust WENWEX for their project needs.',
             type: 'CTA',
-            is_visible: true,
-            order: 7,
+            is_visible: false,
+            order: 8,
             config: {
                 banner_image: 'https://images.unsplash.com/photo-1557804506-669a67965ba0?auto=format&fit=crop&q=80&w=2000',
                 primary_cta: { text: 'Get Started Now', link: '/onboarding' },

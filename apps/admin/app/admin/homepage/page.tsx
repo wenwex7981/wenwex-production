@@ -134,6 +134,7 @@ export default function AdminHomepagePage() {
         { value: 'ACADEMIC_SPOTLIGHT', label: 'Academic Spotlight' },
         { value: 'MARKETPLACE_SPOTLIGHT', label: 'Marketplace Spotlight' },
         { value: 'CTA', label: 'Call to Action Banner' },
+        { value: 'TEAM', label: 'Founders & Team Section' },
         { value: 'TESTIMONIALS', label: 'Customer Testimonials' },
         { value: 'HTML', label: 'Custom HTML/Text' }
     ];
@@ -377,6 +378,77 @@ export default function AdminHomepagePage() {
                                                 </div>
                                             )}
                                         </div>
+
+                                        {/* Team Specifics */}
+                                        {selectedSection.type === 'TEAM' && (
+                                            <div className="space-y-4 pt-2 border-t border-gray-800 border-dashed">
+                                                <p className="text-[10px] font-bold text-primary-400 uppercase leading-none">Team Members</p>
+
+                                                <div className="space-y-3">
+                                                    {(selectedSection.config.members || []).map((member: any, mIdx: number) => (
+                                                        <div key={mIdx} className="bg-gray-900/50 p-3 rounded-xl border border-gray-800 relative group">
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => {
+                                                                    const newMembers = [...selectedSection.config.members];
+                                                                    newMembers.splice(mIdx, 1);
+                                                                    handleUpdateConfig('members', newMembers);
+                                                                }}
+                                                                className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                                                            >
+                                                                <Trash2 className="w-3 h-3" />
+                                                            </button>
+                                                            <div className="grid grid-cols-2 gap-2">
+                                                                <input
+                                                                    type="text"
+                                                                    placeholder="Name"
+                                                                    className="input-sm w-full bg-gray-950"
+                                                                    value={member.name || ''}
+                                                                    onChange={(e) => {
+                                                                        const newMembers = [...selectedSection.config.members];
+                                                                        newMembers[mIdx] = { ...member, name: e.target.value };
+                                                                        handleUpdateConfig('members', newMembers);
+                                                                    }}
+                                                                />
+                                                                <input
+                                                                    type="text"
+                                                                    placeholder="Role"
+                                                                    className="input-sm w-full bg-gray-950"
+                                                                    value={member.role || ''}
+                                                                    onChange={(e) => {
+                                                                        const newMembers = [...selectedSection.config.members];
+                                                                        newMembers[mIdx] = { ...member, role: e.target.value };
+                                                                        handleUpdateConfig('members', newMembers);
+                                                                    }}
+                                                                />
+                                                                <input
+                                                                    type="text"
+                                                                    placeholder="Image URL"
+                                                                    className="input-sm w-full bg-gray-950 col-span-2"
+                                                                    value={member.image || ''}
+                                                                    onChange={(e) => {
+                                                                        const newMembers = [...selectedSection.config.members];
+                                                                        newMembers[mIdx] = { ...member, image: e.target.value };
+                                                                        handleUpdateConfig('members', newMembers);
+                                                                    }}
+                                                                />
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => {
+                                                            const newMembers = [...(selectedSection.config.members || [])];
+                                                            newMembers.push({ name: '', role: '', image: '' });
+                                                            handleUpdateConfig('members', newMembers);
+                                                        }}
+                                                        className="w-full py-2 border border-dashed border-gray-700 rounded-xl text-gray-500 hover:text-primary-400 hover:border-primary-500/50 transition-all text-xs flex items-center justify-center gap-2"
+                                                    >
+                                                        <Plus className="w-4 h-4" /> Add Member
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        )}
 
                                         {/* Hero Specifics */}
                                         {selectedSection.type === 'HERO' && (

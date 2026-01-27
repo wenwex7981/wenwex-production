@@ -4,7 +4,7 @@ import { FeaturedServices } from '@/components/home/FeaturedServices';
 import { PremiumAgencies } from '@/components/home/PremiumAgencies';
 import { TrendingServices } from '@/components/home/TrendingServices';
 import { ShortsPreview } from '@/components/home/ShortsPreview';
-import { CTASection } from '@/components/home/CTASection';
+import { TeamSection } from '@/components/home/TeamSection';
 import { PromoCarousel } from '@/components/home/PromoCarousel';
 import { SponsoredCarousel } from '@/components/home/SponsoredCarousel';
 import { fetchHomepageSections } from '@/lib/data-service';
@@ -36,7 +36,7 @@ export default async function HomePage() {
                 <PremiumAgencies />
                 <TrendingServices />
                 <ShortsPreview />
-                <CTASection />
+                <TeamSection />
             </>
         );
     }
@@ -70,8 +70,8 @@ export default async function HomePage() {
             {/* SHORTS PREVIEW - ALWAYS SHOW (from DB or default) */}
             {sectionTypes.has('SHORTS') ? renderSection('SHORTS', ShortsPreview, 'shorts') : <ShortsPreview />}
 
-            {/* CTA - from DB or default */}
-            {sectionTypes.has('CTA') ? renderSection('CTA', CTASection, 'cta') : <CTASection />}
+            {/* TEAM - from DB or default */}
+            {sectionTypes.has('TEAM') ? renderSection('TEAM', TeamSection, 'team') : <TeamSection />}
         </>
     );
 }
