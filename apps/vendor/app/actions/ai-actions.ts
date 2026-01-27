@@ -8,29 +8,20 @@ const getApiKey = () => {
         process.env.gemini_api_key;
 };
 
-async function generateWithFallback(prompt: string) {
-    const apiKey = getApiKey();
-    if (!apiKey) throw new Error("API Key Missing");
-    const genAI = new GoogleGenerativeAI(apiKey);
-    const modelsToTry = ["gemini-1.5-flash", "gemini-1.5-pro", "gemini-pro"];
-    let lastError = null;
-
-    for (const modelName of modelsToTry) {
-        try {
-            const model = genAI.getGenerativeModel({ model: modelName });
-            const result = await model.generateContent(prompt);
-            const text = result.response.text();
-            if (text) return { success: true, text };
-        } catch (error: any) {
-            console.error(`Vendor AI Attempt ${modelName} failed:`, error.message);
-            lastError = error;
-        }
-    }
-    throw lastError || new Error("AI services currently unavailable.");
-}
-
 export async function generateServiceDescriptionAction(title: string, category: string, features: string[]) {
+    const apiKey = getApiKey();
+    if (!apiKey) {
+        return { success: false, error: "AI key missing." };
+    }
+
     try {
+        const genAI = new GoogleGenerativeAI(apiKey);
+        // FORCING v1 API and gemini-1.5-flash as per strict requirement
+        const model = genAI.getGenerativeModel(
+            { model: "gemini-1.5-flash" },
+            { apiVersion: "v1" }
+        );
+
         const prompt = `
             Act as a professional copywriter for WENWEX, a premium B2B service marketplace.
             Write a high-converting service description based on:
@@ -40,10 +31,11 @@ export async function generateServiceDescriptionAction(title: string, category: 
             Requirements: Professional tone, plain text only, approx 150 words.
         `;
 
-        const result = await generateWithFallback(prompt);
-        return { success: true, data: result.text };
+        const result = await model.generateContent(prompt);
+        const text = result.response.text();
+        return { success: true, data: text };
     } catch (error: any) {
         console.error("AI Generation failed:", error);
-        return { success: false, error: `Support required: ${error.message}` };
+        return { success: false, error: error.message };
     }
 }

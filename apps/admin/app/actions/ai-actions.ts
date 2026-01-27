@@ -8,37 +8,27 @@ const getApiKey = () => {
         process.env.gemini_api_key;
 };
 
-async function generateWithFallback(prompt: string) {
-    const apiKey = getApiKey();
-    if (!apiKey) throw new Error("API Key Missing");
-    const genAI = new GoogleGenerativeAI(apiKey);
-    const modelsToTry = ["gemini-1.5-flash", "gemini-1.5-pro", "gemini-pro"];
-    let lastError = null;
-
-    for (const modelName of modelsToTry) {
-        try {
-            const model = genAI.getGenerativeModel({ model: modelName });
-            const result = await model.generateContent(prompt);
-            const text = result.response.text();
-            if (text) return { success: true, text };
-        } catch (error: any) {
-            console.error(`Admin AI Attempt ${modelName} failed:`, error.message);
-            lastError = error;
-        }
-    }
-    throw lastError || new Error("AI Moderation services currently unavailable.");
-}
-
 export async function moderateContentAction(content: string) {
+    const apiKey = getApiKey();
+    if (!apiKey) return { success: false, error: "API key missing." };
+
     try {
+        const genAI = new GoogleGenerativeAI(apiKey);
+        // FORCING v1 API and gemini-1.5-flash as per strict requirement
+        const model = genAI.getGenerativeModel(
+            { model: "gemini-1.5-flash" },
+            { apiVersion: "v1" }
+        );
+
         const prompt = `
             Act as a Trust & Safety Officer for a marketplace.
             Analyze this content for policy violations: "${content.substring(0, 500)}"
             Return ONLY JSON: { "isSafe": boolean, "flagged": boolean, "reason": "short", "score": 0-100 }
         `;
 
-        const result = await generateWithFallback(prompt);
-        const jsonStr = result.text.replace(/```json/g, '').replace(/```/g, '').trim();
+        const result = await model.generateContent(prompt);
+        const text = result.response.text();
+        const jsonStr = text.replace(/```json/g, '').replace(/```/g, '').trim();
         return { success: true, data: JSON.parse(jsonStr) };
     } catch (error: any) {
         console.error("AI Moderation Error:", error);
