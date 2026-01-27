@@ -13,7 +13,7 @@ export async function generateServiceDescriptionAction(title: string, category: 
 
     try {
         const genAI = new GoogleGenerativeAI(apiKey);
-        const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
         const prompt = `
             Act as a professional copywriter for WENWEX, a premium B2B service marketplace.

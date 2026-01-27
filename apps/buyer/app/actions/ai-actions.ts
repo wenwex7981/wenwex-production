@@ -11,7 +11,7 @@ export async function chatWithWenwexAI(query: string) {
 
     try {
         const genAI = new GoogleGenerativeAI(apiKey);
-        const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
         const prompt = `
             You are WENWEX AI, the intelligent assistant for the WENWEX marketplace.
@@ -36,6 +36,6 @@ export async function chatWithWenwexAI(query: string) {
         return { success: true, reply: text };
     } catch (error: any) {
         console.error("AI Error:", error);
-        return { success: false, reply: "I am experiencing high traffic. Please try again briefly." };
+        return { success: false, reply: `AI Error: ${error.message || "Unknown error"}` };
     }
 }
