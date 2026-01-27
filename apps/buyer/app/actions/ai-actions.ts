@@ -40,7 +40,7 @@ export async function chatWithWenwexAI(query: string) {
         console.error("AI Error:", error);
         return {
             success: false,
-            reply: `I am currently optimizing my systems. Please try again in a moment.`
+            reply: `AI Diagnostic: ${error.message || "Unknown error"}`
         };
     }
 }
