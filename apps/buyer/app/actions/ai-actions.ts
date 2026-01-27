@@ -1,46 +1,41 @@
 'use server';
 
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import Groq from "groq-sdk";
 
 const getApiKey = () => {
-    return process.env.GEMINI_API_KEY ||
-        process.env.NEXT_PUBLIC_GEMINI_API_KEY ||
-        "AIzaSyBMtzc0xiJk5GbQQwLigwA3faYAlhlMQac";
+    return process.env.GROQ_API_KEY;
 };
 
 export async function chatWithWenwexAI(query: string) {
     const apiKey = getApiKey();
     if (!apiKey) {
-        return { success: false, reply: "I'm offline right now (System Config Error)." };
+        return { success: false, reply: "AI Service Configuration Error: Missing API Key." };
     }
 
+    const groq = new Groq({ apiKey });
+
     try {
-        const genAI = new GoogleGenerativeAI(apiKey);
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+        const chatCompletion = await groq.chat.completions.create({
+            messages: [
+                {
+                    role: "system",
+                    content: "You are WENWEX AI, the intelligent assistant for the WENWEX marketplace. Your capabilities: 1. Recommend services based on needs. 2. Explain technical terms to non-tech buyers. 3. Compare general service types. Rules: Keep answers short, punchy, and helpful (max ~50 words). Tone: Futuristic, professional, yet friendly."
+                },
+                {
+                    role: "user",
+                    content: query
+                }
+            ],
+            model: "llama-3.3-70b-versatile",
+        });
 
-        const prompt = `
-            You are WENWEX AI, the intelligent assistant for the WENWEX marketplace.
-            User Query: "${query}"
-
-            Your capabilities:
-            1. Recommend services based on needs.
-            2. Explain technical terms to non-tech buyers.
-            3. Compare general service types.
-
-            Rules:
-            - Keep answers short, punchy, and helpful (max ~50 words).
-            - Tone: Futuristic, professional, yet friendly.
-            Response:
-        `;
-
-        const result = await model.generateContent(prompt);
-        const text = result.response.text();
-        return { success: true, reply: text };
+        const reply = chatCompletion.choices[0]?.message?.content || "";
+        return { success: true, reply };
     } catch (error: any) {
-        console.error("AI Error:", error);
+        console.error("Groq AI Error:", error);
         return {
             success: false,
-            reply: `AI Diagnostic: ${error.message || "Unknown error"}`
+            reply: `AI Support: ${error.message || "Maintenance in progress."}`
         };
     }
 }

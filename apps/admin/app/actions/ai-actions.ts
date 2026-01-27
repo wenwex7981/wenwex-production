@@ -1,33 +1,37 @@
 'use server';
 
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import Groq from "groq-sdk";
 
 const getApiKey = () => {
-    return process.env.GEMINI_API_KEY ||
-        process.env.NEXT_PUBLIC_GEMINI_API_KEY ||
-        "AIzaSyBMtzc0xiJk5GbQQwLigwA3faYAlhlMQac";
+    return process.env.GROQ_API_KEY;
 };
 
 export async function moderateContentAction(content: string) {
     const apiKey = getApiKey();
-    if (!apiKey) return { success: false, error: "API key missing." };
+    if (!apiKey) return { success: false, error: "AI key missing." };
+
+    const groq = new Groq({ apiKey });
 
     try {
-        const genAI = new GoogleGenerativeAI(apiKey);
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+        const chatCompletion = await groq.chat.completions.create({
+            messages: [
+                {
+                    role: "system",
+                    content: "Act as a Trust & Safety Officer for a marketplace. Analyze content for policy violations. Return ONLY JSON: { \"isSafe\": boolean, \"flagged\": boolean, \"reason\": \"string\", \"score\": 0-100 }"
+                },
+                {
+                    role: "user",
+                    content: `Analyze this content: "${content.substring(0, 500)}"`
+                }
+            ],
+            model: "llama-3.3-70b-versatile",
+            response_format: { type: "json_object" }
+        });
 
-        const prompt = `
-            Act as a Trust & Safety Officer for a marketplace.
-            Analyze this content for policy violations: "${content.substring(0, 500)}"
-            Return ONLY JSON: { "isSafe": boolean, "flagged": boolean, "reason": "short", "score": 0-100 }
-        `;
-
-        const result = await model.generateContent(prompt);
-        const text = result.response.text();
-        const jsonStr = text.replace(/```json/g, '').replace(/```/g, '').trim();
-        return { success: true, data: JSON.parse(jsonStr) };
+        const reply = chatCompletion.choices[0]?.message?.content || "{}";
+        return { success: true, data: JSON.parse(reply) };
     } catch (error: any) {
-        console.error("AI Moderation Error:", error);
-        return { success: false, error: "Moderation check skipped due to system load." };
+        console.error("Groq AI Error:", error);
+        return { success: false, error: "Moderation check skipped." };
     }
 }

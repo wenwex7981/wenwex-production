@@ -1,53 +1,57 @@
 
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import Groq from "groq-sdk";
 
 const getApiKey = () => {
-    return process.env.GEMINI_API_KEY ||
-        process.env.NEXT_PUBLIC_GEMINI_API_KEY ||
-        "AIzaSyBMtzc0xiJk5GbQQwLigwA3faYAlhlMQac";
+    return process.env.GROQ_API_KEY;
 };
 
-const getModel = () => {
-    const key = getApiKey();
-    if (!key) return null;
-    const genAI = new GoogleGenerativeAI(key);
-    return genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-};
+const getGroq = () => {
+    const apiKey = getApiKey();
+    if (!apiKey) return null;
+    return new Groq({ apiKey });
+}
+
+const MODEL = "llama-3.3-70b-versatile";
 
 export const AI_SERVICE = {
     generateServiceDescription: async (title: string, category: string, keywords: string[]) => {
-        const model = getModel();
-        if (!model) return "AI Key missing";
-        const prompt = `Write a service description for ${title} in category ${category}. Keywords: ${keywords.join(", ")}`;
+        const groq = getGroq();
+        if (!groq) return "AI Key missing";
         try {
-            const result = await model.generateContent(prompt);
-            return result.response.text();
+            const completion = await groq.chat.completions.create({
+                messages: [{ role: "user", content: `Write a service description for ${title} in category ${category}. Keywords: ${keywords.join(", ")}` }],
+                model: MODEL,
+            });
+            return completion.choices[0]?.message?.content || "AI generation failed.";
         } catch (e: any) {
             return `AI Error: ${e.message}`;
         }
     },
 
     explainTechStack: async (techName: string) => {
-        const model = getModel();
-        if (!model) return "AI Key missing";
-        const prompt = `Explain ${techName} concisely for a non-tech buyer.`;
+        const groq = getGroq();
+        if (!groq) return "AI Key missing";
         try {
-            const result = await model.generateContent(prompt);
-            return result.response.text();
+            const completion = await groq.chat.completions.create({
+                messages: [{ role: "user", content: `Explain ${techName} concisely for a non-tech buyer.` }],
+                model: MODEL,
+            });
+            return completion.choices[0]?.message?.content || "AI Error.";
         } catch (e: any) {
             return `AI Error: ${e.message}`;
         }
     },
 
     moderateContent: async (content: string, type: string) => {
-        const model = getModel();
-        if (!model) return { flagged: false, reason: "AI Key missing", score: 50 };
-        const prompt = `Moderate this ${type} content: ${content}. Return JSON { flagged: boolean, reason: string, score: number }`;
+        const groq = getGroq();
+        if (!groq) return { flagged: false, reason: "AI Key missing", score: 50 };
         try {
-            const result = await model.generateContent(prompt);
-            const text = result.response.text();
-            const jsonStr = text.replace(/```json/g, '').replace(/```/g, '').trim();
-            return JSON.parse(jsonStr);
+            const completion = await groq.chat.completions.create({
+                messages: [{ role: "system", content: "Return JSON { flagged: boolean, reason: string, score: number }" }, { role: "user", content: `Moderate ${type}: ${content}` }],
+                model: MODEL,
+                response_format: { type: "json_object" }
+            });
+            return JSON.parse(completion.choices[0]?.message?.content || "{}");
         } catch (error: any) {
             return { flagged: false, reason: error.message, score: 50 };
         }

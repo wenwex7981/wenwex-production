@@ -1,35 +1,36 @@
 'use server';
 
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import Groq from "groq-sdk";
 
 const getApiKey = () => {
-    return process.env.GEMINI_API_KEY ||
-        process.env.NEXT_PUBLIC_GEMINI_API_KEY ||
-        "AIzaSyBMtzc0xiJk5GbQQwLigwA3faYAlhlMQac";
+    return process.env.GROQ_API_KEY;
 };
 
 export async function generateServiceDescriptionAction(title: string, category: string, features: string[]) {
     const apiKey = getApiKey();
     if (!apiKey) return { success: false, error: "AI key missing." };
 
+    const groq = new Groq({ apiKey });
+
     try {
-        const genAI = new GoogleGenerativeAI(apiKey);
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+        const chatCompletion = await groq.chat.completions.create({
+            messages: [
+                {
+                    role: "system",
+                    content: "Act as a professional copywriter for WENWEX, a premium B2B service marketplace. Write a high-converting service description. Tone: Professional, authoritative, and persuasive. Format: Plain text only. Length: approx 150 words."
+                },
+                {
+                    role: "user",
+                    content: `Write a service description for: "${title}" in category "${category}". Key features: ${features.filter(f => f).join(", ")}`
+                }
+            ],
+            model: "llama-3.3-70b-versatile",
+        });
 
-        const prompt = `
-            Act as a professional copywriter for WENWEX, a premium B2B service marketplace.
-            Write a high-converting service description based on:
-            Title: "${title}"
-            Category: "${category}"
-            Key Features: ${features.filter(f => f).join(", ")}
-            Requirements: Professional tone, plain text only, approx 150 words.
-        `;
-
-        const result = await model.generateContent(prompt);
-        const text = result.response.text();
+        const text = chatCompletion.choices[0]?.message?.content || "";
         return { success: true, data: text };
     } catch (error: any) {
-        console.error("AI Generation failed:", error);
-        return { success: false, error: "System busy, please try again." };
+        console.error("Groq AI Error:", error);
+        return { success: false, error: "AI generation failed." };
     }
 }
