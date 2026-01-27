@@ -23,7 +23,7 @@ const service = {
     id: '1',
     title: 'Full-Stack E-commerce Platform Development',
     slug: 'full-stack-ecommerce-platform',
-    price: 2499,
+    price: 30,
     currency: 'USD',
     deliveryDays: 14,
     imageUrl: 'https://images.unsplash.com/photo-1557821552-17105176677c?w=400',

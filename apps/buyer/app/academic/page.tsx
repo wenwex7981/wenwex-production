@@ -36,7 +36,7 @@ const fallbackAcademicServices = [
         title: 'Advanced AI/ML Plant Disease Detection System',
         category: 'Major Projects',
         domain: 'AI/ML',
-        price: 150, // USD Base
+        price: 115, // USD Base
         rating: 4.9,
         reviews: 42,
         delivery: '10 Days',
@@ -49,7 +49,7 @@ const fallbackAcademicServices = [
         title: 'IOT Based Smart Health Monitoring System',
         category: 'Major Projects',
         domain: 'IOT',
-        price: 180, // USD Base
+        price: 120, // USD Base
         rating: 4.8,
         reviews: 38,
         delivery: '15 Days',

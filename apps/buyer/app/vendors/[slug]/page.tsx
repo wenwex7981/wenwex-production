@@ -192,10 +192,10 @@ What sets us apart is our commitment to quality, transparent communication, and 
             satisfactionRate: '99%',
             categories: ['Web Development', 'Mobile Apps', 'E-commerce'],
             services: [
-                { id: 1, slug: 'enterprise-web-development', title: 'Enterprise Web Development', imageUrl: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400', rating: 4.9, reviewCount: 89, price: 2999 },
-                { id: 2, slug: 'ecommerce-platform', title: 'E-commerce Platform Development', imageUrl: 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=400', rating: 4.8, reviewCount: 67, price: 4999 },
-                { id: 3, slug: 'custom-crm', title: 'Custom CRM Solutions', imageUrl: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=400', rating: 5.0, reviewCount: 45, price: 3499 },
-                { id: 4, slug: 'api-development', title: 'API Development & Integration', imageUrl: 'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=400', rating: 4.9, reviewCount: 33, price: 1999 },
+                { id: 1, slug: 'enterprise-web-development', title: 'Enterprise Web Development', imageUrl: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400', rating: 4.9, reviewCount: 89, price: 35 },
+                { id: 2, slug: 'ecommerce-platform', title: 'E-commerce Platform Development', imageUrl: 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=400', rating: 4.8, reviewCount: 67, price: 60 },
+                { id: 3, slug: 'custom-crm', title: 'Custom CRM Solutions', imageUrl: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=400', rating: 5.0, reviewCount: 45, price: 42 },
+                { id: 4, slug: 'api-development', title: 'API Development & Integration', imageUrl: 'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=400', rating: 4.9, reviewCount: 33, price: 24 },
             ],
             portfolio: [
                 { id: 1, title: 'Global E-commerce Platform', thumbnailUrl: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800', category: 'E-commerce' },
@@ -241,10 +241,10 @@ We believe in user-centric design and pixel-perfect implementation. Every app we
             satisfactionRate: '98%',
             categories: ['Mobile Apps', 'React Native', 'Flutter'],
             services: [
-                { id: 1, slug: 'ios-app-development', title: 'iOS App Development', imageUrl: 'https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?w=400', rating: 4.9, reviewCount: 72, price: 3999 },
-                { id: 2, slug: 'android-app-development', title: 'Android App Development', imageUrl: 'https://images.unsplash.com/photo-1607252650355-f7fd0460ccdb?w=400', rating: 4.8, reviewCount: 58, price: 3499 },
-                { id: 3, slug: 'react-native-development', title: 'React Native Development', imageUrl: 'https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=400', rating: 4.8, reviewCount: 41, price: 2999 },
-                { id: 4, slug: 'flutter-development', title: 'Flutter App Development', imageUrl: 'https://images.unsplash.com/photo-1551650975-87deedd944c3?w=400', rating: 4.7, reviewCount: 28, price: 2799 },
+                { id: 1, slug: 'ios-app-development', title: 'iOS App Development', imageUrl: 'https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?w=400', rating: 4.9, reviewCount: 72, price: 48 },
+                { id: 2, slug: 'android-app-development', title: 'Android App Development', imageUrl: 'https://images.unsplash.com/photo-1607252650355-f7fd0460ccdb?w=400', rating: 4.8, reviewCount: 58, price: 42 },
+                { id: 3, slug: 'react-native-development', title: 'React Native Development', imageUrl: 'https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=400', rating: 4.8, reviewCount: 41, price: 36 },
+                { id: 4, slug: 'flutter-development', title: 'Flutter App Development', imageUrl: 'https://images.unsplash.com/photo-1551650975-87deedd944c3?w=400', rating: 4.7, reviewCount: 28, price: 33 },
             ],
             portfolio: [
                 { id: 1, title: 'Fitness Tracker Pro', thumbnailUrl: 'https://images.unsplash.com/photo-1526256262350-7da7584cf5eb?w=800', category: 'Health & Fitness' },
@@ -287,10 +287,10 @@ We've worked with Fortune 500 companies and innovative startups alike, deliverin
             satisfactionRate: '97%',
             categories: ['AI & ML', 'Data Science', 'Automation'],
             services: [
-                { id: 1, slug: 'machine-learning-models', title: 'Custom ML Model Development', imageUrl: 'https://images.unsplash.com/photo-1677442136019-21780ecad995?w=400', rating: 5.0, reviewCount: 54, price: 5999 },
-                { id: 2, slug: 'computer-vision', title: 'Computer Vision Solutions', imageUrl: 'https://images.unsplash.com/photo-1555255707-c07966088b7b?w=400', rating: 4.9, reviewCount: 38, price: 7999 },
-                { id: 3, slug: 'nlp-solutions', title: 'NLP & Chatbot Development', imageUrl: 'https://images.unsplash.com/photo-1676299081847-824916de030a?w=400', rating: 4.8, reviewCount: 42, price: 4999 },
-                { id: 4, slug: 'predictive-analytics', title: 'Predictive Analytics', imageUrl: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=400', rating: 4.9, reviewCount: 22, price: 3999 },
+                { id: 1, slug: 'machine-learning-models', title: 'Custom ML Model Development', imageUrl: 'https://images.unsplash.com/photo-1677442136019-21780ecad995?w=400', rating: 5.0, reviewCount: 54, price: 72 },
+                { id: 2, slug: 'computer-vision', title: 'Computer Vision Solutions', imageUrl: 'https://images.unsplash.com/photo-1555255707-c07966088b7b?w=400', rating: 4.9, reviewCount: 38, price: 96 },
+                { id: 3, slug: 'nlp-solutions', title: 'NLP & Chatbot Development', imageUrl: 'https://images.unsplash.com/photo-1676299081847-824916de030a?w=400', rating: 4.8, reviewCount: 42, price: 60 },
+                { id: 4, slug: 'predictive-analytics', title: 'Predictive Analytics', imageUrl: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=400', rating: 4.9, reviewCount: 22, price: 48 },
             ],
             portfolio: [
                 { id: 1, title: 'Fraud Detection System', thumbnailUrl: 'https://images.unsplash.com/photo-1563986768609-322da13575f3?w=800', category: 'Finance' },
@@ -334,10 +334,10 @@ We've won multiple design awards including Awwwards, CSS Design Awards, and Webb
             satisfactionRate: '100%',
             categories: ['UI/UX Design', 'Branding', 'Web Design'],
             services: [
-                { id: 1, slug: 'ui-ux-design', title: 'UI/UX Design', imageUrl: 'https://images.unsplash.com/photo-1561070791-2526d30994b5?w=400', rating: 5.0, reviewCount: 128, price: 2499 },
-                { id: 2, slug: 'brand-identity', title: 'Brand Identity Design', imageUrl: 'https://images.unsplash.com/photo-1634942537034-2531766767d1?w=400', rating: 5.0, reviewCount: 95, price: 3999 },
-                { id: 3, slug: 'web-design', title: 'Website Design', imageUrl: 'https://images.unsplash.com/photo-1467232004584-a241de8bcf5d?w=400', rating: 4.9, reviewCount: 67, price: 1999 },
-                { id: 4, slug: 'motion-design', title: 'Motion & Animation Design', imageUrl: 'https://images.unsplash.com/photo-1626785774573-4b799315345d?w=400', rating: 4.9, reviewCount: 22, price: 1499 },
+                { id: 1, slug: 'ui-ux-design', title: 'UI/UX Design', imageUrl: 'https://images.unsplash.com/photo-1561070791-2526d30994b5?w=400', rating: 5.0, reviewCount: 128, price: 30 },
+                { id: 2, slug: 'brand-identity', title: 'Brand Identity Design', imageUrl: 'https://images.unsplash.com/photo-1634942537034-2531766767d1?w=400', rating: 5.0, reviewCount: 95, price: 48 },
+                { id: 3, slug: 'web-design', title: 'Website Design', imageUrl: 'https://images.unsplash.com/photo-1467232004584-a241de8bcf5d?w=400', rating: 4.9, reviewCount: 67, price: 24 },
+                { id: 4, slug: 'motion-design', title: 'Motion & Animation Design', imageUrl: 'https://images.unsplash.com/photo-1626785774573-4b799315345d?w=400', rating: 4.9, reviewCount: 22, price: 18 },
             ],
             portfolio: [
                 { id: 1, title: 'Luxury Fashion Brand', thumbnailUrl: 'https://images.unsplash.com/photo-1558655146-d09347e92766?w=800', category: 'Branding' },
@@ -383,10 +383,10 @@ We've helped clients reduce infrastructure costs by an average of 40% while impr
             satisfactionRate: '96%',
             categories: ['Cloud', 'DevOps', 'AWS'],
             services: [
-                { id: 1, slug: 'aws-infrastructure', title: 'AWS Infrastructure Setup', imageUrl: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=400', rating: 4.8, reviewCount: 42, price: 2999 },
-                { id: 2, slug: 'kubernetes-deployment', title: 'Kubernetes Deployment', imageUrl: 'https://images.unsplash.com/photo-1667372393119-3d4c48d07fc9?w=400', rating: 4.7, reviewCount: 28, price: 3499 },
-                { id: 3, slug: 'cicd-pipeline', title: 'CI/CD Pipeline Setup', imageUrl: 'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=400', rating: 4.9, reviewCount: 19, price: 1999 },
-                { id: 4, slug: 'cloud-migration', title: 'Cloud Migration Services', imageUrl: 'https://images.unsplash.com/photo-1544197150-b99a580bb7a8?w=400', rating: 4.6, reviewCount: 9, price: 4999 },
+                { id: 1, slug: 'aws-infrastructure', title: 'AWS Infrastructure Setup', imageUrl: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=400', rating: 4.8, reviewCount: 42, price: 35 },
+                { id: 2, slug: 'kubernetes-deployment', title: 'Kubernetes Deployment', imageUrl: 'https://images.unsplash.com/photo-1667372393119-3d4c48d07fc9?w=400', rating: 4.7, reviewCount: 28, price: 42 },
+                { id: 3, slug: 'cicd-pipeline', title: 'CI/CD Pipeline Setup', imageUrl: 'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=400', rating: 4.9, reviewCount: 19, price: 24 },
+                { id: 4, slug: 'cloud-migration', title: 'Cloud Migration Services', imageUrl: 'https://images.unsplash.com/photo-1544197150-b99a580bb7a8?w=400', rating: 4.6, reviewCount: 9, price: 60 },
             ],
             portfolio: [
                 { id: 1, title: 'Enterprise Cloud Migration', thumbnailUrl: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=800', category: 'Cloud' },
@@ -429,10 +429,10 @@ We've helped organizations across finance, healthcare, and technology sectors ac
             satisfactionRate: '99%',
             categories: ['Cybersecurity', 'Penetration Testing', 'Compliance'],
             services: [
-                { id: 1, slug: 'penetration-testing', title: 'Penetration Testing', imageUrl: 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=400', rating: 4.9, reviewCount: 67, price: 4999 },
-                { id: 2, slug: 'security-audit', title: 'Security Audit & Assessment', imageUrl: 'https://images.unsplash.com/photo-1563986768494-4dee2763ff3f?w=400', rating: 4.8, reviewCount: 45, price: 3499 },
-                { id: 3, slug: 'compliance-consulting', title: 'Compliance Consulting', imageUrl: 'https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=400', rating: 4.7, reviewCount: 23, price: 2999 },
-                { id: 4, slug: 'incident-response', title: '24/7 Incident Response', imageUrl: 'https://images.unsplash.com/photo-1504639725590-34d0984388bd?w=400', rating: 5.0, reviewCount: 10, price: 9999 },
+                { id: 1, slug: 'penetration-testing', title: 'Penetration Testing', imageUrl: 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=400', rating: 4.9, reviewCount: 67, price: 60 },
+                { id: 2, slug: 'security-audit', title: 'Security Audit & Assessment', imageUrl: 'https://images.unsplash.com/photo-1563986768494-4dee2763ff3f?w=400', rating: 4.8, reviewCount: 45, price: 42 },
+                { id: 3, slug: 'compliance-consulting', title: 'Compliance Consulting', imageUrl: 'https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=400', rating: 4.7, reviewCount: 23, price: 35 },
+                { id: 4, slug: 'incident-response', title: '24/7 Incident Response', imageUrl: 'https://images.unsplash.com/photo-1504639725590-34d0984388bd?w=400', rating: 5.0, reviewCount: 10, price: 120 },
             ],
             portfolio: [
                 { id: 1, title: 'Banking Security Audit', thumbnailUrl: 'https://images.unsplash.com/photo-1563986768609-322da13575f3?w=800', category: 'Finance' },

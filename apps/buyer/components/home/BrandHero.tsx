@@ -1,5 +1,7 @@
 'use client';
 
+
+
 import { motion } from 'framer-motion';
 import { Search, ArrowRight, Zap, Globe, Sparkles, Building2, TrendingUp } from 'lucide-react';
 import Link from 'next/link';
@@ -70,6 +72,7 @@ export function BrandHero() {
                 {/* Main Hero Container */}
                 <div className="relative w-full min-h-[550px] lg:min-h-[650px] rounded-[48px] overflow-hidden group shadow-2xl bg-gray-900 border border-white/5">
 
+                    {/* Animated Background Layers */}
                     {/* Animated Background Layers */}
                     <div className="absolute inset-0 z-0">
                         {/* Premium Video Background - Professional Look */}

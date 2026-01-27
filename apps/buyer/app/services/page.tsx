@@ -19,7 +19,7 @@ const mockServices = [
         title: 'Full-Stack E-commerce Platform Development',
         slug: 'full-stack-ecommerce-platform',
         shortDescription: 'Custom e-commerce solutions with payment integration, admin panel, and mobile-responsive design.',
-        price: 2499,
+        price: 30,
         currency: 'USD',
         deliveryDays: 14,
         rating: 4.9,
@@ -33,7 +33,7 @@ const mockServices = [
         title: 'Cross-Platform Mobile App with React Native',
         slug: 'cross-platform-mobile-app-react-native',
         shortDescription: 'Build iOS and Android apps from a single codebase with native performance.',
-        price: 3499,
+        price: 42,
         currency: 'USD',
         deliveryDays: 21,
         rating: 4.8,
@@ -47,7 +47,7 @@ const mockServices = [
         title: 'AI-Powered Chatbot Development',
         slug: 'ai-powered-chatbot-development',
         shortDescription: 'Custom AI chatbots with NLP, integrations, and 24/7 customer support capabilities.',
-        price: 1999,
+        price: 24,
         currency: 'USD',
         deliveryDays: 10,
         rating: 4.7,
@@ -61,7 +61,7 @@ const mockServices = [
         title: 'Premium UI/UX Design Package',
         slug: 'premium-ui-ux-design-package',
         shortDescription: 'Complete design system with wireframes, prototypes, and developer handoff.',
-        price: 1499,
+        price: 18,
         currency: 'USD',
         deliveryDays: 7,
         rating: 5.0,
@@ -75,7 +75,7 @@ const mockServices = [
         title: 'AWS Cloud Infrastructure Setup',
         slug: 'aws-cloud-infrastructure-setup',
         shortDescription: 'Complete AWS setup with CI/CD, monitoring, auto-scaling, and security best practices.',
-        price: 2199,
+        price: 26,
         currency: 'USD',
         deliveryDays: 5,
         rating: 4.8,
@@ -89,7 +89,7 @@ const mockServices = [
         title: 'Security Audit & Penetration Testing',
         slug: 'security-audit-penetration-testing',
         shortDescription: 'Comprehensive security assessment with detailed vulnerability report and remediation guide.',
-        price: 4999,
+        price: 60,
         currency: 'USD',
         deliveryDays: 14,
         rating: 4.9,
@@ -103,7 +103,7 @@ const mockServices = [
         title: 'Enterprise ERP System Development',
         slug: 'enterprise-erp-system',
         shortDescription: 'Scalable ERP solutions for resource planning, inventory, and HR management.',
-        price: 8500,
+        price: 102,
         currency: 'USD',
         deliveryDays: 45,
         rating: 4.9,
@@ -117,7 +117,7 @@ const mockServices = [
         title: 'Cybersecurity Threat Detection',
         slug: 'cybersecurity-threat-detection',
         shortDescription: 'Real-time monitoring and threat intelligence set up for your enterprise network.',
-        price: 3800,
+        price: 45,
         currency: 'USD',
         deliveryDays: 10,
         rating: 4.8,
@@ -131,7 +131,7 @@ const mockServices = [
         title: 'Data Warehouse & Analytics',
         slug: 'data-warehouse-analytics',
         shortDescription: 'Modern data stack with Snowflake/BigQuery and BI dashboards.',
-        price: 5500,
+        price: 66,
         currency: 'USD',
         deliveryDays: 30,
         rating: 4.7,
@@ -145,7 +145,7 @@ const mockServices = [
         title: 'Quality Assurance & Automated Testing',
         slug: 'qa-automated-testing',
         shortDescription: 'Comprehensive test automation using Playwright, Selenium, and Jest.',
-        price: 1200,
+        price: 15,
         currency: 'USD',
         deliveryDays: 10,
         rating: 4.9,
@@ -159,7 +159,7 @@ const mockServices = [
         title: 'Social Media App Development',
         slug: 'social-media-app',
         shortDescription: 'Next-gen social platform with real-time chat, feeds, and multimedia support.',
-        price: 4500,
+        price: 54,
         currency: 'USD',
         deliveryDays: 40,
         rating: 4.8,
@@ -173,7 +173,7 @@ const mockServices = [
         title: 'Custom Font & Logo Design',
         slug: 'custom-font-logo-design',
         shortDescription: 'Exclusive typography and branding for unique corporate identity.',
-        price: 899,
+        price: 15,
         currency: 'USD',
         deliveryDays: 5,
         rating: 5.0,
@@ -213,6 +213,7 @@ export default function ServicesPage() {
 
 function ServicesContent() {
     const formatPrice = useCurrencyStore((state) => state.formatPrice);
+    const currentCurrency = useCurrencyStore((state) => state.currentCurrency);
     const [services, setServices] = useState<any[]>(mockServices);
     const [isLoading, setIsLoading] = useState(true);
     const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
@@ -277,14 +278,22 @@ function ServicesContent() {
         loadServices();
     }, []);
 
-    // Filter services based on search and category
+    // Filter services based on search, category, and price range
     const filteredServices = services.filter(service => {
         const matchesSearch = !searchQuery ||
             service.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
             service.shortDescription?.toLowerCase().includes(searchQuery.toLowerCase());
+
         const matchesCategory = selectedCategory === 'All Categories' ||
             service.category === selectedCategory;
-        return matchesSearch && matchesCategory;
+
+        // Price filtering
+        // Assuming service.price is in USD, we convert it to current currency for comparison with filters
+        // Or if the filter inputs are assumed to be in the current currency
+        const priceInCurrency = service.price * currentCurrency.rate;
+        const matchesPrice = priceInCurrency >= priceRange.min && priceInCurrency <= priceRange.max;
+
+        return matchesSearch && matchesCategory && matchesPrice;
     });
 
     return (

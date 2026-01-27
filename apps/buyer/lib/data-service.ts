@@ -8,6 +8,8 @@ export async function fetchFeaturedServices() {
         .from('services')
         .select('*')
         .eq('status', 'APPROVED')
+        .eq('is_featured', true)
+        .neq('service_type', 'ACADEMIC')
         .limit(4);
 
     if (sError) throw sError;
@@ -38,6 +40,7 @@ export async function fetchTrendingServices() {
         .from('services')
         .select('*')
         .eq('status', 'APPROVED')
+        .neq('service_type', 'ACADEMIC')
         .order('rating', { ascending: false })
         .limit(8);
 

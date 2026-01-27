@@ -132,6 +132,7 @@ export default function AdminHomepagePage() {
         { value: 'TOP_AGENCIES', label: 'Top-Rated Agencies' },
         { value: 'TRENDING_SERVICES', label: 'Trending Services' },
         { value: 'ACADEMIC_SPOTLIGHT', label: 'Academic Spotlight' },
+        { value: 'MARKETPLACE_SPOTLIGHT', label: 'Marketplace Spotlight' },
         { value: 'CTA', label: 'Call to Action Banner' },
         { value: 'TESTIMONIALS', label: 'Customer Testimonials' },
         { value: 'HTML', label: 'Custom HTML/Text' }
