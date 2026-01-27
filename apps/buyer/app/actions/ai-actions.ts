@@ -6,8 +6,7 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 const getApiKey = () => {
     return process.env.GEMINI_API_KEY ||
         process.env.NEXT_PUBLIC_GEMINI_API_KEY ||
-        process.env.gemini_api_key ||
-        "AIzaSyCcL68vprAX67C6gVTuLiyIRaQXoUPxGV8";
+        process.env.gemini_api_key;
 };
 
 /**
@@ -16,6 +15,8 @@ const getApiKey = () => {
  */
 async function generateWithFallback(prompt: string) {
     const apiKey = getApiKey();
+    if (!apiKey) throw new Error("API Key Missing (System Config)");
+
     const genAI = new GoogleGenerativeAI(apiKey);
 
     // Ordered list of models to try
