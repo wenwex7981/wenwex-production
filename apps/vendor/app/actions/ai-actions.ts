@@ -2,42 +2,48 @@
 
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
-const apiKey = process.env.GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY || "AIzaSyCcL68vprAX67C6gVTuLiyIRaQXoUPxGV8";
+const getApiKey = () => {
+    return process.env.GEMINI_API_KEY ||
+        process.env.NEXT_PUBLIC_GEMINI_API_KEY ||
+        process.env.gemini_api_key ||
+        "AIzaSyCcL68vprAX67C6gVTuLiyIRaQXoUPxGV8";
+};
+
+async function generateWithFallback(prompt: string) {
+    const apiKey = getApiKey();
+    const genAI = new GoogleGenerativeAI(apiKey);
+    const modelsToTry = ["gemini-1.5-flash", "gemini-1.5-pro", "gemini-pro"];
+    let lastError = null;
+
+    for (const modelName of modelsToTry) {
+        try {
+            const model = genAI.getGenerativeModel({ model: modelName });
+            const result = await model.generateContent(prompt);
+            const text = result.response.text();
+            if (text) return { success: true, text };
+        } catch (error: any) {
+            console.error(`Vendor AI Attempt ${modelName} failed:`, error.message);
+            lastError = error;
+        }
+    }
+    throw lastError || new Error("AI services currently unavailable.");
+}
 
 export async function generateServiceDescriptionAction(title: string, category: string, features: string[]) {
-    if (!apiKey) {
-        // Fallback for demo if no key is present, though user should set it.
-        // Or return error.
-        return { success: false, error: "System Error: One-Click AI is not configured (Missing API Key)." };
-    }
-
     try {
-        const genAI = new GoogleGenerativeAI(apiKey);
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro-latest" });
-
         const prompt = `
             Act as a professional copywriter for WENWEX, a premium B2B service marketplace.
             Write a high-converting service description based on:
-            
             Title: "${title}"
             Category: "${category}"
             Key Features: ${features.filter(f => f).join(", ")}
-
-            Requirements:
-            - Tone: Professional, authoritative, and persuasive.
-            - Structure: 
-               1. Engagement hook (1-2 sentences)
-               2. Main value proposition (paragraph)
-               3. Why choose this service? (short list)
-            - Format: Plain text only (no markdown symbols like # or *), suitable for a textarea.
-            - Length: Approx 150 words.
+            Requirements: Professional tone, plain text only, approx 150 words.
         `;
 
-        const result = await model.generateContent(prompt);
-        const text = result.response.text();
-        return { success: true, data: text };
+        const result = await generateWithFallback(prompt);
+        return { success: true, data: result.text };
     } catch (error: any) {
-        console.error("AI Error:", error);
-        return { success: false, error: "AI generation failed. Please try again later." };
+        console.error("AI Generation failed:", error);
+        return { success: false, error: `Support required: ${error.message}` };
     }
 }
