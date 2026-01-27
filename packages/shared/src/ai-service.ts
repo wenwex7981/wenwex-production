@@ -1,7 +1,7 @@
 
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
-const getApiKey = () => process.env.GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY;
+const getApiKey = () => process.env.GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY || "AIzaSyCcL68vprAX67C6gVTuLiyIRaQXoUPxGV8";
 
 // Initialize only when needed to avoid build errors if key is missing
 const getModel = () => {
