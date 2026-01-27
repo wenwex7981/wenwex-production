@@ -30,7 +30,7 @@ const generateToken = (user: { id: string; email: string; role: UserRole; vendor
             vendorId: user.vendorId,
         },
         secret,
-        { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
+        { expiresIn: (process.env.JWT_EXPIRES_IN || '7d') as any }
     );
 };
 
