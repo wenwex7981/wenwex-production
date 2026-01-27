@@ -11,7 +11,7 @@ export async function chatWithWenwexAI(query: string) {
 
     try {
         const genAI = new GoogleGenerativeAI(apiKey);
-        const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+        const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro-latest" });
 
         const prompt = `
             You are WENWEX AI, the intelligent assistant for the WENWEX marketplace.
