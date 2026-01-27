@@ -11,6 +11,7 @@ import {
 import Link from 'next/link';
 import { fetchCategories, createService, getCurrentVendor, uploadMedia } from '@/lib/vendor-service';
 import { DynamicFieldsForm } from '@/lib/dynamic-fields';
+import { generateServiceDescriptionAction } from '@/app/actions/ai-actions';
 import { toast } from 'react-hot-toast';
 
 export default function NewServicePage() {
@@ -18,6 +19,7 @@ export default function NewServicePage() {
     const [categories, setCategories] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
+    const [isGeneratingAI, setIsGeneratingAI] = useState(false);
     const [vendor, setVendor] = useState<any>(null);
 
     const [formData, setFormData] = useState({
@@ -102,6 +104,28 @@ export default function NewServicePage() {
             ...formData,
             tech_stack: formData.tech_stack.filter((_, i) => i !== index)
         });
+    };
+
+    const handleAIGenerate = async () => {
+        if (!formData.title || !formData.category_id) {
+            toast.error("Please enter a Title and select a Category first.");
+            return;
+        }
+        setIsGeneratingAI(true);
+        try {
+            const cat = categories.find(c => c.id === formData.category_id)?.name || "Service";
+            const res = await generateServiceDescriptionAction(formData.title, cat, formData.features);
+            if (res.success && typeof res.data === 'string') {
+                setFormData(prev => ({ ...prev, description: res.data }));
+                toast.success("Description generated with AI!");
+            } else {
+                toast.error(res.error || "Generation failed");
+            }
+        } catch (e) {
+            toast.error("AI Service Error");
+        } finally {
+            setIsGeneratingAI(false);
+        }
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -190,7 +214,18 @@ export default function NewServicePage() {
                             </div>
 
                             <div className="space-y-1.5">
-                                <label className="text-sm font-bold text-gray-700 ml-1">Description</label>
+                                <div className="flex items-center justify-between">
+                                    <label className="text-sm font-bold text-gray-700 ml-1">Description</label>
+                                    <button
+                                        type="button"
+                                        onClick={handleAIGenerate}
+                                        disabled={isGeneratingAI}
+                                        className="flex items-center gap-1.5 text-xs font-black text-purple-600 bg-purple-50 hover:bg-purple-100 px-3 py-1.5 rounded-lg transition-colors"
+                                    >
+                                        {isGeneratingAI ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
+                                        {isGeneratingAI ? 'Writing...' : 'Auto-Write with AI'}
+                                    </button>
+                                </div>
                                 <textarea
                                     placeholder="Describe what you offer in detail..."
                                     className="w-full p-4 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-primary-500 outline-none transition-all min-h-[160px] font-medium resize-none"

@@ -8,6 +8,7 @@ import { Toaster } from 'react-hot-toast';
 import { AuthProvider } from '@/components/providers/AuthProvider';
 import { NotificationProvider } from '@/components/providers/NotificationProvider';
 import { GoogleAnalytics } from '@/components/analytics/GoogleAnalytics';
+import { WenwexBot } from '@/components/ai/WenwexBot';
 
 const inter = Inter({
     subsets: ['latin'],
@@ -134,6 +135,7 @@ export default function RootLayout({
 
                         {/* Footer */}
                         <Footer />
+                        <WenwexBot />
                     </NotificationProvider>
                 </AuthProvider>
             </body>

@@ -10,6 +10,7 @@ import {
     MoreVertical, Loader2, DollarSign, Edit
 } from 'lucide-react';
 import { fetchServices, updateServiceStatus, fetchCategories, createService, updateService } from '@/lib/admin-service';
+import { moderateContentAction } from '@/app/actions/ai-actions';
 import { toast } from 'react-hot-toast';
 
 export default function AdminServicesPage() {
@@ -21,6 +22,8 @@ export default function AdminServicesPage() {
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [editingService, setEditingService] = useState<any>(null);
+    const [isScanning, setIsScanning] = useState(false);
+    const [moderationResult, setModerationResult] = useState<any>(null);
     const [newService, setNewService] = useState({
         title: '',
         description: '',
@@ -61,6 +64,24 @@ export default function AdminServicesPage() {
         }
     };
 
+    const handleScanContent = async () => {
+        if (!editingService?.description) return;
+        setIsScanning(true);
+        setModerationResult(null);
+        try {
+            const text = `${editingService.title}\n${editingService.description}`;
+            const res = await moderateContentAction(text);
+            if (res.success) {
+                setModerationResult(res.data);
+                if (res.data.flagged) toast.error("Potential violations found!");
+                else toast.success("Content appears safe.");
+            } else {
+                toast.error("AI Scan Failed");
+            }
+        } catch (e) { toast.error("Error scanning"); }
+        finally { setIsScanning(false); }
+    };
+
     const handleCreateService = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
@@ -79,6 +100,8 @@ export default function AdminServicesPage() {
             toast.error('Failed to create service: ' + error.message);
         }
     };
+    // ... (skip lines) ...
+
 
     const handleEditService = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -364,12 +387,33 @@ export default function AdminServicesPage() {
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-400 mb-1">Description</label>
+                                <div className="flex items-center justify-between mb-1">
+                                    <label className="block text-sm font-medium text-gray-400">Description</label>
+                                    <button
+                                        type="button"
+                                        onClick={handleScanContent}
+                                        disabled={isScanning}
+                                        className="text-xs bg-gray-700 hover:bg-gray-600 text-purple-300 px-2 py-1 rounded transition-colors flex items-center gap-1"
+                                    >
+                                        {isScanning ? <Loader2 className="w-3 h-3 animate-spin" /> : <Eye className="w-3 h-3" />}
+                                        AI Security Scan
+                                    </button>
+                                </div>
                                 <textarea
                                     className="input w-full h-24 resize-none"
                                     value={editingService.description || ''}
                                     onChange={e => setEditingService({ ...editingService, description: e.target.value })}
                                 />
+                                {moderationResult && (
+                                    <div className={`mt-2 p-3 rounded-lg text-xs border ${moderationResult.flagged ? 'bg-red-500/10 border-red-500/30 text-red-200' : 'bg-green-500/10 border-green-500/30 text-green-200'}`}>
+                                        <p className="font-bold flex items-center gap-2">
+                                            {moderationResult.flagged ? <XCircle className="w-4 h-4" /> : <CheckCircle className="w-4 h-4" />}
+                                            {moderationResult.flagged ? 'Flagged for Violations' : 'Content Safe'}
+                                            <span className="opacity-75">(Safety Score: {moderationResult.score}/100)</span>
+                                        </p>
+                                        {moderationResult.reason && <p className="mt-1 opacity-90">{moderationResult.reason}</p>}
+                                    </div>
+                                )}
                             </div>
                             <div className="grid grid-cols-2 gap-4">
                                 <div>

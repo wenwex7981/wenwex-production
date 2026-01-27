@@ -18,4 +18,9 @@ export * from './utils';
 export * from './supabase';
 
 // Access Control
+// Access Control
 export * from './access-control';
+
+// AI Services
+export * from './ai-service';
+
