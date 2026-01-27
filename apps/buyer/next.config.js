@@ -28,6 +28,8 @@ const nextConfig = {
     env: {
         NEXT_PUBLIC_APP_NAME: 'WENWEX',
         NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
+        GEMINI_API_KEY: process.env.GEMINI_API_KEY,
+        NEXT_PUBLIC_GEMINI_API_KEY: process.env.NEXT_PUBLIC_GEMINI_API_KEY,
     },
 };
 
