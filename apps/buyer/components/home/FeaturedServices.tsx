@@ -298,7 +298,7 @@ export function FeaturedServices({ content }: { content?: any }) {
                                 whileInView={{ opacity: 1, y: 0 }}
                                 viewport={{ once: true }}
                                 transition={{ delay: idx * 0.1 }}
-                                className="group flex flex-col bg-white rounded-[40px] border border-gray-100 overflow-hidden transition-all duration-500 hover:border-primary-200 hover:shadow-[0_32px_80px_-20px_rgba(0,0,0,0.1)] w-[320px] md:w-[420px] h-[680px] flex-shrink-0 snap-start"
+                                className="group flex flex-col bg-white rounded-[40px] border border-gray-100 overflow-hidden transition-all duration-500 hover:border-primary-200 hover:shadow-[0_32px_80px_-20px_rgba(0,0,0,0.1)] w-[300px] md:w-[340px] h-[680px] flex-shrink-0 snap-start"
                             >
                                 {/* Fixed Visual Header */}
                                 <div className="relative h-60 w-full flex-shrink-0">

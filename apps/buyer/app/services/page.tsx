@@ -310,74 +310,6 @@ function ServicesContent() {
 
             <div className="container-custom py-8">
                 <div className="flex flex-col lg:flex-row gap-8">
-                    {/* Sidebar Filters - Desktop */}
-                    <aside className="hidden lg:block w-64 flex-shrink-0">
-                        <div className="card sticky top-24">
-                            <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                                <Filter className="w-5 h-5" />
-                                Filters
-                            </h3>
-
-                            {/* Category Filter */}
-                            <div className="mb-6">
-                                <h4 className="text-sm font-medium text-gray-700 mb-3">Category</h4>
-                                <div className="space-y-2">
-                                    {categories.map((cat) => (
-                                        <label key={cat} className="flex items-center gap-2 cursor-pointer">
-                                            <input
-                                                type="radio"
-                                                name="category"
-                                                checked={selectedCategory === cat}
-                                                onChange={() => setSelectedCategory(cat)}
-                                                className="w-4 h-4 text-primary-500 focus:ring-primary-500"
-                                            />
-                                            <span className="text-sm text-gray-600">{cat}</span>
-                                        </label>
-                                    ))}
-                                </div>
-                            </div>
-
-                            {/* Price Range */}
-                            <div className="mb-6">
-                                <h4 className="text-sm font-medium text-gray-700 mb-3">Price Range</h4>
-                                <div className="flex gap-2">
-                                    <input
-                                        type="number"
-                                        placeholder="Min"
-                                        value={priceRange.min || ''}
-                                        onChange={(e) => setPriceRange(p => ({ ...p, min: Number(e.target.value) }))}
-                                        className="input text-sm py-2"
-                                    />
-                                    <input
-                                        type="number"
-                                        placeholder="Max"
-                                        value={priceRange.max || ''}
-                                        onChange={(e) => setPriceRange(p => ({ ...p, max: Number(e.target.value) }))}
-                                        className="input text-sm py-2"
-                                    />
-                                </div>
-                            </div>
-
-                            {/* Rating Filter */}
-                            <div className="mb-6">
-                                <h4 className="text-sm font-medium text-gray-700 mb-3">Minimum Rating</h4>
-                                <div className="space-y-2">
-                                    {[4.5, 4.0, 3.5, 3.0].map((rating) => (
-                                        <label key={rating} className="flex items-center gap-2 cursor-pointer">
-                                            <input type="radio" name="rating" className="w-4 h-4 text-primary-500 focus:ring-primary-500" />
-                                            <div className="flex items-center gap-1">
-                                                <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
-                                                <span className="text-sm text-gray-600">{rating}+</span>
-                                            </div>
-                                        </label>
-                                    ))}
-                                </div>
-                            </div>
-
-                            <button className="btn-primary w-full">Apply Filters</button>
-                        </div>
-                    </aside>
-
                     {/* Main Content */}
                     <div className="flex-1">
                         {/* Toolbar */}
@@ -551,6 +483,74 @@ function ServicesContent() {
                             </button>
                         </div>
                     </div>
+
+                    {/* Sidebar Filters - Desktop (Now on Right) */}
+                    <aside className="hidden lg:block w-64 flex-shrink-0">
+                        <div className="card sticky top-24">
+                            <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                                <Filter className="w-5 h-5" />
+                                Filters
+                            </h3>
+
+                            {/* Category Filter */}
+                            <div className="mb-6">
+                                <h4 className="text-sm font-medium text-gray-700 mb-3">Category</h4>
+                                <div className="space-y-2">
+                                    {categories.map((cat) => (
+                                        <label key={cat} className="flex items-center gap-2 cursor-pointer">
+                                            <input
+                                                type="radio"
+                                                name="category"
+                                                checked={selectedCategory === cat}
+                                                onChange={() => setSelectedCategory(cat)}
+                                                className="w-4 h-4 text-primary-500 focus:ring-primary-500"
+                                            />
+                                            <span className="text-sm text-gray-600">{cat}</span>
+                                        </label>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Price Range */}
+                            <div className="mb-6">
+                                <h4 className="text-sm font-medium text-gray-700 mb-3">Price Range</h4>
+                                <div className="flex gap-2">
+                                    <input
+                                        type="number"
+                                        placeholder="Min"
+                                        value={priceRange.min || ''}
+                                        onChange={(e) => setPriceRange(p => ({ ...p, min: Number(e.target.value) }))}
+                                        className="input text-sm py-2"
+                                    />
+                                    <input
+                                        type="number"
+                                        placeholder="Max"
+                                        value={priceRange.max || ''}
+                                        onChange={(e) => setPriceRange(p => ({ ...p, max: Number(e.target.value) }))}
+                                        className="input text-sm py-2"
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Rating Filter */}
+                            <div className="mb-6">
+                                <h4 className="text-sm font-medium text-gray-700 mb-3">Minimum Rating</h4>
+                                <div className="space-y-2">
+                                    {[4.5, 4.0, 3.5, 3.0].map((rating) => (
+                                        <label key={rating} className="flex items-center gap-2 cursor-pointer">
+                                            <input type="radio" name="rating" className="w-4 h-4 text-primary-500 focus:ring-primary-500" />
+                                            <div className="flex items-center gap-1">
+                                                <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
+                                                <span className="text-sm text-gray-600">{rating}+</span>
+                                            </div>
+                                        </label>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <button className="btn-primary w-full">Apply Filters</button>
+                        </div>
+                    </aside>
                 </div>
             </div>
 

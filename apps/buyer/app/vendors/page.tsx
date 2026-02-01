@@ -233,7 +233,7 @@ export default function VendorsPage() {
                             className={viewMode === 'list' ? 'card flex gap-6 p-4' : 'card-interactive overflow-hidden'}
                         >
                             {viewMode === 'grid' ? (
-                                <>
+                                <Link href={`/vendors/${vendor.slug}`} className="block h-full">
                                     {/* Banner */}
                                     <div className="relative h-24 overflow-hidden">
                                         <Image
@@ -260,11 +260,9 @@ export default function VendorsPage() {
 
                                         {/* Name */}
                                         <div className="flex items-center gap-2 mb-2">
-                                            <Link href={`/vendors/${vendor.slug}`}>
-                                                <h3 className="font-semibold text-gray-900 hover:text-primary-600 transition-colors">
-                                                    {vendor.companyName}
-                                                </h3>
-                                            </Link>
+                                            <h3 className="font-semibold text-gray-900 group-hover:text-primary-600 transition-colors">
+                                                {vendor.companyName}
+                                            </h3>
                                             {vendor.isVerified && <BadgeCheck className="w-5 h-5 text-primary-500" />}
                                         </div>
 
@@ -294,7 +292,7 @@ export default function VendorsPage() {
                                             )}
                                         </div>
                                     </div>
-                                </>
+                                </Link>
                             ) : (
                                 <>
                                     {/* List View */}
