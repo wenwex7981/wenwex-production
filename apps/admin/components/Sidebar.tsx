@@ -13,6 +13,7 @@ const sidebarLinks = [
     { href: '/admin/vendors', label: 'Vendors', icon: Building2 },
     { href: '/admin/services', label: 'Services', icon: Package },
     { href: '/admin/users', label: 'Users', icon: Users },
+    { href: '/admin/team', label: 'Team Management', icon: Users },
     { href: '/admin/categories', label: 'Categories', icon: FolderKanban },
     { href: '/admin/homepage', label: 'Homepage', icon: Globe },
     { href: '/admin/carousels', label: 'Carousels', icon: Image },

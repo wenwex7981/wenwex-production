@@ -1,6 +1,7 @@
 'use client';
 // Deployment Trigger: 2026-01-27 12:51 (GMT+5:30)
 
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Users, Linkedin, Github, Twitter } from 'lucide-react';
 
@@ -55,7 +56,43 @@ const defaultMembers: TeamMember[] = [
 export function TeamSection({ content }: TeamSectionProps) {
     const title = content?.title || "Our Visionary Leadership & Team";
     const subtitle = content?.subtitle || "Meet the experts building the future of global tech commerce at WENWEX.";
-    const members = content?.config?.members || defaultMembers;
+    const [members, setMembers] = useState<TeamMember[]>(content?.config?.members || defaultMembers);
+    const [isLoading, setIsLoading] = useState(true);
+
+    // Fetch team members from database
+    useEffect(() => {
+        async function fetchTeamMembers() {
+            try {
+                const response = await fetch('/api/team-members');
+                if (response.ok) {
+                    const result = await response.json();
+                    if (result.data && result.data.length > 0) {
+                        // Map database fields to component interface
+                        const dbMembers: TeamMember[] = result.data.map((member: any) => ({
+                            name: member.name,
+                            role: member.role,
+                            image: member.image_url,
+                            linkedin: member.linkedin_url,
+                            github: member.github_url
+                        }));
+                        setMembers(dbMembers);
+                    }
+                }
+            } catch (error) {
+                console.error('Error fetching team members:', error);
+                // Keep default members on error
+            } finally {
+                setIsLoading(false);
+            }
+        }
+
+        // Only fetch if not using custom content members
+        if (!content?.config?.members) {
+            fetchTeamMembers();
+        } else {
+            setIsLoading(false);
+        }
+    }, [content?.config?.members]);
 
     // We need at least 10 items to fill the screen for a smooth loop usually, or just double it and use % animate
     const scrollMembers = [...members, ...members, ...members, ...members];
