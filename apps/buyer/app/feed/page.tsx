@@ -110,46 +110,33 @@ export default function FeedPage() {
             <div className="container-custom py-8">
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
-                    {/* Left Sidebar - Profile & Nav */}
+                    {/* Left Sidebar - Premium & Who to Follow (MOVED FROM RIGHT) */}
                     <div className="hidden lg:block lg:col-span-3">
-                        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 sticky top-24">
-                            {isAuthenticated && user ? (
-                                <div className="flex flex-col items-center text-center">
-                                    <div className="w-20 h-20 rounded-full bg-gray-200 mb-4 overflow-hidden">
-                                        {user.avatarUrl ? (
-                                            <img src={user.avatarUrl} alt={user.fullName} className="w-full h-full object-cover" />
-                                        ) : (
-                                            <div className="w-full h-full bg-gradient-to-tr from-primary-400 to-indigo-500 flex items-center justify-center text-white font-black text-2xl">
-                                                {user.fullName?.[0]}
+                        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-5 sticky top-24">
+                            <h4 className="text-xs font-black text-gray-900 uppercase tracking-widest mb-5">Who to follow</h4>
+                            <div className="space-y-4">
+                                {[1, 2, 3].map(i => (
+                                    <div key={i} className="flex items-center justify-between">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-9 h-9 rounded-full bg-gray-100" />
+                                            <div className="flex flex-col">
+                                                <span className="text-xs font-bold text-gray-900">Tech Daily</span>
+                                                <span className="text-[10px] text-gray-500">@tech_daily</span>
                                             </div>
-                                        )}
+                                        </div>
+                                        <button className="text-primary-600 text-xs font-black uppercase hover:underline">Follow</button>
                                     </div>
-                                    <h3 className="text-lg font-black text-gray-900">{user.fullName}</h3>
-                                    <p className="text-sm text-gray-500 font-medium mb-4">{user.email}</p>
-                                    <Link href="/account" className="w-full py-2.5 rounded-xl bg-gray-50 text-gray-700 font-bold text-sm hover:bg-gray-100 transition-colors">
-                                        View Profile
-                                    </Link>
-                                </div>
-                            ) : (
-                                <div className="text-center">
-                                    <p className="font-bold text-gray-900 mb-4">Join the community</p>
-                                    <Link href="/auth/login" className="block w-full py-2.5 rounded-xl bg-primary-600 text-white font-bold text-sm hover:bg-primary-700 transition-colors">
-                                        Sign In
-                                    </Link>
-                                </div>
-                            )}
-                        </div>
-
-                        {/* Topics */}
-                        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-4 mt-6 sticky top-[420px]">
-                            <h4 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-4">Trending Topics</h4>
-                            <div className="flex flex-wrap gap-2">
-                                {['#GenerativeAI', '#ReactJS', '#FreelanceLife', '#TechNews', '#Startup'].map(tag => (
-                                    <span key={tag} className="px-3 py-1.5 rounded-lg bg-gray-50 text-xs font-bold text-gray-600 hover:text-primary-600 hover:bg-primary-50 cursor-pointer transition-colors">
-                                        {tag}
-                                    </span>
                                 ))}
                             </div>
+                            <div className="mt-6 pt-4 border-t border-gray-100">
+                                <Link href="/vendors" className="text-xs text-gray-400 font-bold hover:text-primary-600 transition-colors">Find more experts →</Link>
+                            </div>
+                        </div>
+
+                        <div className="mt-6 p-4 rounded-xl bg-gradient-to-br from-primary-900 to-indigo-900 text-white shadow-xl shadow-primary-900/20 sticky top-[300px]">
+                            <h4 className="font-black text-lg mb-2">Go Premium</h4>
+                            <p className="text-xs text-primary-200 mb-4 leading-relaxed">Unlock exclusive tools and verified badges for your profile.</p>
+                            <button className="w-full py-2 bg-white text-primary-900 rounded-lg text-xs font-black uppercase tracking-widest hover:bg-primary-50 transition-colors">Upgrade Now</button>
                         </div>
                     </div>
 
@@ -250,33 +237,46 @@ export default function FeedPage() {
 
                     </div>
 
-                    {/* Right Sidebar - Suggestions */}
+                    {/* Right Sidebar - Profile & Nav (MOVED FROM LEFT) */}
                     <div className="hidden lg:block lg:col-span-3">
-                        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-5 sticky top-24">
-                            <h4 className="text-xs font-black text-gray-900 uppercase tracking-widest mb-5">Who to follow</h4>
-                            <div className="space-y-4">
-                                {[1, 2, 3].map(i => (
-                                    <div key={i} className="flex items-center justify-between">
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-9 h-9 rounded-full bg-gray-100" />
-                                            <div className="flex flex-col">
-                                                <span className="text-xs font-bold text-gray-900">Tech Daily</span>
-                                                <span className="text-[10px] text-gray-500">@tech_daily</span>
+                        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 sticky top-24">
+                            {isAuthenticated && user ? (
+                                <div className="flex flex-col items-center text-center">
+                                    <div className="w-20 h-20 rounded-full bg-gray-200 mb-4 overflow-hidden">
+                                        {user.avatarUrl ? (
+                                            <img src={user.avatarUrl} alt={user.fullName} className="w-full h-full object-cover" />
+                                        ) : (
+                                            <div className="w-full h-full bg-gradient-to-tr from-primary-400 to-indigo-500 flex items-center justify-center text-white font-black text-2xl">
+                                                {user.fullName?.[0]}
                                             </div>
-                                        </div>
-                                        <button className="text-primary-600 text-xs font-black uppercase hover:underline">Follow</button>
+                                        )}
                                     </div>
-                                ))}
-                            </div>
-                            <div className="mt-6 pt-4 border-t border-gray-100">
-                                <Link href="/vendors" className="text-xs text-gray-400 font-bold hover:text-primary-600 transition-colors">Find more experts →</Link>
-                            </div>
+                                    <h3 className="text-lg font-black text-gray-900">{user.fullName}</h3>
+                                    <p className="text-sm text-gray-500 font-medium mb-4">{user.email}</p>
+                                    <Link href="/account" className="w-full py-2.5 rounded-xl bg-gray-50 text-gray-700 font-bold text-sm hover:bg-gray-100 transition-colors">
+                                        View Profile
+                                    </Link>
+                                </div>
+                            ) : (
+                                <div className="text-center">
+                                    <p className="font-bold text-gray-900 mb-4">Join the community</p>
+                                    <Link href="/auth/login" className="block w-full py-2.5 rounded-xl bg-primary-600 text-white font-bold text-sm hover:bg-primary-700 transition-colors">
+                                        Sign In
+                                    </Link>
+                                </div>
+                            )}
                         </div>
 
-                        <div className="mt-6 p-4 rounded-xl bg-gradient-to-br from-primary-900 to-indigo-900 text-white shadow-xl shadow-primary-900/20 sticky top-[300px]">
-                            <h4 className="font-black text-lg mb-2">Go Premium</h4>
-                            <p className="text-xs text-primary-200 mb-4 leading-relaxed">Unlock exclusive tools and verified badges for your profile.</p>
-                            <button className="w-full py-2 bg-white text-primary-900 rounded-lg text-xs font-black uppercase tracking-widest hover:bg-primary-50 transition-colors">Upgrade Now</button>
+                        {/* Topics */}
+                        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-4 mt-6 sticky top-[420px]">
+                            <h4 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-4">Trending Topics</h4>
+                            <div className="flex flex-wrap gap-2">
+                                {['#GenerativeAI', '#ReactJS', '#FreelanceLife', '#TechNews', '#Startup'].map(tag => (
+                                    <span key={tag} className="px-3 py-1.5 rounded-lg bg-gray-50 text-xs font-bold text-gray-600 hover:text-primary-600 hover:bg-primary-50 cursor-pointer transition-colors">
+                                        {tag}
+                                    </span>
+                                ))}
+                            </div>
                         </div>
                     </div>
 

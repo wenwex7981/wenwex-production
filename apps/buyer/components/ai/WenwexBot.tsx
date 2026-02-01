@@ -106,8 +106,8 @@ export function WenwexBot() {
                                 >
                                     <div
                                         className={`max-w-[80%] p-3 rounded-2xl text-sm leading-relaxed ${msg.sender === 'user'
-                                                ? 'bg-primary-600 text-white rounded-br-none'
-                                                : 'bg-white text-gray-700 shadow-sm border border-gray-100 rounded-bl-none'
+                                            ? 'bg-primary-600 text-white rounded-br-none'
+                                            : 'bg-white text-gray-700 shadow-sm border border-gray-100 rounded-bl-none'
                                             }`}
                                     >
                                         {msg.text}
@@ -156,9 +156,21 @@ export function WenwexBot() {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => setIsOpen(!isOpen)}
-                className="w-14 h-14 bg-gradient-to-br from-primary-600 to-indigo-600 rounded-full flex items-center justify-center text-white shadow-2xl shadow-primary-600/30 hover:shadow-primary-600/50 transition-all border-2 border-white/20"
+                className="w-16 h-16 bg-gradient-to-br from-blue-600 via-blue-500 to-cyan-500 rounded-full flex items-center justify-center text-white shadow-2xl shadow-blue-600/50 hover:shadow-blue-600/70 transition-all border-4 border-white relative overflow-hidden"
             >
-                {isOpen ? <X className="w-6 h-6" /> : <Sparkles className="w-6 h-6 animate-pulse" />}
+                {isOpen ? (
+                    <X className="w-7 h-7 relative z-10" />
+                ) : (
+                    <img
+                        src="/chatbot-icon.png"
+                        alt="AI Assistant"
+                        className="w-10 h-10 object-contain relative z-10"
+                    />
+                )}
+                {/* Pulse effect background */}
+                {!isOpen && (
+                    <div className="absolute inset-0 bg-blue-400 animate-ping opacity-20 rounded-full" />
+                )}
             </motion.button>
         </div>
     );
