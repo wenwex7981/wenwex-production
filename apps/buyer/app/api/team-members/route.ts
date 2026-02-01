@@ -4,14 +4,22 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
-const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+// Create Supabase client on-demand to avoid build-time issues
+function getSupabaseClient() {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+    if (!supabaseUrl || !supabaseKey) {
+        throw new Error('Supabase credentials not configured');
+    }
+
+    return createClient(supabaseUrl, supabaseKey);
+}
 
 // GET - Fetch all active team members
 export async function GET() {
     try {
+        const supabase = getSupabaseClient();
         const { data, error } = await supabase
             .from('team_members')
             .select('*')
@@ -27,7 +35,7 @@ export async function GET() {
         return NextResponse.json({ data: data || [] });
     } catch (error: any) {
         console.error('Unexpected error:', error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        return NextResponse.json({ error: error.message || 'Internal server error' }, { status: 500 });
     }
 }
 
@@ -44,6 +52,7 @@ export async function POST(request: NextRequest) {
             );
         }
 
+        const supabase = getSupabaseClient();
         const { data, error } = await supabase
             .from('team_members')
             .insert([{
@@ -67,6 +76,6 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ data }, { status: 201 });
     } catch (error: any) {
         console.error('Unexpected error:', error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        return NextResponse.json({ error: error.message || 'Internal server error' }, { status: 500 });
     }
 }

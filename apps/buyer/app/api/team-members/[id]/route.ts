@@ -4,10 +4,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
-const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+// Create Supabase client on-demand to avoid build-time issues
+function getSupabaseClient() {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+    if (!supabaseUrl || !supabaseKey) {
+        throw new Error('Supabase credentials not configured');
+    }
+
+    return createClient(supabaseUrl, supabaseKey);
+}
 
 // PUT - Update team member
 export async function PUT(
@@ -18,6 +25,7 @@ export async function PUT(
         const body = await request.json();
         const { name, role, image_url, linkedin_url, github_url, twitter_url, display_order, is_active } = body;
 
+        const supabase = getSupabaseClient();
         const { data, error } = await supabase
             .from('team_members')
             .update({
@@ -42,7 +50,7 @@ export async function PUT(
         return NextResponse.json({ data });
     } catch (error: any) {
         console.error('Unexpected error:', error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        return NextResponse.json({ error: error.message || 'Internal server error' }, { status: 500 });
     }
 }
 
@@ -52,6 +60,7 @@ export async function DELETE(
     { params }: { params: { id: string } }
 ) {
     try {
+        const supabase = getSupabaseClient();
         const { error } = await supabase
             .from('team_members')
             .delete()
@@ -65,6 +74,6 @@ export async function DELETE(
         return NextResponse.json({ success: true });
     } catch (error: any) {
         console.error('Unexpected error:', error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        return NextResponse.json({ error: error.message || 'Internal server error' }, { status: 500 });
     }
 }
