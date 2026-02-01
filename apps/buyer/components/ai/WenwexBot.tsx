@@ -161,11 +161,7 @@ export function WenwexBot() {
                 {isOpen ? (
                     <X className="w-7 h-7 relative z-10" />
                 ) : (
-                    <img
-                        src="/chatbot-icon.png"
-                        alt="AI Assistant"
-                        className="w-10 h-10 object-contain relative z-10"
-                    />
+                    <Bot className="w-9 h-9 relative z-10" />
                 )}
                 {/* Pulse effect background */}
                 {!isOpen && (

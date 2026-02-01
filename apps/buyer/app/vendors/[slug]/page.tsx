@@ -797,6 +797,9 @@ We've helped organizations across finance, healthcare, and technology sectors ac
                                                 if (success) {
                                                     setIsFollowing(false);
                                                     setFollowerCount(prev => Math.max(0, prev - 1));
+                                                    // Fetch real count from database
+                                                    const realCount = await getFollowerCount(vendor.id);
+                                                    if (realCount >= 0) setFollowerCount(realCount);
                                                     toast.success('Unfollowed successfully');
                                                 }
                                             } else {
@@ -804,6 +807,9 @@ We've helped organizations across finance, healthcare, and technology sectors ac
                                                 if (success) {
                                                     setIsFollowing(true);
                                                     setFollowerCount(prev => prev + 1);
+                                                    // Fetch real count from database
+                                                    const realCount = await getFollowerCount(vendor.id);
+                                                    if (realCount >= 0) setFollowerCount(realCount);
                                                     toast.success('Now following ' + vendor.companyName);
                                                 }
                                             }
