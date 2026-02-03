@@ -13,6 +13,7 @@ import { useCurrencyStore } from '@/lib/currency-store';
 import { toast } from 'react-hot-toast';
 import Link from 'next/link';
 
+// Buyer Settings Page - Profile, Notifications, Security, Saved Items
 export default function BuyerSettingsPage() {
     const { user, isAuthenticated } = useAuthStore();
     const [activeTab, setActiveTab] = useState('profile');

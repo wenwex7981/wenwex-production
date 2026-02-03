@@ -23,6 +23,7 @@ interface Follower {
     };
 }
 
+// Vendor Followers Page - View and manage followers
 export default function VendorFollowersPage() {
     const [isLoading, setIsLoading] = useState(true);
     const [followers, setFollowers] = useState<Follower[]>([]);
