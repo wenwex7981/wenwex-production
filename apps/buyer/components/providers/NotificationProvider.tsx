@@ -1,9 +1,9 @@
 'use client';
 
-import { createContext, useContext, useEffect, useState, useRef } from 'react';
+import { createContext, useContext, useEffect, useState, useRef, useCallback } from 'react';
 import { useAuthStore } from '@/lib/auth-store';
 import { getSupabaseClient } from '@/lib/supabase';
-import { fetchUnreadNotifications, markNotificationAsRead, NotificationItem } from '@/lib/notifications';
+import { fetchUnreadNotifications, markNotificationAsRead, markAllNotificationsAsRead, NotificationItem } from '@/lib/notifications';
 import toast from 'react-hot-toast';
 import { Bell } from 'lucide-react';
 
@@ -13,6 +13,7 @@ interface NotificationContextType {
     markAsRead: (id: string) => Promise<void>;
     markAllAsRead: () => Promise<void>;
     refresh: () => Promise<void>;
+    isConnected: boolean;
 }
 
 const NotificationContext = createContext<NotificationContextType>({
@@ -21,6 +22,7 @@ const NotificationContext = createContext<NotificationContextType>({
     markAsRead: async () => { },
     markAllAsRead: async () => { },
     refresh: async () => { },
+    isConnected: false,
 });
 
 export function useNotifications() {
@@ -30,14 +32,20 @@ export function useNotifications() {
 export function NotificationProvider({ children }: { children: React.ReactNode }) {
     const { user } = useAuthStore();
     const [notifications, setNotifications] = useState<NotificationItem[]>([]);
+    const [isConnected, setIsConnected] = useState(false);
     const supabase = getSupabaseClient();
     const subscriptionRef = useRef<any>(null);
+    const retryTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-    const refresh = async () => {
+    const refresh = useCallback(async () => {
         if (!user?.id) return;
-        const data = await fetchUnreadNotifications(user.id);
-        setNotifications(data);
-    };
+        try {
+            const data = await fetchUnreadNotifications(user.id);
+            setNotifications(data);
+        } catch (error) {
+            console.error('Failed to refresh notifications:', error);
+        }
+    }, [user?.id]);
 
     const markAsRead = async (id: string) => {
         await markNotificationAsRead(id);
@@ -45,25 +53,35 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
     };
 
     const markAllAsRead = async () => {
+        if (!user?.id) return;
+        // Call server to mark all as read
+        await markAllNotificationsAsRead(user.id);
         // Optimistic update
         setNotifications([]);
-        // We'll implement server call in lib if needed, but for now iteratively or bulk API
-        // For handled with care, let's keep it simple: just clear local state for UI responsiveness
-        // Real implementation would call api
     };
 
     useEffect(() => {
         if (!user?.id) {
             setNotifications([]);
+            setIsConnected(false);
             return;
         }
 
         // Initial fetch
         refresh();
 
-        // set up realtime subscription
+        // Cleanup function for retry timeout
+        const cleanupRetry = () => {
+            if (retryTimeoutRef.current) {
+                clearTimeout(retryTimeoutRef.current);
+                retryTimeoutRef.current = null;
+            }
+        };
+
+        // Set up realtime subscription with unique channel name per user
+        const channelName = `notifications:${user.id}`;
         const channel = supabase
-            .channel('public:notifications')
+            .channel(channelName)
             .on(
                 'postgres_changes',
                 {
@@ -93,20 +111,33 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
                         duration: 5000,
                         position: 'top-right',
                     });
-
-                    // Play sound if possible (optional, skipping for now to be safe)
                 }
             )
-            .subscribe();
+            .subscribe((status) => {
+                if (status === 'SUBSCRIBED') {
+                    setIsConnected(true);
+                    console.log('Realtime notifications connected');
+                } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+                    setIsConnected(false);
+                    console.warn('Realtime notifications disconnected, will retry...');
+                    // Retry connection after 5 seconds
+                    cleanupRetry();
+                    retryTimeoutRef.current = setTimeout(() => {
+                        refresh();
+                    }, 5000);
+                }
+            });
 
         subscriptionRef.current = channel;
 
         return () => {
+            cleanupRetry();
             if (subscriptionRef.current) {
                 supabase.removeChannel(subscriptionRef.current);
             }
+            setIsConnected(false);
         };
-    }, [user?.id]);
+    }, [user?.id, refresh]);
 
     return (
         <NotificationContext.Provider value={{
@@ -114,7 +145,8 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
             unreadCount: notifications.length,
             markAsRead,
             markAllAsRead,
-            refresh
+            refresh,
+            isConnected
         }}>
             {children}
         </NotificationContext.Provider>

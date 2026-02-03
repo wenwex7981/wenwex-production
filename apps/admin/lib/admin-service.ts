@@ -829,3 +829,147 @@ export function getDynamicFieldTypes() {
         { value: 'color', label: 'Color Picker' },
     ];
 }
+
+// ==================== FILE UPLOAD ====================
+
+/**
+ * Upload media to Supabase storage
+ * @param bucket - Storage bucket name (e.g., 'team', 'services', 'vendors')
+ * @param file - The file to upload
+ * @param folder - Optional subfolder path
+ * @returns Public URL of the uploaded file
+ */
+export async function uploadMedia(bucket: string, file: File, folder: string = ''): Promise<string> {
+    if (!file) throw new Error('No file provided');
+
+    // Check file size (limit to 10MB)
+    if (file.size > 10 * 1024 * 1024) {
+        throw new Error('File size exceeds 10MB limit');
+    }
+
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${Math.random().toString(36).substring(2, 10)}-${Date.now()}.${fileExt}`;
+    const filePath = folder ? `${folder}/${fileName}` : fileName;
+
+    console.log(`[Admin] Uploading to bucket: ${bucket}, path: ${filePath}`);
+
+    const { data, error } = await supabase.storage
+        .from(bucket)
+        .upload(filePath, file, {
+            cacheControl: '3600',
+            upsert: false
+        });
+
+    if (error) {
+        console.error('Supabase Storage Error:', error);
+
+        if (error.message?.includes('bucket not found')) {
+            throw new Error(`Storage bucket "${bucket}" not found. Please create a public bucket named "${bucket}" in your Supabase dashboard.`);
+        }
+
+        throw new Error(`Upload Failed: ${error.message}`);
+    }
+
+    const { data: { publicUrl } } = supabase.storage
+        .from(bucket)
+        .getPublicUrl(data.path);
+
+    return publicUrl;
+}
+
+// ==================== TEAM MEMBERS ====================
+
+export async function fetchTeamMembers(includeInactive: boolean = true) {
+    try {
+        let query = supabase
+            .from('team_members')
+            .select('*')
+            .order('display_order', { ascending: true })
+            .order('created_at', { ascending: true });
+
+        if (!includeInactive) {
+            query = query.eq('is_active', true);
+        }
+
+        const { data, error } = await query;
+
+        if (error) {
+            console.error('Error fetching team members:', error);
+            return [];
+        }
+        return data || [];
+    } catch (error) {
+        console.error('Error fetching team members:', error);
+        return [];
+    }
+}
+
+export async function createTeamMember(memberData: {
+    name: string;
+    role: string;
+    image_url: string;
+    linkedin_url?: string;
+    github_url?: string;
+    twitter_url?: string;
+    display_order?: number;
+    is_active?: boolean;
+}) {
+    try {
+        const { data, error } = await supabase
+            .from('team_members')
+            .insert([{
+                ...memberData,
+                display_order: memberData.display_order || 0,
+                is_active: memberData.is_active ?? true
+            }])
+            .select()
+            .single();
+
+        if (error) throw error;
+        return data;
+    } catch (error) {
+        console.error('Error creating team member:', error);
+        throw error;
+    }
+}
+
+export async function updateTeamMember(id: string, memberData: {
+    name?: string;
+    role?: string;
+    image_url?: string;
+    linkedin_url?: string;
+    github_url?: string;
+    twitter_url?: string;
+    display_order?: number;
+    is_active?: boolean;
+}) {
+    try {
+        const { data, error } = await supabase
+            .from('team_members')
+            .update(memberData)
+            .eq('id', id)
+            .select()
+            .single();
+
+        if (error) throw error;
+        return data;
+    } catch (error) {
+        console.error('Error updating team member:', error);
+        throw error;
+    }
+}
+
+export async function deleteTeamMember(id: string) {
+    try {
+        const { error } = await supabase
+            .from('team_members')
+            .delete()
+            .eq('id', id);
+
+        if (error) throw error;
+        return true;
+    } catch (error) {
+        console.error('Error deleting team member:', error);
+        throw error;
+    }
+}

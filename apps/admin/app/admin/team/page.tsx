@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { Plus, Edit2, Trash2, Save, X, Upload, Eye, EyeOff, GripVertical } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { Plus, Edit2, Trash2, Save, X, Upload, Eye, EyeOff, GripVertical, Image as ImageIcon, Link as LinkIcon, Loader2 } from 'lucide-react';
+import { fetchTeamMembers, createTeamMember, updateTeamMember, deleteTeamMember, uploadMedia } from '@/lib/admin-service';
 
 interface TeamMember {
     id?: string;
@@ -20,6 +21,10 @@ export default function TeamManagementPage() {
     const [isLoading, setIsLoading] = useState(true);
     const [editingId, setEditingId] = useState<string | null>(null);
     const [showAddForm, setShowAddForm] = useState(false);
+    const [isUploading, setIsUploading] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
+    const [imageInputType, setImageInputType] = useState<'upload' | 'url'>('upload');
+    const fileInputRef = useRef<HTMLInputElement>(null);
     const [formData, setFormData] = useState<Partial<TeamMember>>({
         name: '',
         role: '',
@@ -32,16 +37,14 @@ export default function TeamManagementPage() {
     });
 
     useEffect(() => {
-        fetchMembers();
+        loadMembers();
     }, []);
 
-    const fetchMembers = async () => {
+    const loadMembers = async () => {
         try {
-            const response = await fetch('/api/team-members');
-            const result = await response.json();
-            if (result.data) {
-                setMembers(result.data);
-            }
+            setIsLoading(true);
+            const data = await fetchTeamMembers(true);
+            setMembers(data);
         } catch (error) {
             console.error('Error fetching team members:', error);
         } finally {
@@ -49,39 +52,65 @@ export default function TeamManagementPage() {
         }
     };
 
-    const handleAdd = async () => {
-        try {
-            const response = await fetch('/api/team-members', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(formData)
-            });
+    const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
 
-            if (response.ok) {
-                await fetchMembers();
-                setShowAddForm(false);
-                resetForm();
-            }
+        try {
+            setIsUploading(true);
+            const url = await uploadMedia('team', file, 'members');
+            setFormData({ ...formData, image_url: url });
+        } catch (error: any) {
+            console.error('Upload error:', error);
+            alert(error.message || 'Failed to upload image');
+        } finally {
+            setIsUploading(false);
+        }
+    };
+
+    const handleAdd = async () => {
+        if (!formData.name || !formData.role || !formData.image_url) {
+            alert('Please fill in all required fields (Name, Role, and Image)');
+            return;
+        }
+
+        try {
+            setIsSaving(true);
+            await createTeamMember({
+                name: formData.name,
+                role: formData.role,
+                image_url: formData.image_url,
+                linkedin_url: formData.linkedin_url,
+                github_url: formData.github_url,
+                twitter_url: formData.twitter_url,
+                display_order: formData.display_order || members.length,
+                is_active: formData.is_active ?? true
+            });
+            await loadMembers();
+            setShowAddForm(false);
+            resetForm();
         } catch (error) {
             console.error('Error adding team member:', error);
+            alert('Failed to add team member');
+        } finally {
+            setIsSaving(false);
         }
     };
 
     const handleUpdate = async (id: string) => {
         try {
+            setIsSaving(true);
             const memberToUpdate = members.find(m => m.id === id);
-            const response = await fetch(`/api/team-members/${id}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(memberToUpdate)
-            });
+            if (!memberToUpdate) return;
 
-            if (response.ok) {
-                setEditingId(null);
-                await fetchMembers();
-            }
+            await updateTeamMember(id, memberToUpdate);
+            setEditingId(null);
+            await loadMembers();
         } catch (error) {
             console.error('Error updating team member:', error);
+            alert('Failed to update team member');
+        } finally {
+            setIsSaving(false);
         }
     };
 
@@ -89,15 +118,11 @@ export default function TeamManagementPage() {
         if (!confirm('Are you sure you want to delete this team member?')) return;
 
         try {
-            const response = await fetch(`/api/team-members/${id}`, {
-                method: 'DELETE'
-            });
-
-            if (response.ok) {
-                await fetchMembers();
-            }
+            await deleteTeamMember(id);
+            await loadMembers();
         } catch (error) {
             console.error('Error deleting team member:', error);
+            alert('Failed to delete team member');
         }
     };
 
@@ -106,15 +131,8 @@ export default function TeamManagementPage() {
         if (!member) return;
 
         try {
-            const response = await fetch(`/api/team-members/${id}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ ...member, is_active: !member.is_active })
-            });
-
-            if (response.ok) {
-                await fetchMembers();
-            }
+            await updateTeamMember(id, { is_active: !member.is_active });
+            await loadMembers();
         } catch (error) {
             console.error('Error toggling active status:', error);
         }
@@ -131,6 +149,7 @@ export default function TeamManagementPage() {
             display_order: members.length,
             is_active: true
         });
+        setImageInputType('upload');
     };
 
     if (isLoading) {
@@ -201,15 +220,100 @@ export default function TeamManagementPage() {
                                 />
                             </div>
 
+                            {/* Image Input - Toggle between Upload and URL */}
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Image URL *</label>
-                                <input
-                                    type="text"
-                                    value={formData.image_url}
-                                    onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                    placeholder="https://example.com/image.jpg or /local-image.jpg"
-                                />
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Profile Image *</label>
+                                <div className="flex gap-2 mb-3">
+                                    <button
+                                        type="button"
+                                        onClick={() => setImageInputType('upload')}
+                                        className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${imageInputType === 'upload'
+                                                ? 'bg-blue-100 text-blue-700 border-2 border-blue-500'
+                                                : 'bg-gray-100 text-gray-600 border-2 border-transparent hover:bg-gray-200'
+                                            }`}
+                                    >
+                                        <Upload className="w-4 h-4" />
+                                        Upload File
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setImageInputType('url')}
+                                        className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${imageInputType === 'url'
+                                                ? 'bg-blue-100 text-blue-700 border-2 border-blue-500'
+                                                : 'bg-gray-100 text-gray-600 border-2 border-transparent hover:bg-gray-200'
+                                            }`}
+                                    >
+                                        <LinkIcon className="w-4 h-4" />
+                                        Image URL
+                                    </button>
+                                </div>
+
+                                {imageInputType === 'upload' ? (
+                                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-400 transition-colors">
+                                        <input
+                                            ref={fileInputRef}
+                                            type="file"
+                                            accept="image/*"
+                                            onChange={handleFileUpload}
+                                            className="hidden"
+                                        />
+                                        {formData.image_url ? (
+                                            <div className="space-y-3">
+                                                <img
+                                                    src={formData.image_url}
+                                                    alt="Preview"
+                                                    className="w-24 h-24 rounded-full object-cover mx-auto border-2 border-gray-200"
+                                                />
+                                                <button
+                                                    type="button"
+                                                    onClick={() => fileInputRef.current?.click()}
+                                                    className="text-blue-600 text-sm font-medium hover:underline"
+                                                >
+                                                    Change Image
+                                                </button>
+                                            </div>
+                                        ) : (
+                                            <button
+                                                type="button"
+                                                onClick={() => fileInputRef.current?.click()}
+                                                disabled={isUploading}
+                                                className="flex flex-col items-center gap-2 w-full"
+                                            >
+                                                {isUploading ? (
+                                                    <Loader2 className="w-8 h-8 text-blue-500 animate-spin" />
+                                                ) : (
+                                                    <ImageIcon className="w-8 h-8 text-gray-400" />
+                                                )}
+                                                <span className="text-sm text-gray-500">
+                                                    {isUploading ? 'Uploading...' : 'Click to upload image'}
+                                                </span>
+                                                <span className="text-xs text-gray-400">PNG, JPG, WEBP up to 10MB</span>
+                                            </button>
+                                        )}
+                                    </div>
+                                ) : (
+                                    <div className="space-y-3">
+                                        <input
+                                            type="text"
+                                            value={formData.image_url}
+                                            onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                            placeholder="https://example.com/image.jpg"
+                                        />
+                                        {formData.image_url && (
+                                            <div className="flex justify-center">
+                                                <img
+                                                    src={formData.image_url}
+                                                    alt="Preview"
+                                                    className="w-24 h-24 rounded-full object-cover border-2 border-gray-200"
+                                                    onError={(e) => {
+                                                        (e.target as HTMLImageElement).src = 'https://ui-avatars.com/api/?name=Invalid&background=f0f0f0&color=999';
+                                                    }}
+                                                />
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
                             </div>
 
                             <div>
@@ -259,8 +363,10 @@ export default function TeamManagementPage() {
                             <div className="flex gap-3 pt-4">
                                 <button
                                     onClick={handleAdd}
-                                    className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                                    disabled={isSaving || isUploading}
+                                    className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                                 >
+                                    {isSaving && <Loader2 className="w-4 h-4 animate-spin" />}
                                     Add Member
                                 </button>
                                 <button
@@ -315,6 +421,9 @@ export default function TeamManagementPage() {
                                                 src={member.image_url}
                                                 alt={member.name}
                                                 className="w-10 h-10 rounded-full object-cover"
+                                                onError={(e) => {
+                                                    (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(member.name)}&background=0c8bff&color=fff`;
+                                                }}
                                             />
                                             <div>
                                                 {editingId === member.id ? (
@@ -391,7 +500,7 @@ export default function TeamManagementPage() {
                                                     <button
                                                         onClick={() => {
                                                             setEditingId(null);
-                                                            fetchMembers(); // Reset data
+                                                            loadMembers(); // Reset data
                                                         }}
                                                         className="text-gray-600 hover:text-gray-900"
                                                     >

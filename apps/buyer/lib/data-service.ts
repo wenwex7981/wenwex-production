@@ -440,6 +440,7 @@ export async function followVendor(vendorId: string, userId: string): Promise<bo
     if (!vendorId || !userId) return false;
 
     try {
+        // Insert the follow record
         const { error } = await supabase
             .from('vendor_followers')
             .insert({
@@ -451,6 +452,31 @@ export async function followVendor(vendorId: string, userId: string): Promise<bo
             console.error('Error following vendor:', error);
             return false;
         }
+
+        // Update the follower count on the vendor record
+        const newCount = await getFollowerCount(vendorId);
+        await supabase
+            .from('vendors')
+            .update({ followers_count: newCount })
+            .eq('id', vendorId);
+
+        // Create a notification for the vendor (optional - only if vendor has user_id)
+        const { data: vendor } = await supabase
+            .from('vendors')
+            .select('user_id, company_name')
+            .eq('id', vendorId)
+            .single();
+
+        if (vendor?.user_id) {
+            await supabase.from('notifications').insert({
+                user_id: vendor.user_id,
+                title: 'New Follower',
+                message: `Someone just followed ${vendor.company_name}!`,
+                type: 'SYSTEM',
+                link: '/dashboard'
+            });
+        }
+
         return true;
     } catch (error) {
         console.error('Error following vendor:', error);
@@ -475,6 +501,14 @@ export async function unfollowVendor(vendorId: string, userId: string): Promise<
             console.error('Error unfollowing vendor:', error);
             return false;
         }
+
+        // Update the follower count on the vendor record
+        const newCount = await getFollowerCount(vendorId);
+        await supabase
+            .from('vendors')
+            .update({ followers_count: newCount })
+            .eq('id', vendorId);
+
         return true;
     } catch (error) {
         console.error('Error unfollowing vendor:', error);

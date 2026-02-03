@@ -16,16 +16,25 @@ function getSupabaseClient() {
     return createClient(supabaseUrl, supabaseKey);
 }
 
-// GET - Fetch all active team members
-export async function GET() {
+// GET - Fetch team members (active only by default, or all with ?all=true)
+export async function GET(request: NextRequest) {
     try {
         const supabase = getSupabaseClient();
-        const { data, error } = await supabase
+        const { searchParams } = new URL(request.url);
+        const includeAll = searchParams.get('all') === 'true';
+
+        let query = supabase
             .from('team_members')
             .select('*')
-            .eq('is_active', true)
             .order('display_order', { ascending: true })
             .order('created_at', { ascending: true });
+
+        // Only filter by active if not requesting all
+        if (!includeAll) {
+            query = query.eq('is_active', true);
+        }
+
+        const { data, error } = await query;
 
         if (error) {
             console.error('Error fetching team members:', error);

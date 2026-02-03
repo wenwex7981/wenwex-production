@@ -1,13 +1,14 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import {
     Plus, Edit3, Trash2, Save, X, Image, Link2, Eye, EyeOff,
-    ArrowUp, ArrowDown, Loader2, Sparkles, Palette
+    ArrowUp, ArrowDown, Loader2, Sparkles, Palette, Upload
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { getSupabaseClient } from '@/lib/supabase';
+import { uploadMedia } from '@/lib/admin-service';
 
 const supabase = getSupabaseClient();
 
@@ -48,6 +49,9 @@ export default function AdminCarouselsPage() {
     const [isLoading, setIsLoading] = useState(true);
     const [editingItem, setEditingItem] = useState<any>(null);
     const [isSaving, setIsSaving] = useState(false);
+    const [isUploading, setIsUploading] = useState(false);
+    const [imageInputType, setImageInputType] = useState<'upload' | 'url'>('upload');
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
         loadData();
@@ -227,6 +231,23 @@ export default function AdminCarouselsPage() {
         is_active: true,
         display_order: 0
     });
+
+    const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        try {
+            setIsUploading(true);
+            const url = await uploadMedia('carousels', file, activeTab);
+            setEditingItem({ ...editingItem, image_url: url });
+            toast.success('Image uploaded!');
+        } catch (error: any) {
+            console.error('Upload error:', error);
+            toast.error(error.message || 'Failed to upload image');
+        } finally {
+            setIsUploading(false);
+        }
+    };
 
     return (
         <div className="p-6">
@@ -411,19 +432,93 @@ export default function AdminCarouselsPage() {
 
                                     <div className="space-y-1.5">
                                         <label className="text-xs font-bold text-gray-500 uppercase flex items-center gap-2">
-                                            <Image className="w-3 h-3" /> Image URL *
+                                            <Image className="w-3 h-3" /> Image *
                                         </label>
-                                        <input
-                                            type="text"
-                                            className="input w-full text-xs"
-                                            value={editingItem.image_url || ''}
-                                            onChange={(e) => setEditingItem({ ...editingItem, image_url: e.target.value })}
-                                            placeholder="https://images.unsplash.com/..."
-                                        />
-                                        {editingItem.image_url && (
-                                            <div className="mt-2 rounded-xl overflow-hidden h-24">
-                                                <img src={editingItem.image_url} alt="Preview" className="w-full h-full object-cover" />
+
+                                        {/* Image Input Type Selector */}
+                                        <div className="flex gap-2 mb-2">
+                                            <button
+                                                type="button"
+                                                onClick={() => setImageInputType('upload')}
+                                                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${imageInputType === 'upload'
+                                                        ? 'bg-primary-600 text-white'
+                                                        : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
+                                                    }`}
+                                            >
+                                                <Upload className="w-3 h-3" />
+                                                Upload
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => setImageInputType('url')}
+                                                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${imageInputType === 'url'
+                                                        ? 'bg-primary-600 text-white'
+                                                        : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
+                                                    }`}
+                                            >
+                                                <Link2 className="w-3 h-3" />
+                                                URL
+                                            </button>
+                                        </div>
+
+                                        {imageInputType === 'upload' ? (
+                                            <div className="border-2 border-dashed border-gray-700 rounded-xl p-4 text-center hover:border-primary-500/50 transition-colors">
+                                                <input
+                                                    ref={fileInputRef}
+                                                    type="file"
+                                                    accept="image/*"
+                                                    onChange={handleFileUpload}
+                                                    className="hidden"
+                                                />
+                                                {editingItem.image_url ? (
+                                                    <div className="space-y-2">
+                                                        <img
+                                                            src={editingItem.image_url}
+                                                            alt="Preview"
+                                                            className="w-full h-24 rounded-lg object-cover"
+                                                        />
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => fileInputRef.current?.click()}
+                                                            disabled={isUploading}
+                                                            className="text-primary-400 text-xs font-medium hover:underline"
+                                                        >
+                                                            {isUploading ? 'Uploading...' : 'Change Image'}
+                                                        </button>
+                                                    </div>
+                                                ) : (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => fileInputRef.current?.click()}
+                                                        disabled={isUploading}
+                                                        className="flex flex-col items-center gap-2 w-full py-4"
+                                                    >
+                                                        {isUploading ? (
+                                                            <Loader2 className="w-6 h-6 text-primary-400 animate-spin" />
+                                                        ) : (
+                                                            <Upload className="w-6 h-6 text-gray-500" />
+                                                        )}
+                                                        <span className="text-xs text-gray-500">
+                                                            {isUploading ? 'Uploading...' : 'Click to upload image'}
+                                                        </span>
+                                                    </button>
+                                                )}
                                             </div>
+                                        ) : (
+                                            <>
+                                                <input
+                                                    type="text"
+                                                    className="input w-full text-xs"
+                                                    value={editingItem.image_url || ''}
+                                                    onChange={(e) => setEditingItem({ ...editingItem, image_url: e.target.value })}
+                                                    placeholder="https://images.unsplash.com/..."
+                                                />
+                                                {editingItem.image_url && (
+                                                    <div className="mt-2 rounded-xl overflow-hidden h-24">
+                                                        <img src={editingItem.image_url} alt="Preview" className="w-full h-full object-cover" />
+                                                    </div>
+                                                )}
+                                            </>
                                         )}
                                     </div>
 
