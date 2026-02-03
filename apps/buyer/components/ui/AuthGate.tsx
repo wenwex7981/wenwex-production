@@ -128,7 +128,7 @@ export function AuthGate({
                                     Login
                                 </Link>
                                 <Link
-                                    href="/auth/signup"
+                                    href="/auth/register"
                                     className="px-6 py-3 bg-white text-primary-600 font-bold rounded-xl hover:bg-gray-100 transition-all flex items-center gap-2 shadow-lg"
                                 >
                                     <UserPlus className="w-5 h-5" />
@@ -210,7 +210,7 @@ export function AuthGate({
                                 {/* Buttons */}
                                 <div className="space-y-3">
                                     <Link
-                                        href="/auth/signup"
+                                        href="/auth/register"
                                         className="block w-full py-4 bg-gradient-to-r from-primary-600 to-purple-600 text-white font-bold rounded-xl hover:from-primary-700 hover:to-purple-700 transition-all shadow-lg shadow-primary-500/30"
                                     >
                                         Create Free Account
