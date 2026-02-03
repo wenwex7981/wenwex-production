@@ -30,9 +30,14 @@ const academicCategories = [
 ];
 
 import { VisualCategories } from '@/components/categories/VisualCategories';
+import { AuthGate } from '@/components/ui/AuthGate';
 
 export default function CategoriesPage() {
-    return <VisualCategories />;
+    return (
+        <AuthGate contentType="categories">
+            <VisualCategories />
+        </AuthGate>
+    );
 }
 
 // Previous implementation kept for reference or quick rollback if needed

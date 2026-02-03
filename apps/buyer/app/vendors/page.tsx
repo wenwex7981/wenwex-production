@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { fetchAllVendors } from '@/lib/data-service';
 import { VendorLogo } from '@/components/ui/VendorLogo';
+import { AuthGate } from '@/components/ui/AuthGate';
 
 // Mock data - used as fallback
 const mockVendors = [
@@ -149,197 +150,199 @@ export default function VendorsPage() {
     });
 
     return (
-        <div className="min-h-screen bg-gray-50">
-            {/* Header */}
-            <div className="bg-white border-b border-gray-100">
+        <AuthGate contentType="agencies">
+            <div className="min-h-screen bg-gray-50">
+                {/* Header */}
+                <div className="bg-white border-b border-gray-100">
+                    <div className="container-custom py-8">
+                        <h1 className="text-3xl font-bold text-gray-900 mb-2">Browse Agencies</h1>
+                        <p className="text-gray-500">
+                            Discover {vendors.length}+ verified agencies ready to bring your ideas to life
+                        </p>
+                    </div>
+                </div>
+
                 <div className="container-custom py-8">
-                    <h1 className="text-3xl font-bold text-gray-900 mb-2">Browse Agencies</h1>
-                    <p className="text-gray-500">
-                        Discover {vendors.length}+ verified agencies ready to bring your ideas to life
+                    {/* Filters Bar */}
+                    <div className="flex flex-col lg:flex-row gap-4 mb-8">
+                        {/* Search */}
+                        <div className="relative flex-1">
+                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                            <input
+                                type="text"
+                                placeholder="Search agencies..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                className="input pl-12 w-full"
+                            />
+                        </div>
+
+                        {/* Category Filter */}
+                        <select
+                            value={selectedCategory}
+                            onChange={(e) => setSelectedCategory(e.target.value)}
+                            className="input w-full lg:w-48"
+                        >
+                            {categories.map(cat => (
+                                <option key={cat} value={cat}>{cat}</option>
+                            ))}
+                        </select>
+
+                        {/* Sort */}
+                        <select
+                            value={sortBy}
+                            onChange={(e) => setSortBy(e.target.value)}
+                            className="input w-full lg:w-48"
+                        >
+                            {sortOptions.map(opt => (
+                                <option key={opt.value} value={opt.value}>{opt.label}</option>
+                            ))}
+                        </select>
+
+                        {/* View Toggle */}
+                        <div className="hidden lg:flex items-center border border-gray-200 rounded-xl overflow-hidden">
+                            <button
+                                onClick={() => setViewMode('grid')}
+                                className={`p-3 ${viewMode === 'grid' ? 'bg-primary-50 text-primary-600' : 'text-gray-400 hover:bg-gray-50'}`}
+                            >
+                                <Grid3X3 className="w-5 h-5" />
+                            </button>
+                            <button
+                                onClick={() => setViewMode('list')}
+                                className={`p-3 ${viewMode === 'list' ? 'bg-primary-50 text-primary-600' : 'text-gray-400 hover:bg-gray-50'}`}
+                            >
+                                <List className="w-5 h-5" />
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Results Count */}
+                    <p className="text-sm text-gray-500 mb-6">
+                        Showing <span className="font-medium text-gray-900">{filteredVendors.length}</span> agencies
                     </p>
-                </div>
-            </div>
 
-            <div className="container-custom py-8">
-                {/* Filters Bar */}
-                <div className="flex flex-col lg:flex-row gap-4 mb-8">
-                    {/* Search */}
-                    <div className="relative flex-1">
-                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                        <input
-                            type="text"
-                            placeholder="Search agencies..."
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            className="input pl-12 w-full"
-                        />
-                    </div>
-
-                    {/* Category Filter */}
-                    <select
-                        value={selectedCategory}
-                        onChange={(e) => setSelectedCategory(e.target.value)}
-                        className="input w-full lg:w-48"
-                    >
-                        {categories.map(cat => (
-                            <option key={cat} value={cat}>{cat}</option>
-                        ))}
-                    </select>
-
-                    {/* Sort */}
-                    <select
-                        value={sortBy}
-                        onChange={(e) => setSortBy(e.target.value)}
-                        className="input w-full lg:w-48"
-                    >
-                        {sortOptions.map(opt => (
-                            <option key={opt.value} value={opt.value}>{opt.label}</option>
-                        ))}
-                    </select>
-
-                    {/* View Toggle */}
-                    <div className="hidden lg:flex items-center border border-gray-200 rounded-xl overflow-hidden">
-                        <button
-                            onClick={() => setViewMode('grid')}
-                            className={`p-3 ${viewMode === 'grid' ? 'bg-primary-50 text-primary-600' : 'text-gray-400 hover:bg-gray-50'}`}
-                        >
-                            <Grid3X3 className="w-5 h-5" />
-                        </button>
-                        <button
-                            onClick={() => setViewMode('list')}
-                            className={`p-3 ${viewMode === 'list' ? 'bg-primary-50 text-primary-600' : 'text-gray-400 hover:bg-gray-50'}`}
-                        >
-                            <List className="w-5 h-5" />
-                        </button>
-                    </div>
-                </div>
-
-                {/* Results Count */}
-                <p className="text-sm text-gray-500 mb-6">
-                    Showing <span className="font-medium text-gray-900">{filteredVendors.length}</span> agencies
-                </p>
-
-                {/* Vendors Grid/List */}
-                <div className={viewMode === 'grid'
-                    ? 'grid md:grid-cols-2 lg:grid-cols-3 gap-6'
-                    : 'space-y-4'
-                }>
-                    {filteredVendors.map((vendor, index) => (
-                        <motion.article
-                            key={vendor.id}
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: index * 0.05 }}
-                            className={viewMode === 'list' ? 'card flex gap-6 p-4' : 'card-interactive overflow-hidden'}
-                        >
-                            {viewMode === 'grid' ? (
-                                <Link href={`/vendors/${vendor.slug}`} className="block h-full">
-                                    {/* Banner */}
-                                    <div className="relative h-24 overflow-hidden">
-                                        <Image
-                                            src={vendor.bannerUrl}
-                                            alt=""
-                                            fill
-                                            className="object-cover"
-                                        />
-                                        <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
-                                    </div>
-
-                                    {/* Content */}
-                                    <div className="p-5 pt-0">
-                                        {/* Logo */}
-                                        <div className="relative -mt-10 mb-4">
-                                            <VendorLogo
-                                                src={vendor.logoUrl}
-                                                alt={vendor.companyName}
-                                                width={64}
-                                                height={64}
-                                                className="rounded-xl border-4 border-white shadow-lg"
+                    {/* Vendors Grid/List */}
+                    <div className={viewMode === 'grid'
+                        ? 'grid md:grid-cols-2 lg:grid-cols-3 gap-6'
+                        : 'space-y-4'
+                    }>
+                        {filteredVendors.map((vendor, index) => (
+                            <motion.article
+                                key={vendor.id}
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: index * 0.05 }}
+                                className={viewMode === 'list' ? 'card flex gap-6 p-4' : 'card-interactive overflow-hidden'}
+                            >
+                                {viewMode === 'grid' ? (
+                                    <Link href={`/vendors/${vendor.slug}`} className="block h-full">
+                                        {/* Banner */}
+                                        <div className="relative h-24 overflow-hidden">
+                                            <Image
+                                                src={vendor.bannerUrl}
+                                                alt=""
+                                                fill
+                                                className="object-cover"
                                             />
+                                            <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
                                         </div>
 
-                                        {/* Name */}
-                                        <div className="flex items-center gap-2 mb-2">
-                                            <h3 className="font-semibold text-gray-900 group-hover:text-primary-600 transition-colors">
-                                                {vendor.companyName}
-                                            </h3>
-                                            {vendor.isVerified && <BadgeCheck className="w-5 h-5 text-primary-500" />}
-                                        </div>
-
-                                        {/* Description */}
-                                        <p className="text-sm text-gray-500 mb-4 line-clamp-2">{vendor.description}</p>
-
-                                        {/* Stats */}
-                                        <div className="flex items-center gap-4 text-sm">
-                                            <div className="flex items-center gap-1">
-                                                <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
-                                                <span className="font-medium text-gray-900">{vendor.rating}</span>
-                                                <span className="text-gray-400">({vendor.reviewCount})</span>
+                                        {/* Content */}
+                                        <div className="p-5 pt-0">
+                                            {/* Logo */}
+                                            <div className="relative -mt-10 mb-4">
+                                                <VendorLogo
+                                                    src={vendor.logoUrl}
+                                                    alt={vendor.companyName}
+                                                    width={64}
+                                                    height={64}
+                                                    className="rounded-xl border-4 border-white shadow-lg"
+                                                />
                                             </div>
-                                            <div className="flex items-center gap-1 text-gray-500">
-                                                <Users className="w-4 h-4" />
-                                                {vendor.followersCount}
-                                            </div>
-                                        </div>
 
-                                        {/* Categories */}
-                                        <div className="flex flex-wrap gap-2 mt-4 pt-4 border-t border-gray-100">
-                                            {vendor.categories.slice(0, 2).map((cat: string) => (
-                                                <span key={cat} className="badge-gray text-xs">{cat}</span>
-                                            ))}
-                                            {vendor.categories.length > 2 && (
-                                                <span className="badge-gray text-xs">+{vendor.categories.length - 2}</span>
-                                            )}
-                                        </div>
-                                    </div>
-                                </Link>
-                            ) : (
-                                <>
-                                    {/* List View */}
-                                    <VendorLogo
-                                        src={vendor.logoUrl}
-                                        alt={vendor.companyName}
-                                        width={80}
-                                        height={80}
-                                        className="rounded-xl flex-shrink-0"
-                                    />
-                                    <div className="flex-1">
-                                        <div className="flex items-center gap-2 mb-1">
-                                            <Link href={`/vendors/${vendor.slug}`}>
-                                                <h3 className="font-semibold text-gray-900 hover:text-primary-600">{vendor.companyName}</h3>
-                                            </Link>
-                                            {vendor.isVerified && <BadgeCheck className="w-5 h-5 text-primary-500" />}
-                                            <span className="text-sm text-gray-400 flex items-center gap-1">
-                                                <MapPin className="w-3 h-3" /> {vendor.country}
-                                            </span>
-                                        </div>
-                                        <p className="text-sm text-gray-500 mb-3">{vendor.description}</p>
-                                        <div className="flex items-center gap-4 text-sm">
-                                            <div className="flex items-center gap-1">
-                                                <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
-                                                <span className="font-medium">{vendor.rating}</span>
-                                                <span className="text-gray-400">({vendor.reviewCount})</span>
+                                            {/* Name */}
+                                            <div className="flex items-center gap-2 mb-2">
+                                                <h3 className="font-semibold text-gray-900 group-hover:text-primary-600 transition-colors">
+                                                    {vendor.companyName}
+                                                </h3>
+                                                {vendor.isVerified && <BadgeCheck className="w-5 h-5 text-primary-500" />}
                                             </div>
-                                            <span className="text-gray-300">|</span>
-                                            <span className="text-gray-500">{vendor.servicesCount} services</span>
-                                            <span className="text-gray-300">|</span>
-                                            <span className="text-gray-500">{vendor.followersCount} followers</span>
+
+                                            {/* Description */}
+                                            <p className="text-sm text-gray-500 mb-4 line-clamp-2">{vendor.description}</p>
+
+                                            {/* Stats */}
+                                            <div className="flex items-center gap-4 text-sm">
+                                                <div className="flex items-center gap-1">
+                                                    <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
+                                                    <span className="font-medium text-gray-900">{vendor.rating}</span>
+                                                    <span className="text-gray-400">({vendor.reviewCount})</span>
+                                                </div>
+                                                <div className="flex items-center gap-1 text-gray-500">
+                                                    <Users className="w-4 h-4" />
+                                                    {vendor.followersCount}
+                                                </div>
+                                            </div>
+
+                                            {/* Categories */}
+                                            <div className="flex flex-wrap gap-2 mt-4 pt-4 border-t border-gray-100">
+                                                {vendor.categories.slice(0, 2).map((cat: string) => (
+                                                    <span key={cat} className="badge-gray text-xs">{cat}</span>
+                                                ))}
+                                                {vendor.categories.length > 2 && (
+                                                    <span className="badge-gray text-xs">+{vendor.categories.length - 2}</span>
+                                                )}
+                                            </div>
                                         </div>
-                                    </div>
-                                    <Link href={`/vendors/${vendor.slug}`} className="btn-primary self-center">
-                                        View Profile
                                     </Link>
-                                </>
-                            )}
-                        </motion.article>
-                    ))}
-                </div>
+                                ) : (
+                                    <>
+                                        {/* List View */}
+                                        <VendorLogo
+                                            src={vendor.logoUrl}
+                                            alt={vendor.companyName}
+                                            width={80}
+                                            height={80}
+                                            className="rounded-xl flex-shrink-0"
+                                        />
+                                        <div className="flex-1">
+                                            <div className="flex items-center gap-2 mb-1">
+                                                <Link href={`/vendors/${vendor.slug}`}>
+                                                    <h3 className="font-semibold text-gray-900 hover:text-primary-600">{vendor.companyName}</h3>
+                                                </Link>
+                                                {vendor.isVerified && <BadgeCheck className="w-5 h-5 text-primary-500" />}
+                                                <span className="text-sm text-gray-400 flex items-center gap-1">
+                                                    <MapPin className="w-3 h-3" /> {vendor.country}
+                                                </span>
+                                            </div>
+                                            <p className="text-sm text-gray-500 mb-3">{vendor.description}</p>
+                                            <div className="flex items-center gap-4 text-sm">
+                                                <div className="flex items-center gap-1">
+                                                    <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
+                                                    <span className="font-medium">{vendor.rating}</span>
+                                                    <span className="text-gray-400">({vendor.reviewCount})</span>
+                                                </div>
+                                                <span className="text-gray-300">|</span>
+                                                <span className="text-gray-500">{vendor.servicesCount} services</span>
+                                                <span className="text-gray-300">|</span>
+                                                <span className="text-gray-500">{vendor.followersCount} followers</span>
+                                            </div>
+                                        </div>
+                                        <Link href={`/vendors/${vendor.slug}`} className="btn-primary self-center">
+                                            View Profile
+                                        </Link>
+                                    </>
+                                )}
+                            </motion.article>
+                        ))}
+                    </div>
 
-                {/* Load More */}
-                <div className="mt-10 text-center">
-                    <button className="btn-outline">Load More Agencies</button>
+                    {/* Load More */}
+                    <div className="mt-10 text-center">
+                        <button className="btn-outline">Load More Agencies</button>
+                    </div>
                 </div>
             </div>
-        </div>
+        </AuthGate>
     );
 }

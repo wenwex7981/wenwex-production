@@ -7,8 +7,10 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
     Star, Clock, Heart, Share2, BadgeCheck, ChevronRight,
     Check, Play, FileText, Users, MessageSquare, Shield, Award, Loader2,
-    Mail, Phone, Globe, Download, ExternalLink, Sparkles
+    Mail, Phone, Globe, Download, ExternalLink, Sparkles,
+    Send, Calendar, X, ClipboardList, Video
 } from 'lucide-react';
+import { getSupabaseClient } from '@/lib/supabase';
 import { useCurrencyStore } from '@/lib/currency-store';
 import { fetchServiceBySlug } from '@/lib/data-service';
 import { DynamicFieldsDisplay } from '@/lib/dynamic-fields';
@@ -93,6 +95,22 @@ export default function ServiceDetailPage({ params }: { params: { slug: string }
     const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
     const [isStartingChat, setIsStartingChat] = useState(false);
 
+    // Request Quote Modal States
+    const [showRequestQuoteModal, setShowRequestQuoteModal] = useState(false);
+    const [showBookDemoModal, setShowBookDemoModal] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [quoteFormData, setQuoteFormData] = useState({
+        name: '',
+        email: '',
+        phone: '',
+        company: '',
+        budget: '',
+        message: '',
+        preferred_date: '',
+        preferred_time: '',
+    });
+    const supabase = getSupabaseClient();
+
     useEffect(() => {
         async function loadService() {
             try {
@@ -155,6 +173,68 @@ export default function ServiceDetailPage({ params }: { params: { slug: string }
         loadService();
     }, [params.slug]);
 
+    // Check if service is saved
+    useEffect(() => {
+        async function checkSavedStatus() {
+            if (!isAuthenticated || !user || !service?.id) return;
+
+            try {
+                const { data, error } = await supabase
+                    .from('saved_services')
+                    .select('id')
+                    .eq('user_id', user.id)
+                    .eq('service_id', service.id)
+                    .single();
+
+                if (data && !error) {
+                    setIsSaved(true);
+                }
+            } catch (error) {
+                // Not saved or error - ignore
+            }
+        }
+        checkSavedStatus();
+    }, [isAuthenticated, user, service?.id]);
+
+    // Handle save/unsave service
+    const handleSaveToggle = async () => {
+        if (!isAuthenticated) {
+            toast.error('Please sign in to save services');
+            return;
+        }
+        if (!user || !service?.id) return;
+
+        try {
+            if (isSaved) {
+                // Unsave
+                const { error } = await supabase
+                    .from('saved_services')
+                    .delete()
+                    .eq('user_id', user.id)
+                    .eq('service_id', service.id);
+
+                if (error) throw error;
+                setIsSaved(false);
+                toast.success('Service removed from saved');
+            } else {
+                // Save
+                const { error } = await supabase
+                    .from('saved_services')
+                    .insert({
+                        user_id: user.id,
+                        service_id: service.id,
+                    });
+
+                if (error) throw error;
+                setIsSaved(true);
+                toast.success('Service saved!');
+            }
+        } catch (error) {
+            console.error('Error toggling save:', error);
+            toast.error('Failed to update saved status');
+        }
+    };
+
     // Handle starting chat
     const handleStartChat = async () => {
         if (!isAuthenticated) {
@@ -204,6 +284,85 @@ export default function ServiceDetailPage({ params }: { params: { slug: string }
             window.open(service.vendor.website, '_blank');
         } else {
             toast.error('Website not available');
+        }
+    };
+
+    // Handle Request Quote Submission
+    const handleRequestQuote = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!quoteFormData.name || !quoteFormData.email || !quoteFormData.message) {
+            toast.error('Please fill in all required fields');
+            return;
+        }
+
+        setIsSubmitting(true);
+        try {
+            const { error } = await supabase
+                .from('service_inquiries')
+                .insert([{
+                    service_id: service.id,
+                    vendor_id: service.vendor?.id,
+                    user_id: user?.id || null,
+                    inquiry_type: 'quote',
+                    name: quoteFormData.name,
+                    email: quoteFormData.email,
+                    phone: quoteFormData.phone,
+                    company: quoteFormData.company,
+                    budget: quoteFormData.budget,
+                    message: quoteFormData.message,
+                    service_title: service.title,
+                }]);
+
+            if (error) throw error;
+
+            toast.success('Quote request submitted successfully! The vendor will contact you soon.');
+            setShowRequestQuoteModal(false);
+            setQuoteFormData({ name: '', email: '', phone: '', company: '', budget: '', message: '', preferred_date: '', preferred_time: '' });
+        } catch (error: any) {
+            console.error('Error submitting quote:', error);
+            toast.error(error.message || 'Failed to submit request. Please try again.');
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    // Handle Book Demo Submission
+    const handleBookDemo = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!quoteFormData.name || !quoteFormData.email || !quoteFormData.preferred_date) {
+            toast.error('Please fill in all required fields');
+            return;
+        }
+
+        setIsSubmitting(true);
+        try {
+            const { error } = await supabase
+                .from('service_inquiries')
+                .insert([{
+                    service_id: service.id,
+                    vendor_id: service.vendor?.id,
+                    user_id: user?.id || null,
+                    inquiry_type: 'demo',
+                    name: quoteFormData.name,
+                    email: quoteFormData.email,
+                    phone: quoteFormData.phone,
+                    company: quoteFormData.company,
+                    preferred_date: quoteFormData.preferred_date,
+                    preferred_time: quoteFormData.preferred_time,
+                    message: quoteFormData.message || 'Demo request',
+                    service_title: service.title,
+                }]);
+
+            if (error) throw error;
+
+            toast.success('Demo booked successfully! The vendor will confirm the schedule.');
+            setShowBookDemoModal(false);
+            setQuoteFormData({ name: '', email: '', phone: '', company: '', budget: '', message: '', preferred_date: '', preferred_time: '' });
+        } catch (error: any) {
+            console.error('Error booking demo:', error);
+            toast.error(error.message || 'Failed to book demo. Please try again.');
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
@@ -280,7 +439,7 @@ export default function ServiceDetailPage({ params }: { params: { slug: string }
                                 </h1>
                                 <div className="flex items-center gap-2">
                                     <button
-                                        onClick={() => setIsSaved(!isSaved)}
+                                        onClick={handleSaveToggle}
                                         className={`btn-icon border ${isSaved ? 'border-red-200 bg-red-50 text-red-500' : 'border-gray-200'}`}
                                     >
                                         <Heart className={`w-5 h-5 ${isSaved ? 'fill-red-500' : ''}`} />
@@ -499,6 +658,29 @@ export default function ServiceDetailPage({ params }: { params: { slug: string }
                                     Continue ({formatPrice(service.price)})
                                 </Link>
 
+                                {/* Request Quote & Book Demo Buttons */}
+                                <div className="grid grid-cols-2 gap-3 mt-4">
+                                    <button
+                                        onClick={() => setShowRequestQuoteModal(true)}
+                                        className="flex flex-col items-center gap-2 p-4 bg-gradient-to-br from-orange-50 to-amber-50 hover:from-orange-100 hover:to-amber-100 rounded-2xl border border-orange-100 transition-all group"
+                                    >
+                                        <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-amber-500 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform shadow-lg shadow-orange-500/20">
+                                            <ClipboardList className="w-5 h-5 text-white" />
+                                        </div>
+                                        <span className="text-xs font-bold text-orange-700">Request Quote</span>
+                                    </button>
+
+                                    <button
+                                        onClick={() => setShowBookDemoModal(true)}
+                                        className="flex flex-col items-center gap-2 p-4 bg-gradient-to-br from-indigo-50 to-purple-50 hover:from-indigo-100 hover:to-purple-100 rounded-2xl border border-indigo-100 transition-all group"
+                                    >
+                                        <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform shadow-lg shadow-indigo-500/20">
+                                            <Video className="w-5 h-5 text-white" />
+                                        </div>
+                                        <span className="text-xs font-bold text-indigo-700">Book Demo</span>
+                                    </button>
+                                </div>
+
                                 {/* Contact Options */}
                                 <div className="mt-4 space-y-3">
                                     <p className="text-xs font-bold text-gray-400 uppercase tracking-widest text-center">Contact Seller</p>
@@ -642,6 +824,275 @@ export default function ServiceDetailPage({ params }: { params: { slug: string }
                         myUserId={user.id}
                         onClose={() => setActiveConversationId(null)}
                     />
+                )}
+            </AnimatePresence>
+
+            {/* Request Quote Modal */}
+            <AnimatePresence>
+                {showRequestQuoteModal && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
+                        onClick={() => setShowRequestQuoteModal(false)}
+                    >
+                        <motion.div
+                            initial={{ scale: 0.95, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0.95, opacity: 0 }}
+                            className="bg-white rounded-3xl max-w-lg w-full max-h-[90vh] overflow-y-auto shadow-2xl"
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            <div className="p-6 border-b border-gray-100">
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-amber-500 rounded-2xl flex items-center justify-center">
+                                            <ClipboardList className="w-6 h-6 text-white" />
+                                        </div>
+                                        <div>
+                                            <h2 className="text-xl font-bold text-gray-900">Request a Quote</h2>
+                                            <p className="text-sm text-gray-500">Get a customized price for your project</p>
+                                        </div>
+                                    </div>
+                                    <button
+                                        onClick={() => setShowRequestQuoteModal(false)}
+                                        className="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center text-gray-500 hover:bg-gray-200 transition-colors"
+                                    >
+                                        <X className="w-5 h-5" />
+                                    </button>
+                                </div>
+                            </div>
+                            <form onSubmit={handleRequestQuote} className="p-6 space-y-5">
+                                <div className="grid sm:grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                        <label className="text-xs font-bold text-gray-500 uppercase">Name *</label>
+                                        <input
+                                            type="text"
+                                            value={quoteFormData.name}
+                                            onChange={(e) => setQuoteFormData({ ...quoteFormData, name: e.target.value })}
+                                            className="w-full h-12 px-4 rounded-xl bg-gray-50 border border-gray-200 focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all font-medium"
+                                            placeholder="John Doe"
+                                            required
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-xs font-bold text-gray-500 uppercase">Email *</label>
+                                        <input
+                                            type="email"
+                                            value={quoteFormData.email}
+                                            onChange={(e) => setQuoteFormData({ ...quoteFormData, email: e.target.value })}
+                                            className="w-full h-12 px-4 rounded-xl bg-gray-50 border border-gray-200 focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all font-medium"
+                                            placeholder="john@example.com"
+                                            required
+                                        />
+                                    </div>
+                                </div>
+                                <div className="grid sm:grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                        <label className="text-xs font-bold text-gray-500 uppercase">Phone</label>
+                                        <input
+                                            type="tel"
+                                            value={quoteFormData.phone}
+                                            onChange={(e) => setQuoteFormData({ ...quoteFormData, phone: e.target.value })}
+                                            className="w-full h-12 px-4 rounded-xl bg-gray-50 border border-gray-200 focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all font-medium"
+                                            placeholder="+91 98765 43210"
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-xs font-bold text-gray-500 uppercase">Company</label>
+                                        <input
+                                            type="text"
+                                            value={quoteFormData.company}
+                                            onChange={(e) => setQuoteFormData({ ...quoteFormData, company: e.target.value })}
+                                            className="w-full h-12 px-4 rounded-xl bg-gray-50 border border-gray-200 focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all font-medium"
+                                            placeholder="Your Company"
+                                        />
+                                    </div>
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-xs font-bold text-gray-500 uppercase">Budget Range</label>
+                                    <select
+                                        value={quoteFormData.budget}
+                                        onChange={(e) => setQuoteFormData({ ...quoteFormData, budget: e.target.value })}
+                                        className="w-full h-12 px-4 rounded-xl bg-gray-50 border border-gray-200 focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all font-medium"
+                                    >
+                                        <option value="">Select budget range</option>
+                                        <option value="under-1000">Under $1,000</option>
+                                        <option value="1000-5000">$1,000 - $5,000</option>
+                                        <option value="5000-10000">$5,000 - $10,000</option>
+                                        <option value="10000-25000">$10,000 - $25,000</option>
+                                        <option value="25000-50000">$25,000 - $50,000</option>
+                                        <option value="50000+">$50,000+</option>
+                                    </select>
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-xs font-bold text-gray-500 uppercase">Project Details *</label>
+                                    <textarea
+                                        rows={4}
+                                        value={quoteFormData.message}
+                                        onChange={(e) => setQuoteFormData({ ...quoteFormData, message: e.target.value })}
+                                        className="w-full p-4 rounded-xl bg-gray-50 border border-gray-200 focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all font-medium resize-none"
+                                        placeholder="Describe your project requirements, timeline, and any specific features you need..."
+                                        required
+                                    />
+                                </div>
+                                <button
+                                    type="submit"
+                                    disabled={isSubmitting}
+                                    className="w-full py-4 bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-xl font-bold shadow-lg shadow-orange-500/20 hover:shadow-xl hover:shadow-orange-500/30 transition-all active:scale-[0.98] flex items-center justify-center gap-2"
+                                >
+                                    {isSubmitting ? (
+                                        <Loader2 className="w-5 h-5 animate-spin" />
+                                    ) : (
+                                        <Send className="w-5 h-5" />
+                                    )}
+                                    {isSubmitting ? 'Submitting...' : 'Submit Quote Request'}
+                                </button>
+                            </form>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            {/* Book Demo Modal */}
+            <AnimatePresence>
+                {showBookDemoModal && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
+                        onClick={() => setShowBookDemoModal(false)}
+                    >
+                        <motion.div
+                            initial={{ scale: 0.95, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0.95, opacity: 0 }}
+                            className="bg-white rounded-3xl max-w-lg w-full max-h-[90vh] overflow-y-auto shadow-2xl"
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            <div className="p-6 border-b border-gray-100">
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-12 h-12 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-2xl flex items-center justify-center">
+                                            <Video className="w-6 h-6 text-white" />
+                                        </div>
+                                        <div>
+                                            <h2 className="text-xl font-bold text-gray-900">Book a Demo</h2>
+                                            <p className="text-sm text-gray-500">Schedule a call with the vendor</p>
+                                        </div>
+                                    </div>
+                                    <button
+                                        onClick={() => setShowBookDemoModal(false)}
+                                        className="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center text-gray-500 hover:bg-gray-200 transition-colors"
+                                    >
+                                        <X className="w-5 h-5" />
+                                    </button>
+                                </div>
+                            </div>
+                            <form onSubmit={handleBookDemo} className="p-6 space-y-5">
+                                <div className="grid sm:grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                        <label className="text-xs font-bold text-gray-500 uppercase">Name *</label>
+                                        <input
+                                            type="text"
+                                            value={quoteFormData.name}
+                                            onChange={(e) => setQuoteFormData({ ...quoteFormData, name: e.target.value })}
+                                            className="w-full h-12 px-4 rounded-xl bg-gray-50 border border-gray-200 focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all font-medium"
+                                            placeholder="John Doe"
+                                            required
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-xs font-bold text-gray-500 uppercase">Email *</label>
+                                        <input
+                                            type="email"
+                                            value={quoteFormData.email}
+                                            onChange={(e) => setQuoteFormData({ ...quoteFormData, email: e.target.value })}
+                                            className="w-full h-12 px-4 rounded-xl bg-gray-50 border border-gray-200 focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all font-medium"
+                                            placeholder="john@example.com"
+                                            required
+                                        />
+                                    </div>
+                                </div>
+                                <div className="grid sm:grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                        <label className="text-xs font-bold text-gray-500 uppercase">Phone</label>
+                                        <input
+                                            type="tel"
+                                            value={quoteFormData.phone}
+                                            onChange={(e) => setQuoteFormData({ ...quoteFormData, phone: e.target.value })}
+                                            className="w-full h-12 px-4 rounded-xl bg-gray-50 border border-gray-200 focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all font-medium"
+                                            placeholder="+91 98765 43210"
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-xs font-bold text-gray-500 uppercase">Company</label>
+                                        <input
+                                            type="text"
+                                            value={quoteFormData.company}
+                                            onChange={(e) => setQuoteFormData({ ...quoteFormData, company: e.target.value })}
+                                            className="w-full h-12 px-4 rounded-xl bg-gray-50 border border-gray-200 focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all font-medium"
+                                            placeholder="Your Company"
+                                        />
+                                    </div>
+                                </div>
+                                <div className="grid sm:grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                        <label className="text-xs font-bold text-gray-500 uppercase">Preferred Date *</label>
+                                        <input
+                                            type="date"
+                                            value={quoteFormData.preferred_date}
+                                            onChange={(e) => setQuoteFormData({ ...quoteFormData, preferred_date: e.target.value })}
+                                            className="w-full h-12 px-4 rounded-xl bg-gray-50 border border-gray-200 focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all font-medium"
+                                            required
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-xs font-bold text-gray-500 uppercase">Preferred Time</label>
+                                        <select
+                                            value={quoteFormData.preferred_time}
+                                            onChange={(e) => setQuoteFormData({ ...quoteFormData, preferred_time: e.target.value })}
+                                            className="w-full h-12 px-4 rounded-xl bg-gray-50 border border-gray-200 focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all font-medium"
+                                        >
+                                            <option value="">Select time</option>
+                                            <option value="09:00">9:00 AM</option>
+                                            <option value="10:00">10:00 AM</option>
+                                            <option value="11:00">11:00 AM</option>
+                                            <option value="12:00">12:00 PM</option>
+                                            <option value="14:00">2:00 PM</option>
+                                            <option value="15:00">3:00 PM</option>
+                                            <option value="16:00">4:00 PM</option>
+                                            <option value="17:00">5:00 PM</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-xs font-bold text-gray-500 uppercase">Additional Notes</label>
+                                    <textarea
+                                        rows={3}
+                                        value={quoteFormData.message}
+                                        onChange={(e) => setQuoteFormData({ ...quoteFormData, message: e.target.value })}
+                                        className="w-full p-4 rounded-xl bg-gray-50 border border-gray-200 focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all font-medium resize-none"
+                                        placeholder="Any specific topics you'd like to discuss..."
+                                    />
+                                </div>
+                                <button
+                                    type="submit"
+                                    disabled={isSubmitting}
+                                    className="w-full py-4 bg-gradient-to-r from-indigo-500 to-purple-500 text-white rounded-xl font-bold shadow-lg shadow-indigo-500/20 hover:shadow-xl hover:shadow-indigo-500/30 transition-all active:scale-[0.98] flex items-center justify-center gap-2"
+                                >
+                                    {isSubmitting ? (
+                                        <Loader2 className="w-5 h-5 animate-spin" />
+                                    ) : (
+                                        <Calendar className="w-5 h-5" />
+                                    )}
+                                    {isSubmitting ? 'Booking...' : 'Book Demo Call'}
+                                </button>
+                            </form>
+                        </motion.div>
+                    </motion.div>
                 )}
             </AnimatePresence>
         </div >

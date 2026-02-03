@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import { useCurrencyStore } from '@/lib/currency-store';
 import { fetchAllServices } from '@/lib/data-service';
+import { AuthGate } from '@/components/ui/AuthGate';
 
 // Mock data - used as fallback when no database services
 const mockServices = [
@@ -297,202 +298,281 @@ function ServicesContent() {
     });
 
     return (
-        <div className="min-h-screen bg-gray-50">
-            {/* Page Header */}
-            <div className="bg-white border-b border-gray-100">
-                <div className="container-custom py-8">
-                    <h1 className="text-3xl font-bold text-gray-900 mb-2">All Services</h1>
-                    <p className="text-gray-500">
-                        Discover {services.length}+ premium services from verified agencies
-                    </p>
+        <AuthGate contentType="services">
+            <div className="min-h-screen bg-gray-50">
+                {/* Page Header */}
+                <div className="bg-white border-b border-gray-100">
+                    <div className="container-custom py-8">
+                        <h1 className="text-3xl font-bold text-gray-900 mb-2">All Services</h1>
+                        <p className="text-gray-500">
+                            Discover {services.length}+ premium services from verified agencies
+                        </p>
+                    </div>
                 </div>
-            </div>
 
-            <div className="container-custom py-8">
-                <div className="flex flex-col lg:flex-row gap-8">
-                    {/* Main Content */}
-                    <div className="flex-1">
-                        {/* Toolbar */}
-                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
-                            {/* Search */}
-                            <div className="relative w-full sm:w-80">
-                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                                <input
-                                    type="text"
-                                    placeholder="Search services..."
-                                    value={searchQuery}
-                                    onChange={(e) => setSearchQuery(e.target.value)}
-                                    className="input pl-10"
-                                />
-                            </div>
+                <div className="container-custom py-8">
+                    <div className="flex flex-col lg:flex-row gap-8">
+                        {/* Main Content */}
+                        <div className="flex-1">
+                            {/* Toolbar */}
+                            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
+                                {/* Search */}
+                                <div className="relative w-full sm:w-80">
+                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                                    <input
+                                        type="text"
+                                        placeholder="Search services..."
+                                        value={searchQuery}
+                                        onChange={(e) => setSearchQuery(e.target.value)}
+                                        className="input pl-10"
+                                    />
+                                </div>
 
-                            <div className="flex items-center gap-4 w-full sm:w-auto">
-                                {/* Mobile Filter Button */}
-                                <button
-                                    onClick={() => setShowFilters(true)}
-                                    className="btn-outline lg:hidden"
-                                >
-                                    <SlidersHorizontal className="w-4 h-4" />
-                                    Filters
-                                </button>
-
-                                {/* Sort */}
-                                <select
-                                    value={sortBy}
-                                    onChange={(e) => setSortBy(e.target.value)}
-                                    className="input w-auto pr-10"
-                                >
-                                    {sortOptions.map((opt) => (
-                                        <option key={opt.value} value={opt.value}>{opt.label}</option>
-                                    ))}
-                                </select>
-
-                                {/* View Mode */}
-                                <div className="hidden sm:flex items-center border border-gray-200 rounded-xl overflow-hidden">
+                                <div className="flex items-center gap-4 w-full sm:w-auto">
+                                    {/* Mobile Filter Button */}
                                     <button
-                                        onClick={() => setViewMode('grid')}
-                                        className={`p-2.5 ${viewMode === 'grid' ? 'bg-primary-50 text-primary-600' : 'text-gray-400 hover:bg-gray-50'}`}
+                                        onClick={() => setShowFilters(true)}
+                                        className="btn-outline lg:hidden"
                                     >
-                                        <Grid3X3 className="w-5 h-5" />
+                                        <SlidersHorizontal className="w-4 h-4" />
+                                        Filters
                                     </button>
-                                    <button
-                                        onClick={() => setViewMode('list')}
-                                        className={`p-2.5 ${viewMode === 'list' ? 'bg-primary-50 text-primary-600' : 'text-gray-400 hover:bg-gray-50'}`}
+
+                                    {/* Sort */}
+                                    <select
+                                        value={sortBy}
+                                        onChange={(e) => setSortBy(e.target.value)}
+                                        className="input w-auto pr-10"
                                     >
-                                        <List className="w-5 h-5" />
-                                    </button>
+                                        {sortOptions.map((opt) => (
+                                            <option key={opt.value} value={opt.value}>{opt.label}</option>
+                                        ))}
+                                    </select>
+
+                                    {/* View Mode */}
+                                    <div className="hidden sm:flex items-center border border-gray-200 rounded-xl overflow-hidden">
+                                        <button
+                                            onClick={() => setViewMode('grid')}
+                                            className={`p-2.5 ${viewMode === 'grid' ? 'bg-primary-50 text-primary-600' : 'text-gray-400 hover:bg-gray-50'}`}
+                                        >
+                                            <Grid3X3 className="w-5 h-5" />
+                                        </button>
+                                        <button
+                                            onClick={() => setViewMode('list')}
+                                            className={`p-2.5 ${viewMode === 'list' ? 'bg-primary-50 text-primary-600' : 'text-gray-400 hover:bg-gray-50'}`}
+                                        >
+                                            <List className="w-5 h-5" />
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
 
-                        {/* Results Count */}
-                        <p className="text-sm text-gray-500 mb-6">
-                            Showing <span className="font-medium text-gray-900">{filteredServices.length}</span> results
-                        </p>
+                            {/* Results Count */}
+                            <p className="text-sm text-gray-500 mb-6">
+                                Showing <span className="font-medium text-gray-900">{filteredServices.length}</span> results
+                            </p>
 
-                        {/* Services Grid/List */}
-                        <div className={viewMode === 'grid'
-                            ? 'grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6'
-                            : 'space-y-4'
-                        }>
-                            {filteredServices.map((service, index) => (
-                                <motion.article
-                                    key={service.id}
-                                    initial={{ opacity: 0, y: 20 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    transition={{ delay: index * 0.05 }}
-                                    className={viewMode === 'list' ? 'card-interactive flex flex-col md:flex-row gap-6 p-4' : 'card-interactive overflow-hidden flex flex-col h-full'}
-                                >
-                                    {/* Image */}
-                                    <Link
-                                        href={`/services/${service.slug}`}
-                                        className={`${viewMode === 'list' ? 'relative w-full md:w-64 h-48 md:h-40 flex-shrink-0 overflow-hidden rounded-2xl bg-gray-50' : 'relative aspect-[16/10] overflow-hidden bg-gray-50'} block`}
+                            {/* Services Grid/List */}
+                            <div className={viewMode === 'grid'
+                                ? 'grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6'
+                                : 'space-y-4'
+                            }>
+                                {filteredServices.map((service, index) => (
+                                    <motion.article
+                                        key={service.id}
+                                        initial={{ opacity: 0, y: 20 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        transition={{ delay: index * 0.05 }}
+                                        className={viewMode === 'list' ? 'card-interactive flex flex-col md:flex-row gap-6 p-4' : 'card-interactive overflow-hidden flex flex-col h-full'}
                                     >
-                                        <div className="absolute inset-0">
-                                            <img
-                                                src={service.imageUrl}
-                                                alt={service.title}
-                                                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                                                loading="lazy"
-                                                onError={(e) => {
-                                                    (e.target as HTMLImageElement).src = `https://images.unsplash.com/photo-1581291518857-4e27b48ff24e?auto=format&fit=crop&q=80&w=800`;
-                                                }}
-                                            />
-                                            <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-60" />
-                                        </div>
-                                        <div className="absolute top-3 left-3 z-10 flex flex-col gap-2">
-                                            <div className="px-2.5 py-1.5 rounded-lg bg-white/95 backdrop-blur-md shadow-sm border border-white/20">
-                                                <span className="text-[9px] font-black text-gray-900 uppercase tracking-widest whitespace-nowrap">
-                                                    {service.category}
-                                                </span>
+                                        {/* Image */}
+                                        <Link
+                                            href={`/services/${service.slug}`}
+                                            className={`${viewMode === 'list' ? 'relative w-full md:w-64 h-48 md:h-40 flex-shrink-0 overflow-hidden rounded-2xl bg-gray-50' : 'relative aspect-[16/10] overflow-hidden bg-gray-50'} block`}
+                                        >
+                                            <div className="absolute inset-0">
+                                                <img
+                                                    src={service.imageUrl}
+                                                    alt={service.title}
+                                                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                                                    loading="lazy"
+                                                    onError={(e) => {
+                                                        (e.target as HTMLImageElement).src = `https://images.unsplash.com/photo-1581291518857-4e27b48ff24e?auto=format&fit=crop&q=80&w=800`;
+                                                    }}
+                                                />
+                                                <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-60" />
                                             </div>
-                                            {service.serviceType && (
-                                                <div className={`px-2.5 py-1.5 rounded-lg backdrop-blur-md shadow-sm border border-white/20 ${service.serviceType === 'ACADEMIC'
-                                                    ? 'bg-purple-600 text-white'
-                                                    : 'bg-primary-600 text-white'
-                                                    }`}>
-                                                    <span className="text-[9px] font-black uppercase tracking-widest whitespace-nowrap">
-                                                        {service.serviceType}
+                                            <div className="absolute top-3 left-3 z-10 flex flex-col gap-2">
+                                                <div className="px-2.5 py-1.5 rounded-lg bg-white/95 backdrop-blur-md shadow-sm border border-white/20">
+                                                    <span className="text-[9px] font-black text-gray-900 uppercase tracking-widest whitespace-nowrap">
+                                                        {service.category}
                                                     </span>
                                                 </div>
-                                            )}
-                                        </div>
-                                    </Link>
-
-                                    {/* Content */}
-                                    <div className={`flex-1 flex flex-col ${viewMode === 'list' ? 'py-2' : 'p-5'}`}>
-                                        {/* Vendor */}
-                                        <div className="flex items-center gap-1.5 text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
-                                            <span>{service.vendor.name}</span>
-                                            {service.vendor.isVerified && (
-                                                <BadgeCheck className="w-4 h-4 text-primary-500 fill-primary-500/10" />
-                                            )}
-                                        </div>
-
-                                        {/* Title */}
-                                        <Link href={`/services/${service.slug}`}>
-                                            <h3 className="font-bold text-gray-900 mb-2 line-clamp-2 hover:text-primary-600 transition-colors leading-tight">
-                                                {service.title}
-                                            </h3>
+                                                {service.serviceType && (
+                                                    <div className={`px-2.5 py-1.5 rounded-lg backdrop-blur-md shadow-sm border border-white/20 ${service.serviceType === 'ACADEMIC'
+                                                        ? 'bg-purple-600 text-white'
+                                                        : 'bg-primary-600 text-white'
+                                                        }`}>
+                                                        <span className="text-[9px] font-black uppercase tracking-widest whitespace-nowrap">
+                                                            {service.serviceType}
+                                                        </span>
+                                                    </div>
+                                                )}
+                                            </div>
                                         </Link>
 
-                                        {/* Description (list view only) */}
-                                        {viewMode === 'list' && (
-                                            <p className="text-sm text-gray-500 mb-4 line-clamp-2 flex-1 leading-relaxed">
-                                                {service.shortDescription}
-                                            </p>
-                                        )}
+                                        {/* Content */}
+                                        <div className={`flex-1 flex flex-col ${viewMode === 'list' ? 'py-2' : 'p-5'}`}>
+                                            {/* Vendor */}
+                                            <div className="flex items-center gap-1.5 text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
+                                                <span>{service.vendor.name}</span>
+                                                {service.vendor.isVerified && (
+                                                    <BadgeCheck className="w-4 h-4 text-primary-500 fill-primary-500/10" />
+                                                )}
+                                            </div>
 
-                                        {/* Rating & Delivery */}
-                                        <div className="flex items-center gap-4 text-sm mb-4">
-                                            <div className="flex items-center gap-1 bg-yellow-50 px-2 py-0.5 rounded-lg border border-yellow-100">
-                                                <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
-                                                <span className="font-bold text-yellow-700">{service.rating}</span>
-                                                <span className="text-gray-400">({service.reviewCount})</span>
-                                            </div>
-                                            <div className="flex items-center gap-1 text-gray-500 font-medium">
-                                                <Clock className="w-4 h-4 text-primary-400" />
-                                                <span>{service.deliveryDays}d Delivery</span>
-                                            </div>
-                                        </div>
-
-                                        {/* Price Section */}
-                                        <div className="mt-auto pt-4 border-t border-gray-100 flex items-center justify-between">
-                                            <div>
-                                                <span className="text-[10px] uppercase font-black text-gray-400 tracking-widest block mb-0.5">Starting From</span>
-                                                <p className="text-xl font-black text-gray-900 tracking-tight">
-                                                    {formatPrice(service.price)}
-                                                </p>
-                                            </div>
-                                            <Link
-                                                href={`/services/${service.slug}`}
-                                                className="h-10 px-5 rounded-xl bg-gray-900 text-white text-[11px] font-black uppercase tracking-widest flex items-center justify-center hover:bg-primary-600 transition-all active:scale-95 shadow-lg shadow-gray-900/10"
-                                            >
-                                                View details
+                                            {/* Title */}
+                                            <Link href={`/services/${service.slug}`}>
+                                                <h3 className="font-bold text-gray-900 mb-2 line-clamp-2 hover:text-primary-600 transition-colors leading-tight">
+                                                    {service.title}
+                                                </h3>
                                             </Link>
+
+                                            {/* Description (list view only) */}
+                                            {viewMode === 'list' && (
+                                                <p className="text-sm text-gray-500 mb-4 line-clamp-2 flex-1 leading-relaxed">
+                                                    {service.shortDescription}
+                                                </p>
+                                            )}
+
+                                            {/* Rating & Delivery */}
+                                            <div className="flex items-center gap-4 text-sm mb-4">
+                                                <div className="flex items-center gap-1 bg-yellow-50 px-2 py-0.5 rounded-lg border border-yellow-100">
+                                                    <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
+                                                    <span className="font-bold text-yellow-700">{service.rating}</span>
+                                                    <span className="text-gray-400">({service.reviewCount})</span>
+                                                </div>
+                                                <div className="flex items-center gap-1 text-gray-500 font-medium">
+                                                    <Clock className="w-4 h-4 text-primary-400" />
+                                                    <span>{service.deliveryDays}d Delivery</span>
+                                                </div>
+                                            </div>
+
+                                            {/* Price Section */}
+                                            <div className="mt-auto pt-4 border-t border-gray-100 flex items-center justify-between">
+                                                <div>
+                                                    <span className="text-[10px] uppercase font-black text-gray-400 tracking-widest block mb-0.5">Starting From</span>
+                                                    <p className="text-xl font-black text-gray-900 tracking-tight">
+                                                        {formatPrice(service.price)}
+                                                    </p>
+                                                </div>
+                                                <Link
+                                                    href={`/services/${service.slug}`}
+                                                    className="h-10 px-5 rounded-xl bg-gray-900 text-white text-[11px] font-black uppercase tracking-widest flex items-center justify-center hover:bg-primary-600 transition-all active:scale-95 shadow-lg shadow-gray-900/10"
+                                                >
+                                                    View details
+                                                </Link>
+                                            </div>
                                         </div>
+                                    </motion.article>
+                                ))}
+                            </div>
+
+                            {/* Load More */}
+                            <div className="mt-10 text-center">
+                                <button className="btn-outline">
+                                    Load More Services
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Sidebar Filters - Desktop (Now on Right) */}
+                        <aside className="hidden lg:block w-64 flex-shrink-0">
+                            <div className="card sticky top-24">
+                                <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                                    <Filter className="w-5 h-5" />
+                                    Filters
+                                </h3>
+
+                                {/* Category Filter */}
+                                <div className="mb-6">
+                                    <h4 className="text-sm font-medium text-gray-700 mb-3">Category</h4>
+                                    <div className="space-y-2">
+                                        {categories.map((cat) => (
+                                            <label key={cat} className="flex items-center gap-2 cursor-pointer">
+                                                <input
+                                                    type="radio"
+                                                    name="category"
+                                                    checked={selectedCategory === cat}
+                                                    onChange={() => setSelectedCategory(cat)}
+                                                    className="w-4 h-4 text-primary-500 focus:ring-primary-500"
+                                                />
+                                                <span className="text-sm text-gray-600">{cat}</span>
+                                            </label>
+                                        ))}
                                     </div>
-                                </motion.article>
-                            ))}
-                        </div>
+                                </div>
 
-                        {/* Load More */}
-                        <div className="mt-10 text-center">
-                            <button className="btn-outline">
-                                Load More Services
-                            </button>
-                        </div>
+                                {/* Price Range */}
+                                <div className="mb-6">
+                                    <h4 className="text-sm font-medium text-gray-700 mb-3">Price Range</h4>
+                                    <div className="flex gap-2">
+                                        <input
+                                            type="number"
+                                            placeholder="Min"
+                                            value={priceRange.min || ''}
+                                            onChange={(e) => setPriceRange(p => ({ ...p, min: Number(e.target.value) }))}
+                                            className="input text-sm py-2"
+                                        />
+                                        <input
+                                            type="number"
+                                            placeholder="Max"
+                                            value={priceRange.max || ''}
+                                            onChange={(e) => setPriceRange(p => ({ ...p, max: Number(e.target.value) }))}
+                                            className="input text-sm py-2"
+                                        />
+                                    </div>
+                                </div>
+
+                                {/* Rating Filter */}
+                                <div className="mb-6">
+                                    <h4 className="text-sm font-medium text-gray-700 mb-3">Minimum Rating</h4>
+                                    <div className="space-y-2">
+                                        {[4.5, 4.0, 3.5, 3.0].map((rating) => (
+                                            <label key={rating} className="flex items-center gap-2 cursor-pointer">
+                                                <input type="radio" name="rating" className="w-4 h-4 text-primary-500 focus:ring-primary-500" />
+                                                <div className="flex items-center gap-1">
+                                                    <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
+                                                    <span className="text-sm text-gray-600">{rating}+</span>
+                                                </div>
+                                            </label>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                <button className="btn-primary w-full">Apply Filters</button>
+                            </div>
+                        </aside>
                     </div>
+                </div>
 
-                    {/* Sidebar Filters - Desktop (Now on Right) */}
-                    <aside className="hidden lg:block w-64 flex-shrink-0">
-                        <div className="card sticky top-24">
-                            <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                                <Filter className="w-5 h-5" />
-                                Filters
-                            </h3>
-
-                            {/* Category Filter */}
+                {/* Mobile Filters Modal */}
+                {showFilters && (
+                    <div className="fixed inset-0 z-50 lg:hidden">
+                        <div className="absolute inset-0 bg-black/50" onClick={() => setShowFilters(false)} />
+                        <motion.div
+                            initial={{ x: '100%' }}
+                            animate={{ x: 0 }}
+                            exit={{ x: '100%' }}
+                            className="absolute right-0 top-0 bottom-0 w-80 bg-white p-6 overflow-y-auto"
+                        >
+                            <div className="flex items-center justify-between mb-6">
+                                <h3 className="font-semibold text-gray-900">Filters</h3>
+                                <button onClick={() => setShowFilters(false)}>
+                                    <X className="w-5 h-5" />
+                                </button>
+                            </div>
+                            {/* Same filter content as desktop */}
                             <div className="mb-6">
                                 <h4 className="text-sm font-medium text-gray-700 mb-3">Category</h4>
                                 <div className="space-y-2">
@@ -500,100 +580,23 @@ function ServicesContent() {
                                         <label key={cat} className="flex items-center gap-2 cursor-pointer">
                                             <input
                                                 type="radio"
-                                                name="category"
+                                                name="category-mobile"
                                                 checked={selectedCategory === cat}
                                                 onChange={() => setSelectedCategory(cat)}
-                                                className="w-4 h-4 text-primary-500 focus:ring-primary-500"
+                                                className="w-4 h-4 text-primary-500"
                                             />
                                             <span className="text-sm text-gray-600">{cat}</span>
                                         </label>
                                     ))}
                                 </div>
                             </div>
-
-                            {/* Price Range */}
-                            <div className="mb-6">
-                                <h4 className="text-sm font-medium text-gray-700 mb-3">Price Range</h4>
-                                <div className="flex gap-2">
-                                    <input
-                                        type="number"
-                                        placeholder="Min"
-                                        value={priceRange.min || ''}
-                                        onChange={(e) => setPriceRange(p => ({ ...p, min: Number(e.target.value) }))}
-                                        className="input text-sm py-2"
-                                    />
-                                    <input
-                                        type="number"
-                                        placeholder="Max"
-                                        value={priceRange.max || ''}
-                                        onChange={(e) => setPriceRange(p => ({ ...p, max: Number(e.target.value) }))}
-                                        className="input text-sm py-2"
-                                    />
-                                </div>
-                            </div>
-
-                            {/* Rating Filter */}
-                            <div className="mb-6">
-                                <h4 className="text-sm font-medium text-gray-700 mb-3">Minimum Rating</h4>
-                                <div className="space-y-2">
-                                    {[4.5, 4.0, 3.5, 3.0].map((rating) => (
-                                        <label key={rating} className="flex items-center gap-2 cursor-pointer">
-                                            <input type="radio" name="rating" className="w-4 h-4 text-primary-500 focus:ring-primary-500" />
-                                            <div className="flex items-center gap-1">
-                                                <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
-                                                <span className="text-sm text-gray-600">{rating}+</span>
-                                            </div>
-                                        </label>
-                                    ))}
-                                </div>
-                            </div>
-
-                            <button className="btn-primary w-full">Apply Filters</button>
-                        </div>
-                    </aside>
-                </div>
-            </div>
-
-            {/* Mobile Filters Modal */}
-            {showFilters && (
-                <div className="fixed inset-0 z-50 lg:hidden">
-                    <div className="absolute inset-0 bg-black/50" onClick={() => setShowFilters(false)} />
-                    <motion.div
-                        initial={{ x: '100%' }}
-                        animate={{ x: 0 }}
-                        exit={{ x: '100%' }}
-                        className="absolute right-0 top-0 bottom-0 w-80 bg-white p-6 overflow-y-auto"
-                    >
-                        <div className="flex items-center justify-between mb-6">
-                            <h3 className="font-semibold text-gray-900">Filters</h3>
-                            <button onClick={() => setShowFilters(false)}>
-                                <X className="w-5 h-5" />
+                            <button className="btn-primary w-full" onClick={() => setShowFilters(false)}>
+                                Apply Filters
                             </button>
-                        </div>
-                        {/* Same filter content as desktop */}
-                        <div className="mb-6">
-                            <h4 className="text-sm font-medium text-gray-700 mb-3">Category</h4>
-                            <div className="space-y-2">
-                                {categories.map((cat) => (
-                                    <label key={cat} className="flex items-center gap-2 cursor-pointer">
-                                        <input
-                                            type="radio"
-                                            name="category-mobile"
-                                            checked={selectedCategory === cat}
-                                            onChange={() => setSelectedCategory(cat)}
-                                            className="w-4 h-4 text-primary-500"
-                                        />
-                                        <span className="text-sm text-gray-600">{cat}</span>
-                                    </label>
-                                ))}
-                            </div>
-                        </div>
-                        <button className="btn-primary w-full" onClick={() => setShowFilters(false)}>
-                            Apply Filters
-                        </button>
-                    </motion.div>
-                </div>
-            )}
-        </div>
+                        </motion.div>
+                    </div>
+                )}
+            </div>
+        </AuthGate>
     );
 }

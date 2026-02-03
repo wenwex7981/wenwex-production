@@ -71,12 +71,10 @@ export default function ContactPageClient({ pageData }: ContactPageClientProps) 
                     name: formData.name,
                     email: formData.email,
                     phone: formData.phone || null,
-                    company_name: formData.company || null,
+                    company: formData.company || null,
                     inquiry_type: formData.inquiryType,
                     subject: formData.subject,
                     message: formData.message,
-                    status: 'pending',
-                    created_at: new Date().toISOString()
                 });
 
             if (error) {
