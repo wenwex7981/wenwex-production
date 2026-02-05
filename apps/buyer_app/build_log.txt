@@ -1,0 +1,33 @@
+Running Gradle task 'assembleRelease'...                        
+'C:\Users\kamboja' is not recognized as an internal or external command,
+operable program or batch file.
+
+Building native assets for package:objective_c failed.
+Compilation of hook returned with exit code: 1.
+To reproduce run:
+C:\Users\kamboja Srilaxmi\Downloads\flutter_windows_3.38.5-stable\flutter\bin\cache\dart-sdk\bin\dart compile kernel '--packages=C:\Users\kamboja Srilaxmi\OneDrive\Desktop\wen_prod\wenwex-production\apps\buyer_app\.dart_tool\package_config.json' '--output=C:\Users\kamboja Srilaxmi\OneDrive\Desktop\wen_prod\wenwex-production\apps\buyer_app\.dart_tool\hooks_runner\objective_c\b40070b99d05b8c3c221031b576db572\hook.dill' '--depfile=C:\Users\kamboja Srilaxmi\OneDrive\Desktop\wen_prod\wenwex-production\apps\buyer_app\.dart_tool\hooks_runner\objective_c\b40070b99d05b8c3c221031b576db572\hook.dill.d' 'C:\Users\kamboja Srilaxmi\AppData\Local\Pub\Cache\hosted\pub.dev\objective_c-9.2.5\hook\build.dart'
+stderr:
+'C:\Users\kamboja' is not recognized as an internal or external command,
+operable program or batch file.
+
+stdout:
+
+
+Target dart_build failed: Error: Building native assets failed. See the logs for more details.
+
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':app:compileFlutterBuildRelease'.
+> Process 'command 'C:\Users\kamboja Srilaxmi\Downloads\flutter_windows_3.38.5-stable\flutter\bin\flutter.bat'' finished with non-zero exit value 1
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights.
+> Get more help at https://help.gradle.org.
+
+BUILD FAILED in 8s
+Running Gradle task 'assembleRelease'...                            9.4s
+Gradle task assembleRelease failed with exit code 1
