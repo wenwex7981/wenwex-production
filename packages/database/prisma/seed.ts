@@ -4,7 +4,7 @@
 // This script seeds the database with initial data including
 // categories, subcategories, homepage sections, countries, and subscription pricing
 
-import { PrismaClient, CategoryType, SubscriptionPlan } from '@prisma/client';
+import { PrismaClient, CategoryType, SubscriptionPlanType } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
@@ -202,16 +202,16 @@ async function main() {
 
     // India Pricing (INR)
     const indiaPricing = [
-        { plan: SubscriptionPlan.STARTER, country: 'IN', currency: 'INR', monthlyPrice: 1499, yearlyPrice: 14990, features: ['Up to 5 services', '10 portfolio items', '5 shorts/month', 'Email support'] },
-        { plan: SubscriptionPlan.PROFESSIONAL, country: 'IN', currency: 'INR', monthlyPrice: 2999, yearlyPrice: 29990, features: ['Up to 25 services', '50 portfolio items', '25 shorts/month', 'Priority support', 'Featured badge'] },
-        { plan: SubscriptionPlan.ENTERPRISE, country: 'IN', currency: 'INR', monthlyPrice: 4999, yearlyPrice: 49990, features: ['Unlimited services', 'Unlimited portfolio', 'Unlimited shorts', 'Dedicated manager', 'Custom branding'] },
+        { plan: SubscriptionPlanType.STARTER, country: 'IN', currency: 'INR', monthlyPrice: 1499, yearlyPrice: 14990, features: ['Up to 5 services', '10 portfolio items', '5 shorts/month', 'Email support'] },
+        { plan: SubscriptionPlanType.PROFESSIONAL, country: 'IN', currency: 'INR', monthlyPrice: 2999, yearlyPrice: 29990, features: ['Up to 25 services', '50 portfolio items', '25 shorts/month', 'Priority support', 'Featured badge'] },
+        { plan: SubscriptionPlanType.ENTERPRISE, country: 'IN', currency: 'INR', monthlyPrice: 4999, yearlyPrice: 49990, features: ['Unlimited services', 'Unlimited portfolio', 'Unlimited shorts', 'Dedicated manager', 'Custom branding'] },
     ];
 
     // Global Pricing (USD) - applies to all other countries
     const globalPricing = [
-        { plan: SubscriptionPlan.STARTER, country: 'US', currency: 'USD', monthlyPrice: 19, yearlyPrice: 190, features: ['Up to 5 services', '10 portfolio items', '5 shorts/month', 'Email support'] },
-        { plan: SubscriptionPlan.PROFESSIONAL, country: 'US', currency: 'USD', monthlyPrice: 49, yearlyPrice: 490, features: ['Up to 25 services', '50 portfolio items', '25 shorts/month', 'Priority support', 'Featured badge'] },
-        { plan: SubscriptionPlan.ENTERPRISE, country: 'US', currency: 'USD', monthlyPrice: 99, yearlyPrice: 990, features: ['Unlimited services', 'Unlimited portfolio', 'Unlimited shorts', 'Dedicated manager', 'Custom branding'] },
+        { plan: SubscriptionPlanType.STARTER, country: 'US', currency: 'USD', monthlyPrice: 19, yearlyPrice: 190, features: ['Up to 5 services', '10 portfolio items', '5 shorts/month', 'Email support'] },
+        { plan: SubscriptionPlanType.PROFESSIONAL, country: 'US', currency: 'USD', monthlyPrice: 49, yearlyPrice: 490, features: ['Up to 25 services', '50 portfolio items', '25 shorts/month', 'Priority support', 'Featured badge'] },
+        { plan: SubscriptionPlanType.ENTERPRISE, country: 'US', currency: 'USD', monthlyPrice: 99, yearlyPrice: 990, features: ['Unlimited services', 'Unlimited portfolio', 'Unlimited shorts', 'Dedicated manager', 'Custom branding'] },
     ];
 
     for (const pricing of [...indiaPricing, ...globalPricing]) {

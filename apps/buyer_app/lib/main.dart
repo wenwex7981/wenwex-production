@@ -6,6 +6,10 @@ import 'core/constants.dart';
 import 'core/theme.dart';
 import 'features/auth/login_screen.dart';
 import 'features/auth/register_screen.dart';
+import 'features/home/main_layout.dart';
+import 'features/services/service_details_screen.dart';
+import 'features/cart/cart_screen.dart';
+import 'features/vendors/vendor_profile_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -31,7 +35,22 @@ final _router = GoRouter(
     ),
     GoRoute(
       path: '/home',
-      builder: (context, state) => const Scaffold(body: Center(child: Text('Home'))),
+      builder: (context, state) => const MainLayout(),
+    ),
+    GoRoute(
+      path: '/service-details/:id',
+      builder: (context, state) {
+        final id = state.pathParameters['id'] ?? '0';
+        return ServiceDetailsScreen(serviceId: id);
+      },
+    ),
+    GoRoute(
+      path: '/cart',
+      builder: (context, state) => const CartScreen(),
+    ),
+    GoRoute(
+      path: '/vendor/:id',
+      builder: (context, state) => const VendorProfileScreen(),
     ),
   ],
 );
